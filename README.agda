@@ -5,7 +5,7 @@
 
 {-# OPTIONS --without-K #-}
 
-module Partiality-monad where
+module README where
 
 -- A higher inductive-inductive definition of the partiality monad.
 

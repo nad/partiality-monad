@@ -1,3 +1,3 @@
 name: partiality-monad
 depend: equality
-include: .
+include: src
