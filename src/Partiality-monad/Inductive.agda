@@ -605,6 +605,17 @@ module _ {a} {A : Set a} where
 
   syntax finally-⊑ x y x⊑y = x ⊑⟨ x⊑y ⟩■ y ■
 
+  -- ⨆ is monotone (assuming extensionality).
+
+  ⨆-mono : Extensionality a a →
+           {s₁ s₂ : Increasing-sequence A} →
+           (∀ n → s₁ [ n ] ⊑ s₂ [ n ]) → ⨆ s₁ ⊑ ⨆ s₂
+  ⨆-mono ext {s₁} {s₂} s₁⊑s₂ =
+    least-upper-bound s₁ (⨆ s₂) (λ n →
+      s₁ [ n ]  ⊑⟨ s₁⊑s₂ n , ext ⟩
+      s₂ [ n ]  ⊑⟨ upper-bound s₂ n ⟩■
+      ⨆ s₂      ■)
+
   private
 
     -- A lemma.
