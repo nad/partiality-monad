@@ -588,7 +588,7 @@ module _ {a} {A : Set a} where
 
   infix  -1 finally-⊑
   infix  -1 _■
-  infixr -2 _⊑⟨_,_⟩_ _⊑⟨⟩_
+  infixr -2 _⊑⟨_,_⟩_ _⊑⟨⟩_ _⊑⟨_⟩≡_
 
   _⊑⟨_,_⟩_ : (x {y z} : A ⊥) → x ⊑ y →
              Extensionality a a → y ⊑ z → x ⊑ z
@@ -596,6 +596,10 @@ module _ {a} {A : Set a} where
 
   _⊑⟨⟩_ : (x {y} : A ⊥) → x ⊑ y → x ⊑ y
   _ ⊑⟨⟩ x⊑y = x⊑y
+
+  _⊑⟨_⟩≡_ : (x {y z} : A ⊥) → x ≡ y →
+            y ⊑ z → x ⊑ z
+  _ ⊑⟨ refl ⟩≡ y⊑z = y⊑z
 
   _■ : (x : A ⊥) → x ⊑ x
   x ■ = ⊑-refl x
