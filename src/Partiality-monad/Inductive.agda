@@ -980,7 +980,7 @@ module _ {a} {A : Set a} where
     (least-upper-bound (tailˢ s) (⨆ s) (λ n →
        s [ suc n ]  ⊑⟨ upper-bound s (suc n) ⟩■
        ⨆ s          ■))
-    (⨆-mono ext (λ n → s [ n ]      ⊑⟨ proj₂ s n ⟩■
+    (⨆-mono ext (λ n → s [ n ]      ⊑⟨ increasing s n ⟩■
                        s [ suc n ]  ■))
 
   -- An increasing sequence consisting of repeated applications of the
