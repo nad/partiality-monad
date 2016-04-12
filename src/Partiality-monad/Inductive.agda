@@ -872,7 +872,7 @@ _>>=_ : ∀ {a b} {A : Set a} {B : Set b} →
         A ⊥ → (A → B ⊥) → B ⊥
 x >>= f = proj₁ (proj₁ (f ∗)) x
 
--- Monad laws.
+-- Monad laws (proved using extensionality).
 
 left-identity : ∀ {a b} {A : Set a} {B : Set b} x (f : A → B ⊥) →
                 return x >>= f ≡ f x
@@ -915,7 +915,7 @@ associativity ext x f g = ⊥-rec-Prop
      })
   x
 
--- _⊥ is a functor.
+-- _⊥ is a functor (assuming extensionality).
 
 map : ∀ {a b} {A : Set a} {B : Set b} →
       (A → B) → [ A ⊥→ B ⊥]
