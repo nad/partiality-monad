@@ -966,20 +966,6 @@ module _ {a} {A : Set a} where
     proj₁ (comp f n ∘⊑ f) (proj₁ f x)  ≡⟨ pre≡post f n ⟩∎
     proj₁ (f ∘⊑ comp f n) (proj₁ f x)  ∎
 
-  -- Repeated application of a monotone function.
-
-  _^^_ : [ A ⊥→ A ⊥]⊑ → ℕ → A ⊥ → A ⊥
-  f ^^ n = proj₁ (comp f n)
-
-  -- If you start with never and apply a monotone function repeatedly,
-  -- then you get larger and larger values (although perhaps not
-  -- strictly larger).
-
-  larger-and-larger : ∀ f n → (f ^^ n) never ⊑ (f ^^ suc n) never
-  larger-and-larger f n =
-    (f ^^ n) never            ⊑⟨ proj₂ (comp f n) (never⊑ (proj₁ f never)) ⟩■
-    (f ^^ n) (proj₁ f never)  ■
-
   -- The tail of an increasing sequence.
 
   tailˢ : Increasing-sequence A → Increasing-sequence A
@@ -1001,8 +987,11 @@ module _ {a} {A : Set a} where
   -- given monotone function to never.
 
   fix-sequence : [ A ⊥→ A ⊥]⊑ → Increasing-sequence A
-  fix-sequence f = (λ n → proj₁ (comp f n) never)
-                 , larger-and-larger f
+  fix-sequence f =
+      (λ n → proj₁ (comp f n) never)
+    , (λ n →
+         proj₁ (comp f n) never            ⊑⟨ proj₂ (comp f n) (never⊑ (proj₁ f never)) ⟩■
+         proj₁ (comp f n) (proj₁ f never)  ■)
 
   -- Taking the tail of this sequence amounts to the same thing as
   -- applying the function to each element in the sequence (assuming
