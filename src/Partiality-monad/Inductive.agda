@@ -944,3 +944,118 @@ map-∘ {a} ext f g =
     x >>= (return ∘ g) >>= (return ∘ f)          ∎) ⟩∎
 
   (return ∘ f) ∗ ∘ω (return ∘ g) ∗  ∎
+
+------------------------------------------------------------------------
+-- A fixpoint combinator
+
+module _ {a} {A : Set a} where
+
+  -- Repeated composition of a monotone function with itself.
+
+  comp : [ A ⊥→ A ⊥]⊑ → ℕ → [ A ⊥→ A ⊥]⊑
+  comp f zero    = id⊑
+  comp f (suc n) = comp f n ∘⊑ f
+
+  -- Pre-composition with the function is pointwise equal to
+  -- post-composition with the function.
+
+  pre≡post : ∀ f n {x} →
+             proj₁ (comp f n ∘⊑ f) x ≡ proj₁ (f ∘⊑ comp f n) x
+  pre≡post f zero        = refl
+  pre≡post f (suc n) {x} =
+    proj₁ (comp f n ∘⊑ f) (proj₁ f x)  ≡⟨ pre≡post f n ⟩∎
+    proj₁ (f ∘⊑ comp f n) (proj₁ f x)  ∎
+
+  -- Repeated application of a monotone function.
+
+  _^^_ : [ A ⊥→ A ⊥]⊑ → ℕ → A ⊥ → A ⊥
+  f ^^ n = proj₁ (comp f n)
+
+  -- If you start with never and apply a monotone function repeatedly,
+  -- then you get larger and larger values (although perhaps not
+  -- strictly larger).
+
+  larger-and-larger : ∀ f n → (f ^^ n) never ⊑ (f ^^ suc n) never
+  larger-and-larger f n =
+    (f ^^ n) never            ⊑⟨ proj₂ (comp f n) (never⊑ (proj₁ f never)) ⟩■
+    (f ^^ n) (proj₁ f never)  ■
+
+  -- The tail of an increasing sequence.
+
+  tailˢ : Increasing-sequence A → Increasing-sequence A
+  tailˢ = Σ-map (_∘ suc) (_∘ suc)
+
+  -- The tail has the same least upper bound as the full sequence
+  -- (assuming extensionality).
+
+  ⨆tail≡⨆ : Extensionality a a →
+            ∀ s → ⨆ (tailˢ s) ≡ ⨆ s
+  ⨆tail≡⨆ ext s = antisymmetry
+    (least-upper-bound (tailˢ s) (⨆ s) (λ n →
+       s [ suc n ]  ⊑⟨ upper-bound s (suc n) ⟩■
+       ⨆ s          ■))
+    (⨆-mono ext (λ n → s [ n ]      ⊑⟨ proj₂ s n ⟩■
+                       s [ suc n ]  ■))
+
+  -- An increasing sequence consisting of repeated applications of the
+  -- given monotone function to never.
+
+  fix-sequence : [ A ⊥→ A ⊥]⊑ → Increasing-sequence A
+  fix-sequence f = (λ n → proj₁ (comp f n) never)
+                 , larger-and-larger f
+
+  -- Taking the tail of this sequence amounts to the same thing as
+  -- applying the function to each element in the sequence (assuming
+  -- extensionality).
+
+  tailˢ-fix-sequence :
+    Extensionality lzero a →
+    (f : [ A ⊥→ A ⊥]⊑) →
+    tailˢ (fix-sequence f) ≡ [ f $ fix-sequence f ]-inc
+  tailˢ-fix-sequence ext f =
+    _↔_.to (equality-characterisation-increasing ext) λ n →
+      proj₁ (comp f n ∘⊑ f) never  ≡⟨ pre≡post f n ⟩∎
+      proj₁ (f ∘⊑ comp f n) never  ∎
+
+  -- The sequence has the same least upper bound as the sequence you
+  -- get if you apply the function to each element of the sequence
+  -- (assuming extensionality).
+
+  ⨆-fix-sequence :
+    Extensionality a a →
+    (f : [ A ⊥→ A ⊥]⊑) →
+    ⨆ (fix-sequence f) ≡ ⨆ [ f $ fix-sequence f ]-inc
+  ⨆-fix-sequence ext f =
+    ⨆ (fix-sequence f)            ≡⟨ sym $ ⨆tail≡⨆ ext _ ⟩
+    ⨆ (tailˢ (fix-sequence f))    ≡⟨ cong ⨆ (tailˢ-fix-sequence (lower-extensionality _ lzero ext) f) ⟩∎
+    ⨆ [ f $ fix-sequence f ]-inc  ∎
+
+  -- A fixpoint combinator.
+
+  fix : [ A ⊥→ A ⊥]⊑ → A ⊥
+  fix f = ⨆ (fix-sequence f)
+
+  -- The fixpoint combinator produces fixpoints for ω-continuous
+  -- arguments (assuming extensionality).
+
+  fix-is-fixpoint-combinator :
+    Extensionality a a →
+    (fω : [ A ⊥→ A ⊥]) →
+    let f⊑ : [ A ⊥→ A ⊥]⊑
+        f⊑ = proj₁ fω
+
+        f : A ⊥ → A ⊥
+        f = proj₁ f⊑
+    in fix f⊑ ≡ f (fix f⊑)
+  fix-is-fixpoint-combinator ext fω =
+    fix f⊑                          ≡⟨⟩
+    ⨆ (fix-sequence f⊑)             ≡⟨ ⨆-fix-sequence ext f⊑ ⟩
+    ⨆ [ f⊑ $ fix-sequence f⊑ ]-inc  ≡⟨ sym $ proj₂ fω _ ⟩
+    f (⨆ (fix-sequence f⊑))         ≡⟨ refl ⟩∎
+    f (fix f⊑)                      ∎
+    where
+    f⊑ : [ A ⊥→ A ⊥]⊑
+    f⊑ = proj₁ fω
+
+    f : A ⊥ → A ⊥
+    f = proj₁ f⊑
