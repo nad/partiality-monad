@@ -360,9 +360,8 @@ module _ {a p q} {A : Set a}
 
   -- Computation rules for _⊥.
   --
-  -- NOTE: There is no computation rule corresponding to
-  -- ⊥-is-set, and rewriting has not been activated for the
-  -- "computation" rule corresponding to antisymmetry.
+  -- NOTE: Rewriting has not been activated for the "computation" rule
+  -- corresponding to antisymmetry.
 
   postulate
 
