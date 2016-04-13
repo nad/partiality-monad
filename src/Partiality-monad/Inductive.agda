@@ -1148,6 +1148,23 @@ module _ {a} {A : Set a} where
     f : A ⊥ → A ⊥
     f = proj₁ f⊑
 
+  -- A variant of fix.
+
+  fix′ : (A → A ⊥) → A ⊥
+  fix′ f = fix (proj₁ (f ∗))
+
+  -- This variant also produces a kind of fixpoint (assuming
+  -- extensionality).
+
+  fix′-is-fixpoint-combinator :
+    Extensionality a a →
+    (f : A → A ⊥) →
+    fix′ f ≡ fix′ f >>= f
+  fix′-is-fixpoint-combinator ext f =
+    fix′ f                   ≡⟨⟩
+    fix (proj₁ (f ∗))        ≡⟨ fix-is-fixpoint-combinator ext (f ∗) ⟩∎
+    fix (proj₁ (f ∗)) >>= f  ∎
+
 ------------------------------------------------------------------------
 -- Another fixpoint combinator
 
