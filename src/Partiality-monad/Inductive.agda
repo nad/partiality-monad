@@ -1029,6 +1029,17 @@ equality-characterisation-strict {f = f} {g} ext =
   f⊑ = proj₁ fω
   f  = proj₁ f⊑
 
+-- Strict ω-continuous functions are logically equivalent to regular
+-- partial functions.
+
+partial⇔strict :
+  ∀ {a b} {A : Set a} {B : Set b} →
+  (A → B ⊥) ⇔ [ A ⊥→ B ⊥]-strict
+partial⇔strict = record
+  { to   = λ f → f ∗ , refl
+  ; from = λ f x → proj₁ (proj₁ (proj₁ f)) (return x)
+  }
+
 -- Strict ω-continuous functions are isomorphic to regular partial
 -- functions (assuming extensionality).
 
@@ -1038,11 +1049,8 @@ partial↔strict :
   (A → B ⊥) ↔ [ A ⊥→ B ⊥]-strict
 partial↔strict {a} ext = record
   { surjection = record
-    { logical-equivalence = record
-      { to   = λ f → f ∗ , refl
-      ; from = λ f x → proj₁ (proj₁ (proj₁ f)) (return x)
-      }
-    ; right-inverse-of = λ fs →
+    { logical-equivalence = partial⇔strict
+    ; right-inverse-of    = λ fs →
         let f = proj₁ (proj₁ (proj₁ fs)) in
         _↔_.to (equality-characterisation-strict ext) λ x →
           x >>= (f ∘ return)  ≡⟨ >>=-∘-return (lower-extensionality _ a ext) fs x ⟩∎
