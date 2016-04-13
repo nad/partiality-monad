@@ -1139,3 +1139,90 @@ module _ {a} {A : Set a} where
 
     f : A ⊥ → A ⊥
     f = proj₁ f⊑
+
+------------------------------------------------------------------------
+-- Another fixpoint combinator
+
+-- TODO: Is it possible to find some suitable abstraction and have
+-- only one implementation of a fixpoint combinator?
+
+-- Partial function transformers.
+
+Trans : ∀ {a b} → Set a → Set b → Set (a ⊔ b)
+Trans A B = (A → B ⊥) → (A → B ⊥)
+
+-- Monotone partial function transformers.
+
+Trans-⊑ : ∀ {a b} → Set a → Set b → Set (a ⊔ b)
+Trans-⊑ A B = ∃ λ (f : (A → B ⊥) → (A → B ⊥)) →
+            ∀ {g₁ g₂} → (∀ x → g₁ x ⊑ g₂ x) → ∀ x → f g₁ x ⊑ f g₂ x
+
+-- Monotone partial function transformers can be turned into
+-- parametrised increasing sequence transformers.
+
+[_$_at_]-inc :
+  ∀ {a b} {A : Set a} {B : Set b} →
+  Trans-⊑ A B →
+  (A → Increasing-sequence B) → (A → Increasing-sequence B)
+[ f $ s at x ]-inc =
+    (λ n → proj₁ f (λ x → s x [ n ]) x)
+  , (λ n → proj₂ f (λ x → increasing (s x) n) x)
+
+-- Partial function transformers that are ω-continuous.
+
+Trans-ω : ∀ {a b} → Set a → Set b → Set (a ⊔ b)
+Trans-ω A B = ∃ λ (f : Trans-⊑ A B) →
+                (s : A → Increasing-sequence B) (x : A) →
+                proj₁ f (⨆ ∘ s) x ≡ ⨆ [ f $ s at x ]-inc
+
+module _ {a b} {A : Set a} {B : Set b} where
+
+  -- Repeated application of a partial function transformer to never.
+
+  app : Trans A B → ℕ → (A → B ⊥)
+  app f zero    = const never
+  app f (suc n) = f (app f n)
+
+  -- An increasing sequence consisting of repeated applications of the
+  -- given partial function transformer to never.
+
+  fix→-sequence : (f : Trans-⊑ A B) → A → Increasing-sequence B
+  fix→-sequence f x =
+      (λ n → app (proj₁ f) n x)
+    , (λ n →
+         app (proj₁ f) n       x  ⊑⟨ app-increasing n x ⟩■
+         app (proj₁ f) (suc n) x  ■)
+    where
+    app-increasing :
+      ∀ n x → app (proj₁ f) n x ⊑ app (proj₁ f) (suc n) x
+    app-increasing zero    = never⊑ ∘ proj₁ f (const never)
+    app-increasing (suc n) = proj₂ f (app-increasing n)
+
+  -- A fixpoint combinator.
+
+  fix→ : Trans-⊑ A B → (A → B ⊥)
+  fix→ f x = ⨆ (fix→-sequence f x)
+
+  -- The fixpoint combinator produces fixpoints for ω-continuous
+  -- arguments (assuming extensionality).
+
+  fix→-is-fixpoint-combinator :
+    Extensionality (a ⊔ b) b →
+    (fω : Trans-ω A B) →
+    let f⊑ : Trans-⊑ A B
+        f⊑ = proj₁ fω
+
+        f : Trans A B
+        f = proj₁ f⊑
+    in
+    fix→ f⊑ ≡ f (fix→ f⊑)
+  fix→-is-fixpoint-combinator ext (f , ω-cont) =
+    lower-extensionality b lzero ext λ x →
+      fix→ f x                            ≡⟨⟩
+      ⨆ (fix→-sequence f x)               ≡⟨ sym $ ⨆tail≡⨆ (lower-extensionality a lzero ext) _ ⟩
+      ⨆ (tailˢ (fix→-sequence f x))       ≡⟨ cong ⨆ (_↔_.to (equality-characterisation-increasing
+                                                               (lower-extensionality _ lzero ext))
+                                                            (λ _ → refl)) ⟩
+      ⨆ [ f $ fix→-sequence f at x ]-inc  ≡⟨ sym $ ω-cont (fix→-sequence f) x ⟩
+      proj₁ f (⨆ ∘ fix→-sequence f) x     ≡⟨ refl ⟩∎
+      proj₁ f (fix→ f) x                  ∎
