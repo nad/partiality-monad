@@ -619,6 +619,18 @@ module _ {a} {A : Set a} where
       s₂ [ n ]  ⊑⟨ upper-bound s₂ n ⟩■
       ⨆ s₂      ■)
 
+  -- Later elements in an increasing sequence are larger (assuming
+  -- extensionality).
+
+  later-larger : Extensionality a a →
+                 (s : Increasing-sequence A) →
+                 ∀ {m n} → m ≤ n → s [ m ] ⊑ s [ n ]
+  later-larger _   s {m} ≤-refl             = s [ m ] ■
+  later-larger ext s {m} (≤-step {n = n} p) =
+    s [ m ]      ⊑⟨ later-larger ext s p , ext ⟩
+    s [ n ]      ⊑⟨ increasing s n ⟩■
+    s [ suc n ]  ■
+
   private
 
     -- A lemma.
