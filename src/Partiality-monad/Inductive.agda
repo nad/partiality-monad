@@ -660,6 +660,23 @@ module _ {a} {A : Set a} where
                                        ⊑-propositional) ⟩□
     s₁ ≡ s₂                      □
 
+  -- The tail of an increasing sequence.
+
+  tailˢ : Increasing-sequence A → Increasing-sequence A
+  tailˢ = Σ-map (_∘ suc) (_∘ suc)
+
+  -- The tail has the same least upper bound as the full sequence
+  -- (assuming extensionality).
+
+  ⨆tail≡⨆ : Extensionality a a →
+            ∀ s → ⨆ (tailˢ s) ≡ ⨆ s
+  ⨆tail≡⨆ ext s = antisymmetry
+    (least-upper-bound (tailˢ s) (⨆ s) (λ n →
+       s [ suc n ]  ⊑⟨ upper-bound s (suc n) ⟩■
+       ⨆ s          ■))
+    (⨆-mono ext (λ n → s [ n ]      ⊑⟨ increasing s n ⟩■
+                       s [ suc n ]  ■))
+
   -- Only never is smaller than or equal to never.
 
   only-never-⊑-never : {x : A ⊥} → x ⊑ never → x ≡ never
@@ -1056,23 +1073,6 @@ module _ {a} {A : Set a} where
   pre≡post f (suc n) {x} =
     proj₁ (comp f n ∘⊑ f) (proj₁ f x)  ≡⟨ pre≡post f n ⟩∎
     proj₁ (f ∘⊑ comp f n) (proj₁ f x)  ∎
-
-  -- The tail of an increasing sequence.
-
-  tailˢ : Increasing-sequence A → Increasing-sequence A
-  tailˢ = Σ-map (_∘ suc) (_∘ suc)
-
-  -- The tail has the same least upper bound as the full sequence
-  -- (assuming extensionality).
-
-  ⨆tail≡⨆ : Extensionality a a →
-            ∀ s → ⨆ (tailˢ s) ≡ ⨆ s
-  ⨆tail≡⨆ ext s = antisymmetry
-    (least-upper-bound (tailˢ s) (⨆ s) (λ n →
-       s [ suc n ]  ⊑⟨ upper-bound s (suc n) ⟩■
-       ⨆ s          ■))
-    (⨆-mono ext (λ n → s [ n ]      ⊑⟨ increasing s n ⟩■
-                       s [ suc n ]  ■))
 
   -- An increasing sequence consisting of repeated applications of the
   -- given monotone function to never.
