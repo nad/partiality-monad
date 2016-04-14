@@ -289,13 +289,13 @@ module _ {a} {A : Set a} where
     antisymmetry : {x y : A ⊥} → x ⊑ y → x ⊒ y → x ≡ y
 
     -- _⊑_ "constructors".
-    ⊑-refl            : (x : A ⊥) → x ⊑ x
-    never⊑            : (x : A ⊥) → never ⊑ x
-    upper-bound′      : (s : Increasing-sequence A) (ub : A ⊥) →
-                        ⨆ s ⊑ ub → Is-upper-bound s ub
-    least-upper-bound : (s : Increasing-sequence A) (ub : A ⊥) →
-                        Is-upper-bound s ub → ⨆ s ⊑ ub
-    ⊑-propositional   : {x y : A ⊥} → Is-proposition (x ⊑ y)
+    ⊑-refl             : (x : A ⊥) → x ⊑ x
+    never⊑             : (x : A ⊥) → never ⊑ x
+    upper-bound′       : (s : Increasing-sequence A) (ub : A ⊥) →
+                         ⨆ s ⊑ ub → Is-upper-bound s ub
+    least-upper-bound  : (s : Increasing-sequence A) (ub : A ⊥) →
+                         Is-upper-bound s ub → ⨆ s ⊑ ub
+    ⊑-proof-irrelevant : {x y : A ⊥} → Proof-irrelevant (x ⊑ y)
 
   -- Predicate transformer related to increasing sequences.
 
@@ -339,7 +339,7 @@ record Rec-args
          (qu : ∀ n → Q (proj₁ pq n) pu (is-ub n)) →
          Q (pl s pq) pu (least-upper-bound s ub is-ub)
     qp : ∀ {x y} (p-x : P x) (p-y : P y) (x⊑y : x ⊑ y) →
-         Is-proposition (Q p-x p-y x⊑y)
+         Proof-irrelevant (Q p-x p-y x⊑y)
 
 -- The eliminators.
 
@@ -381,7 +381,7 @@ module _ {a p q} {A : Set a}
   -- Computation rules for _⊑_.
   --
   -- NOTE: There is no computation rule corresponding to
-  -- ⊑-propositional.
+  -- ⊑-proof-irrelevant.
 
   postulate
 
@@ -452,7 +452,7 @@ module _ {a p q} {A : Set a} {P : Set p} {Q : P → P → Set q}
       ; qe = qe
       ; qu = qu
       ; ql = ql
-      ; qp = λ p-x p-y _ → qp p-x p-y
+      ; qp = λ p-x p-y _ → _⇔_.to propositional⇔irrelevant (qp p-x p-y)
       }
 
   ⊥-rec-nd : A ⊥ → P
@@ -482,12 +482,12 @@ module _ {a p} {A : Set a} {P : A ⊥ → Set p}
   open Rec-args-⊥ args
 
   ⊥-rec-⊥ : (x : A ⊥) → P x
-  ⊥-rec-⊥ = ⊥-rec (record
+  ⊥-rec-⊥ = ⊥-rec {Q = λ _ _ _ → ⊤} (record
     { pe = pe
     ; po = po
     ; pl = λ s pq → pl s (proj₁ pq)
     ; pa = λ x⊑y x⊒y p-x p-y _ _ → pa x⊑y x⊒y p-x p-y
-    ; qp = λ _ _ _ → mono₁ 0 ⊤-contractible
+    ; qp = λ _ _ _ _ _ → refl
     })
 
   inc-rec-⊥ : (s : ℕ → A ⊥) → ∀ n → P (s n)
@@ -549,7 +549,7 @@ module _ {a q} {A : Set a} {Q : {x y : A ⊥} → x ⊑ y → Set q}
     ; qe = λ x _ → qe x
     ; qu = λ s ub is-ub n pq _ → qu s ub is-ub n (proj₂ pq)
     ; ql = λ s ub is-ub pq _ → ql s ub is-ub (proj₂ pq)
-    ; qp = λ _ _ → qp
+    ; qp = λ _ _ → _⇔_.to propositional⇔irrelevant ∘ qp
     })
 
   inc-rec-⊑ : (s : Increasing-sequence A) → ∀ n → Q (increasing s n)
@@ -559,6 +559,12 @@ module _ {a q} {A : Set a} {Q : {x y : A ⊥} → x ⊑ y → Set q}
 -- Some simple properties
 
 module _ {a} {A : Set a} where
+
+  -- _⊑_ is propositional.
+
+  ⊑-propositional : {x y : A ⊥} → Is-proposition (x ⊑ y)
+  ⊑-propositional =
+    _⇔_.from propositional⇔irrelevant ⊑-proof-irrelevant
 
   -- ⨆ s is an upper bound for the sequence s.
 
