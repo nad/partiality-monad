@@ -22,6 +22,7 @@ open import Equivalence equality-with-J as Eq using (_≃_)
 open import Function-universe equality-with-J hiding (id; _∘_)
 open import H-level equality-with-J
 open import H-level.Closure equality-with-J
+open import Interval using (ext)
 open import Surjection equality-with-J using (module _↠_)
 open import Univalence-axiom equality-with-J
 
@@ -567,9 +568,8 @@ module _ {a} {A : Set a} where
 
   -- _⊑_ is transitive.
 
-  ⊑-trans : Extensionality a a →
-            {x y z : A ⊥} → x ⊑ y → y ⊑ z → x ⊑ z
-  ⊑-trans ext x⊑y = ⊑-rec-⊑ {Q = λ {x y} x⊑y → ∀ {z} → y ⊑ z → x ⊑ z}
+  ⊑-trans : {x y z : A ⊥} → x ⊑ y → y ⊑ z → x ⊑ z
+  ⊑-trans x⊑y = ⊑-rec-⊑ {Q = λ {x y} x⊑y → ∀ {z} → y ⊑ z → x ⊑ z}
     (record
        { qr = λ _ → id
        ; qe = λ _ _ → never⊑ _
@@ -577,8 +577,8 @@ module _ {a} {A : Set a} where
                 q n (upper-bound′ s z (qu ⨆s⊑z) (suc n))
        ; ql = λ s ub _ _ qu {z} ub⊑z →
                 least-upper-bound s z (λ n → qu n ub⊑z)
-       ; qp = λ _ → implicit-Π-closure ext 1 λ _ →
-                    Π-closure          ext 1 λ _ →
+       ; qp = λ _ → implicit-Π-closure        ext 1 λ _ →
+                    Π-closure {a = a} {b = a} ext 1 λ _ →
                     ⊑-propositional
        })
     x⊑y
@@ -587,11 +587,10 @@ module _ {a} {A : Set a} where
 
   infix  -1 finally-⊑
   infix  -1 _■
-  infixr -2 _⊑⟨_,_⟩_ _⊑⟨⟩_ _⊑⟨_⟩≡_
+  infixr -2 _⊑⟨_⟩_ _⊑⟨⟩_ _⊑⟨_⟩≡_
 
-  _⊑⟨_,_⟩_ : (x {y z} : A ⊥) → x ⊑ y →
-             Extensionality a a → y ⊑ z → x ⊑ z
-  _ ⊑⟨ x⊑y , ext ⟩ y⊑z = ⊑-trans ext x⊑y y⊑z
+  _⊑⟨_⟩_ : (x {y z} : A ⊥) → x ⊑ y → y ⊑ z → x ⊑ z
+  _ ⊑⟨ x⊑y ⟩ y⊑z = ⊑-trans x⊑y y⊑z
 
   _⊑⟨⟩_ : (x {y} : A ⊥) → x ⊑ y → x ⊑ y
   _ ⊑⟨⟩ x⊑y = x⊑y
@@ -608,26 +607,23 @@ module _ {a} {A : Set a} where
 
   syntax finally-⊑ x y x⊑y = x ⊑⟨ x⊑y ⟩■ y ■
 
-  -- ⨆ is monotone (assuming extensionality).
+  -- ⨆ is monotone.
 
-  ⨆-mono : Extensionality a a →
-           {s₁ s₂ : Increasing-sequence A} →
+  ⨆-mono : {s₁ s₂ : Increasing-sequence A} →
            (∀ n → s₁ [ n ] ⊑ s₂ [ n ]) → ⨆ s₁ ⊑ ⨆ s₂
-  ⨆-mono ext {s₁} {s₂} s₁⊑s₂ =
+  ⨆-mono {s₁} {s₂} s₁⊑s₂ =
     least-upper-bound s₁ (⨆ s₂) (λ n →
-      s₁ [ n ]  ⊑⟨ s₁⊑s₂ n , ext ⟩
+      s₁ [ n ]  ⊑⟨ s₁⊑s₂ n ⟩
       s₂ [ n ]  ⊑⟨ upper-bound s₂ n ⟩■
       ⨆ s₂      ■)
 
-  -- Later elements in an increasing sequence are larger (assuming
-  -- extensionality).
+  -- Later elements in an increasing sequence are larger.
 
-  later-larger : Extensionality a a →
-                 (s : Increasing-sequence A) →
+  later-larger : (s : Increasing-sequence A) →
                  ∀ {m n} → m ≤ n → s [ m ] ⊑ s [ n ]
-  later-larger _   s {m} ≤-refl             = s [ m ] ■
-  later-larger ext s {m} (≤-step {n = n} p) =
-    s [ m ]      ⊑⟨ later-larger ext s p , ext ⟩
+  later-larger s {m} ≤-refl             = s [ m ] ■
+  later-larger s {m} (≤-step {n = n} p) =
+    s [ m ]      ⊑⟨ later-larger s p ⟩
     s [ n ]      ⊑⟨ increasing s n ⟩■
     s [ suc n ]  ■
 
@@ -653,18 +649,16 @@ module _ {a} {A : Set a} where
   -- Equality characterisation lemma for the partiality monad.
 
   equality-characterisation-⊥ :
-    Extensionality a a →
     {x y : A ⊥} → (x ⊑ y × x ⊒ y) ≃ (x ≡ y)
   equality-characterisation-⊥ =
-    proj₂ ⊥-is-set-and-equality-characterisation
+    proj₂ ⊥-is-set-and-equality-characterisation ext
 
   -- Equality characterisation lemma for increasing sequences.
 
   equality-characterisation-increasing :
-    Extensionality lzero a →
     {s₁ s₂ : Increasing-sequence A} →
     (∀ n → s₁ [ n ] ≡ s₂ [ n ]) ↔ s₁ ≡ s₂
-  equality-characterisation-increasing ext {s₁} {s₂} =
+  equality-characterisation-increasing {s₁} {s₂} =
     (∀ n → s₁ [ n ] ≡ s₂ [ n ])  ↔⟨ Eq.extensionality-isomorphism ext ⟩
     proj₁ s₁ ≡ proj₁ s₂          ↝⟨ ignore-propositional-component
                                       (Π-closure ext 1 λ _ →
@@ -676,17 +670,15 @@ module _ {a} {A : Set a} where
   tailˢ : Increasing-sequence A → Increasing-sequence A
   tailˢ = Σ-map (_∘ suc) (_∘ suc)
 
-  -- The tail has the same least upper bound as the full sequence
-  -- (assuming extensionality).
+  -- The tail has the same least upper bound as the full sequence.
 
-  ⨆tail≡⨆ : Extensionality a a →
-            ∀ s → ⨆ (tailˢ s) ≡ ⨆ s
-  ⨆tail≡⨆ ext s = antisymmetry
+  ⨆tail≡⨆ : ∀ s → ⨆ (tailˢ s) ≡ ⨆ s
+  ⨆tail≡⨆ s = antisymmetry
     (least-upper-bound (tailˢ s) (⨆ s) (λ n →
        s [ suc n ]  ⊑⟨ upper-bound s (suc n) ⟩■
        ⨆ s          ■))
-    (⨆-mono ext (λ n → s [ n ]      ⊑⟨ increasing s n ⟩■
-                       s [ suc n ]  ■))
+    (⨆-mono (λ n → s [ n ]      ⊑⟨ increasing s n ⟩■
+                   s [ suc n ]  ■))
 
   -- Only never is smaller than or equal to never.
 
@@ -701,15 +693,14 @@ module _ {a} {A : Set a} where
     antisymmetry (never⊑ _) (least-upper-bound _ _ λ _ → never⊑ never)
 
   -- Defined values of the form now x are never smaller than or equal
-  -- to never (assuming extensionality and univalence).
+  -- to never (assuming univalence).
   --
   -- This lemma was proved together with Paolo Capriotti and Nicolai
   -- Kraus.
 
-  now⋢never : Extensionality a a →
-              Univalence a →
+  now⋢never : Univalence a →
               (x : A) → ¬ now x ⊑ never
-  now⋢never ext univ x =
+  now⋢never univ x =
     now x ⊑ never          ↝⟨ P-downwards-closed ⟩
     (P never → P (now x))  ↝⟨ _∘ lift ⟩
     (⊤ → Prelude.⊥)        ↝⟨ _$ tt ⟩
@@ -721,7 +712,7 @@ module _ {a} {A : Set a} where
       { pe = ↑ _ ⊤ , mono₁ 0 (↑-closure 0 ⊤-contractible)
       ; po = λ _ → Prelude.⊥ , ⊥-propositional
       ; pl = λ { _ (p , _) → (∀ n → proj₁ (p n))
-                           , Π-closure (lower-extensionality _ lzero ext) 1 λ n →
+                           , Π-closure ext 1 λ n →
                              proj₂ (p n)
                }
       ; pa = λ P Q Q→P P→Q →      $⟨ record { to = P→Q; from = Q→P } ⟩
@@ -732,7 +723,7 @@ module _ {a} {A : Set a} where
                  P  ↝⟨ id ⟩□
                  P  □
                }
-      ; qu = λ { _ _ _ n (P , P-downwards-closed) Q Q→∀nPn →
+      ; qu = λ { _ _ _ n (P , _) Q Q→∀nPn →
                  proj₁ Q      ↝⟨ flip Q→∀nPn n ⟩
                  proj₁ (P n)  □
                }
@@ -754,11 +745,10 @@ module _ {a} {A : Set a} where
   -- Defined values of the form now x are never equal to never
   -- (assuming extensionality and univalence).
 
-  now≢never : Extensionality a a →
-              Univalence a →
+  now≢never : Univalence a →
               (x : A) → now x ≢ never
-  now≢never ext univ x now≡never =
-    now⋢never ext univ x (subst (now x ⊑_) now≡never (⊑-refl _))
+  now≢never univ x now≡never =
+    now⋢never univ x (subst (now x ⊑_) now≡never (⊑-refl _))
 
 ------------------------------------------------------------------------
 -- Monotone functions
@@ -788,14 +778,13 @@ module _ {a b} {A : Set a} {B : Set b} where
 
   equality-characterisation-monotone :
     ∀ {a b} {A : Set a} {B : Set b} {f g : [ A ⊥→ B ⊥]⊑} →
-    Extensionality a (a ⊔ b) →
     (∀ x → proj₁ f x ≡ proj₁ g x) ↔ f ≡ g
-  equality-characterisation-monotone {a} {f = f} {g} ext =
-    (∀ x → proj₁ f x ≡ proj₁ g x)  ↔⟨ Eq.extensionality-isomorphism (lower-extensionality lzero a ext) ⟩
+  equality-characterisation-monotone {a} {f = f} {g} =
+    (∀ x → proj₁ f x ≡ proj₁ g x)  ↔⟨ Eq.extensionality-isomorphism ext ⟩
     proj₁ f ≡ proj₁ g              ↝⟨ ignore-propositional-component
-                                        (implicit-Π-closure                      ext  1 λ _ →
-                                         implicit-Π-closure                      ext  1 λ _ →
-                                         Π-closure (lower-extensionality lzero a ext) 1 λ _ →
+                                        (implicit-Π-closure ext 1 λ _ →
+                                         implicit-Π-closure ext 1 λ _ →
+                                         Π-closure          ext 1 λ _ →
                                          ⊑-propositional) ⟩□
     f ≡ g                          □
 
@@ -849,12 +838,11 @@ f ∘ω g = proj₁ f ∘⊑ proj₁ g , λ s →
 
 equality-characterisation-continuous :
   ∀ {a b} {A : Set a} {B : Set b} {f g : [ A ⊥→ B ⊥]} →
-  Extensionality a (a ⊔ b) →
   (∀ x → proj₁ (proj₁ f) x ≡ proj₁ (proj₁ g) x) ↔ f ≡ g
-equality-characterisation-continuous {a} {A = A} {B} {f} {g} ext =
-  (∀ x → proj₁ (proj₁ f) x ≡ proj₁ (proj₁ g) x)  ↝⟨ equality-characterisation-monotone {A = A} {B = B} ext ⟩
+equality-characterisation-continuous {a} {A = A} {B} {f} {g} =
+  (∀ x → proj₁ (proj₁ f) x ≡ proj₁ (proj₁ g) x)  ↝⟨ equality-characterisation-monotone {A = A} {B = B} ⟩
   proj₁ f ≡ proj₁ g                              ↝⟨ ignore-propositional-component
-                                                      (Π-closure (lower-extensionality lzero a ext) 1 λ _ →
+                                                      (Π-closure ext 1 λ _ →
                                                        ⊥-is-set _ _) ⟩□
   f ≡ g                                          □
 
@@ -900,22 +888,21 @@ _>>=_ : ∀ {a b} {A : Set a} {B : Set b} →
         A ⊥ → (A → B ⊥) → B ⊥
 x >>= f = proj₁ (proj₁ (f ∗)) x
 
--- Monad laws (proved using extensionality).
+-- Monad laws.
 
 left-identity : ∀ {a b} {A : Set a} {B : Set b} x (f : A → B ⊥) →
                 return x >>= f ≡ f x
 left-identity x f = refl
 
-right-identity : ∀ {a} {A : Set a} →
-                 Extensionality lzero a →
-                 (x : A ⊥) → x >>= return ≡ x
-right-identity ext = ⊥-rec-Prop
+right-identity : ∀ {a} {A : Set a} (x : A ⊥) →
+                 x >>= return ≡ x
+right-identity = ⊥-rec-Prop
   (record
      { pe = refl
      ; po = λ _ → refl
      ; pl = λ s hyp →
               ⨆ s >>= return      ≡⟨⟩
-              ⨆ (return ∗-inc s)  ≡⟨ cong ⨆ (_↔_.to (equality-characterisation-increasing ext) λ n →
+              ⨆ (return ∗-inc s)  ≡⟨ cong ⨆ (_↔_.to equality-characterisation-increasing λ n →
 
                 s [ n ] >>= return       ≡⟨ hyp n ⟩∎
                 s [ n ]                  ∎) ⟩∎
@@ -925,15 +912,14 @@ right-identity ext = ⊥-rec-Prop
      })
 
 associativity : ∀ {a b c} {A : Set a} {B : Set b} {C : Set c} →
-                Extensionality lzero c →
                 (x : A ⊥) (f : A → B ⊥) (g : B → C ⊥) →
                 x >>= (λ x → f x >>= g) ≡ x >>= f >>= g
-associativity ext x f g = ⊥-rec-Prop
+associativity x f g = ⊥-rec-Prop
   (record
      { pe = refl
      ; po = λ _ → refl
      ; pl = λ s hyp →
-              ⨆ ((λ x → f x >>= g) ∗-inc s)  ≡⟨ cong ⨆ (_↔_.to (equality-characterisation-increasing ext) λ n →
+              ⨆ ((λ x → f x >>= g) ∗-inc s)  ≡⟨ cong ⨆ (_↔_.to equality-characterisation-increasing λ n →
 
                 s [ n ] >>= (λ x → f x >>= g)       ≡⟨ hyp n ⟩∎
                 s [ n ] >>= f >>= g                 ∎) ⟩∎
@@ -943,32 +929,30 @@ associativity ext x f g = ⊥-rec-Prop
      })
   x
 
--- _⊥ is a functor (assuming extensionality).
+-- _⊥ is a functor.
 
 map : ∀ {a b} {A : Set a} {B : Set b} →
       (A → B) → [ A ⊥→ B ⊥]
 map f = (return ∘ f) ∗
 
 map-id : ∀ {a} {A : Set a} →
-         Extensionality a a →
          map (id {A = A}) ≡ idω
-map-id ext =
-  return ∗  ≡⟨ _↔_.to (equality-characterisation-continuous ext) (λ x →
+map-id =
+  return ∗  ≡⟨ _↔_.to equality-characterisation-continuous (λ x →
 
-    x >>= return  ≡⟨ right-identity (lower-extensionality _ lzero ext) x ⟩∎
+    x >>= return  ≡⟨ right-identity x ⟩∎
     x             ∎) ⟩∎
 
   idω       ∎
 
-map-∘ : ∀ {a b c} {A : Set a} {B : Set b} {C : Set c} →
-        Extensionality a (a ⊔ c) →
+map-∘ : ∀ {a b c} {A : Set a} {B : Set b} {C : Set c}
         (f : B → C) (g : A → B) →
         map (f ∘ g) ≡ map f ∘ω map g
-map-∘ {a} ext f g =
-  (return ∘ f ∘ g) ∗                ≡⟨ _↔_.to (equality-characterisation-continuous ext) (λ x →
+map-∘ {a} f g =
+  (return ∘ f ∘ g) ∗                ≡⟨ _↔_.to equality-characterisation-continuous (λ x →
 
     x >>= (return ∘ f ∘ g)                       ≡⟨⟩
-    x >>= (λ x → return (g x) >>= (return ∘ f))  ≡⟨ associativity (lower-extensionality _ a ext) x (return ∘ g) (return ∘ f) ⟩∎
+    x >>= (λ x → return (g x) >>= (return ∘ f))  ≡⟨ associativity x (return ∘ g) (return ∘ f) ⟩∎
     x >>= (return ∘ g) >>= (return ∘ f)          ∎) ⟩∎
 
   (return ∘ f) ∗ ∘ω (return ∘ g) ∗  ∎
@@ -1003,10 +987,9 @@ f ∘-strict g = proj₁ f ∘ω proj₁ g ,
 
 equality-characterisation-strict :
   ∀ {a b} {A : Set a} {B : Set b} {f g : [ A ⊥→ B ⊥]-strict} →
-  Extensionality a (a ⊔ b) →
   (∀ x → proj₁ (proj₁ (proj₁ f)) x ≡ proj₁ (proj₁ (proj₁ g)) x) ↔ f ≡ g
-equality-characterisation-strict {f = f} {g} ext =
-  (∀ x → proj₁ (proj₁ (proj₁ f)) x ≡ proj₁ (proj₁ (proj₁ g)) x)  ↝⟨ equality-characterisation-continuous ext ⟩
+equality-characterisation-strict {f = f} {g} =
+  (∀ x → proj₁ (proj₁ (proj₁ f)) x ≡ proj₁ (proj₁ (proj₁ g)) x)  ↝⟨ equality-characterisation-continuous ⟩
   proj₁ f ≡ proj₁ g                                              ↝⟨ ignore-propositional-component (⊥-is-set _ _) ⟩□
   f ≡ g                                                          □
 
@@ -1014,11 +997,10 @@ equality-characterisation-strict {f = f} {g} ext =
 
 >>=-∘-return :
   ∀ {a b} {A : Set a} {B : Set b} →
-  Extensionality lzero b →
   (fs : [ A ⊥→ B ⊥]-strict) →
   let f = proj₁ (proj₁ (proj₁ fs)) in
   ∀ x → x >>= (f ∘ return) ≡ f x
->>=-∘-return ext fs = ⊥-rec-Prop
+>>=-∘-return fs = ⊥-rec-Prop
   {P = λ x → x >>= (f ∘ return) ≡ f x}
   (record
      { pe = never    ≡⟨ sym (proj₂ fs) ⟩∎
@@ -1026,7 +1008,7 @@ equality-characterisation-strict {f = f} {g} ext =
      ; po = λ _ → refl
      ; pl = λ s p →
               ⨆ s >>= (f ∘ return)      ≡⟨⟩
-              ⨆ ((f ∘ return) ∗-inc s)  ≡⟨ cong ⨆ (_↔_.to (equality-characterisation-increasing ext) λ n →
+              ⨆ ((f ∘ return) ∗-inc s)  ≡⟨ cong ⨆ (_↔_.to equality-characterisation-increasing λ n →
 
                 (f ∘ return) ∗-inc s [ n ]   ≡⟨ p n ⟩∎
                 [ f⊑ $ s ]-inc [ n ]         ∎) ⟩
@@ -1040,34 +1022,25 @@ equality-characterisation-strict {f = f} {g} ext =
   f⊑ = proj₁ fω
   f  = proj₁ f⊑
 
--- Strict ω-continuous functions are logically equivalent to regular
--- partial functions.
-
-partial⇔strict :
-  ∀ {a b} {A : Set a} {B : Set b} →
-  (A → B ⊥) ⇔ [ A ⊥→ B ⊥]-strict
-partial⇔strict = record
-  { to   = λ f → f ∗ , refl
-  ; from = λ f x → proj₁ (proj₁ (proj₁ f)) (return x)
-  }
-
 -- Strict ω-continuous functions are isomorphic to regular partial
--- functions (assuming extensionality).
+-- functions.
 
 partial↔strict :
   ∀ {a b} {A : Set a} {B : Set b} →
-  Extensionality a (a ⊔ b) →
   (A → B ⊥) ↔ [ A ⊥→ B ⊥]-strict
-partial↔strict {a} ext = record
+partial↔strict {a} = record
   { surjection = record
-    { logical-equivalence = partial⇔strict
+    { logical-equivalence = record
+      { to   = λ f → f ∗ , refl
+      ; from = λ f x → proj₁ (proj₁ (proj₁ f)) (return x)
+      }
     ; right-inverse-of    = λ fs →
         let f = proj₁ (proj₁ (proj₁ fs)) in
-        _↔_.to (equality-characterisation-strict ext) λ x →
-          x >>= (f ∘ return)  ≡⟨ >>=-∘-return (lower-extensionality _ a ext) fs x ⟩∎
+        _↔_.to equality-characterisation-strict λ x →
+          x >>= (f ∘ return)  ≡⟨ >>=-∘-return fs x ⟩∎
           f x                 ∎
     }
-  ; left-inverse-of = λ f → lower-extensionality lzero a ext λ x →
+  ; left-inverse-of = λ f → ext λ x →
       return x >>= f  ≡⟨ left-identity x f ⟩∎
       f x             ∎
   }
@@ -1104,29 +1077,25 @@ module _ {a} {A : Set a} where
          proj₁ (comp f n) (proj₁ f never)  ■)
 
   -- Taking the tail of this sequence amounts to the same thing as
-  -- applying the function to each element in the sequence (assuming
-  -- extensionality).
+  -- applying the function to each element in the sequence.
 
   tailˢ-fix-sequence :
-    Extensionality lzero a →
     (f : [ A ⊥→ A ⊥]⊑) →
     tailˢ (fix-sequence f) ≡ [ f $ fix-sequence f ]-inc
-  tailˢ-fix-sequence ext f =
-    _↔_.to (equality-characterisation-increasing ext) λ n →
+  tailˢ-fix-sequence f =
+    _↔_.to equality-characterisation-increasing λ n →
       proj₁ (comp f n ∘⊑ f) never  ≡⟨ pre≡post f n ⟩∎
       proj₁ (f ∘⊑ comp f n) never  ∎
 
   -- The sequence has the same least upper bound as the sequence you
-  -- get if you apply the function to each element of the sequence
-  -- (assuming extensionality).
+  -- get if you apply the function to each element of the sequence.
 
   ⨆-fix-sequence :
-    Extensionality a a →
     (f : [ A ⊥→ A ⊥]⊑) →
     ⨆ (fix-sequence f) ≡ ⨆ [ f $ fix-sequence f ]-inc
-  ⨆-fix-sequence ext f =
-    ⨆ (fix-sequence f)            ≡⟨ sym $ ⨆tail≡⨆ ext _ ⟩
-    ⨆ (tailˢ (fix-sequence f))    ≡⟨ cong ⨆ (tailˢ-fix-sequence (lower-extensionality _ lzero ext) f) ⟩∎
+  ⨆-fix-sequence f =
+    ⨆ (fix-sequence f)            ≡⟨ sym $ ⨆tail≡⨆ _ ⟩
+    ⨆ (tailˢ (fix-sequence f))    ≡⟨ cong ⨆ (tailˢ-fix-sequence f) ⟩∎
     ⨆ [ f $ fix-sequence f ]-inc  ∎
 
   -- A fixpoint combinator.
@@ -1135,10 +1104,9 @@ module _ {a} {A : Set a} where
   fix f = ⨆ (fix-sequence f)
 
   -- The fixpoint combinator produces fixpoints for ω-continuous
-  -- arguments (assuming extensionality).
+  -- arguments.
 
   fix-is-fixpoint-combinator :
-    Extensionality a a →
     (fω : [ A ⊥→ A ⊥]) →
     let f⊑ : [ A ⊥→ A ⊥]⊑
         f⊑ = proj₁ fω
@@ -1146,9 +1114,9 @@ module _ {a} {A : Set a} where
         f : A ⊥ → A ⊥
         f = proj₁ f⊑
     in fix f⊑ ≡ f (fix f⊑)
-  fix-is-fixpoint-combinator ext fω =
+  fix-is-fixpoint-combinator fω =
     fix f⊑                          ≡⟨⟩
-    ⨆ (fix-sequence f⊑)             ≡⟨ ⨆-fix-sequence ext f⊑ ⟩
+    ⨆ (fix-sequence f⊑)             ≡⟨ ⨆-fix-sequence f⊑ ⟩
     ⨆ [ f⊑ $ fix-sequence f⊑ ]-inc  ≡⟨ sym $ proj₂ fω _ ⟩
     f (⨆ (fix-sequence f⊑))         ≡⟨ refl ⟩∎
     f (fix f⊑)                      ∎
@@ -1164,16 +1132,14 @@ module _ {a} {A : Set a} where
   fix′ : (A → A ⊥) → A ⊥
   fix′ f = fix (proj₁ (f ∗))
 
-  -- This variant also produces a kind of fixpoint (assuming
-  -- extensionality).
+  -- This variant also produces a kind of fixpoint.
 
   fix′-is-fixpoint-combinator :
-    Extensionality a a →
     (f : A → A ⊥) →
     fix′ f ≡ fix′ f >>= f
-  fix′-is-fixpoint-combinator ext f =
+  fix′-is-fixpoint-combinator f =
     fix′ f                   ≡⟨⟩
-    fix (proj₁ (f ∗))        ≡⟨ fix-is-fixpoint-combinator ext (f ∗) ⟩∎
+    fix (proj₁ (f ∗))        ≡⟨ fix-is-fixpoint-combinator (f ∗) ⟩∎
     fix (proj₁ (f ∗)) >>= f  ∎
 
 ------------------------------------------------------------------------
@@ -1240,10 +1206,9 @@ module _ {a b} {A : Set a} {B : Set b} where
   fix→ f x = ⨆ (fix→-sequence f x)
 
   -- The fixpoint combinator produces fixpoints for ω-continuous
-  -- arguments (assuming extensionality).
+  -- arguments.
 
   fix→-is-fixpoint-combinator :
-    Extensionality (a ⊔ b) b →
     (fω : Trans-ω A B) →
     let f⊑ : Trans-⊑ A B
         f⊑ = proj₁ fω
@@ -1252,13 +1217,10 @@ module _ {a b} {A : Set a} {B : Set b} where
         f = proj₁ f⊑
     in
     fix→ f⊑ ≡ f (fix→ f⊑)
-  fix→-is-fixpoint-combinator ext (f , ω-cont) =
-    lower-extensionality b lzero ext λ x →
-      fix→ f x                            ≡⟨⟩
-      ⨆ (fix→-sequence f x)               ≡⟨ sym $ ⨆tail≡⨆ (lower-extensionality a lzero ext) _ ⟩
-      ⨆ (tailˢ (fix→-sequence f x))       ≡⟨ cong ⨆ (_↔_.to (equality-characterisation-increasing
-                                                               (lower-extensionality _ lzero ext))
-                                                            (λ _ → refl)) ⟩
-      ⨆ [ f $ fix→-sequence f at x ]-inc  ≡⟨ sym $ ω-cont (fix→-sequence f) x ⟩
-      proj₁ f (⨆ ∘ fix→-sequence f) x     ≡⟨ refl ⟩∎
-      proj₁ f (fix→ f) x                  ∎
+  fix→-is-fixpoint-combinator (f , ω-cont) = ext λ x →
+    fix→ f x                            ≡⟨⟩
+    ⨆ (fix→-sequence f x)               ≡⟨ sym $ ⨆tail≡⨆ _ ⟩
+    ⨆ (tailˢ (fix→-sequence f x))       ≡⟨ cong ⨆ (_↔_.to equality-characterisation-increasing (λ _ → refl)) ⟩
+    ⨆ [ f $ fix→-sequence f at x ]-inc  ≡⟨ sym $ ω-cont (fix→-sequence f) x ⟩
+    proj₁ f (⨆ ∘ fix→-sequence f) x     ≡⟨ refl ⟩∎
+    proj₁ f (fix→ f) x                  ∎
