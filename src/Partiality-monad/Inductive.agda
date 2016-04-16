@@ -708,8 +708,21 @@ module _ {a} {A : Set a} where
   _⇓_ : A ⊥ → A → Set a
   x ⇓ y = x ≡ now y
 
+  -- An alternative characterisation of _⊑_.
+
+  _≼_ : A ⊥ → A ⊥ → Set a
+  x ≼ y = ∀ z → x ⇓ z → y ⇓ z
+
+  -- _≼_ is propositional.
+
+  ≼-propositional : ∀ {x y} → Is-proposition (x ≼ y)
+  ≼-propositional =
+    Π-closure ext 1 λ _ →
+    Π-closure ext 1 λ _ →
+    ⊥-is-set _ _
+
 ------------------------------------------------------------------------
--- An alternative characterisation of _⊑_
+-- Another alternative characterisation of _⊑_
 
 -- This characterisation uses a technique from the first edition of
 -- the HoTT book (Theorems 11.3.16 and 11.3.32).
@@ -911,8 +924,8 @@ module _ {a} {A : Set a} (univ : Univalence a) where
       }
 
 ------------------------------------------------------------------------
--- Some properties that follow from the alternative characterisation
--- of _⊑_ (still assuming univalence)
+-- Some properties that follow from the equivalence between _⊑_ and
+-- _≲_ (still assuming univalence)
 
   -- Defined values of the form now x are never smaller than or equal
   -- to never (assuming univalence).
@@ -975,10 +988,9 @@ module _ {a} {A : Set a} (univ : Univalence a) where
   -- Capretta proved a similar result in "General Recursion via
   -- Coinductive Types".
 
-  larger-terminate-with-same-value :
-    {x y : A ⊥} → x ⊑ y → ∀ z → x ⇓ z → y ⇓ z
+  larger-terminate-with-same-value : {x y : A ⊥} → x ⊑ y → x ≼ y
   larger-terminate-with-same-value = ⊑-rec-⊑
-    {Q = λ {x y} _ → ∀ z → x ⇓ z → y ⇓ z}
+    {Q = λ {x y} _ → x ≼ y}
     (record
        { qr = λ x z →
                 x ⇓ z  ↝⟨ id ⟩□
@@ -1019,9 +1031,7 @@ module _ {a} {A : Set a} (univ : Univalence a) where
 
            ∥ ∃ (λ n → s [ n ] ⇓ x) ∥                                ↝⟨ Trunc.rec (⊥-is-set _ _) (uncurry (flip qu x)) ⟩□
            ub ⇓ x                                                   □
-       ; qp = λ _ → Π-closure ext 1 λ _ →
-                    Π-closure ext 1 λ _ →
-                    ⊥-is-set _ _
+       ; qp = λ _ → ≼-propositional
        })
     where
     lemma : ∀ s {x} →
@@ -1041,6 +1051,51 @@ module _ {a} {A : Set a} (univ : Univalence a) where
     now x ⊑ y                  ↝⟨ larger-terminate-with-same-value ⟩
     (∀ z → now x ⇓ z → y ⇓ z)  ↝⟨ (λ hyp → hyp x refl) ⟩□
     y ⇓ x                      □
+
+  -- The relation _≼_ is contained in _⊑_.
+  --
+  -- Capretta proved a similar result in "General Recursion via
+  -- Coinductive Types".
+
+  ≼→⊑ : {x y : A ⊥} → x ≼ y → x ⊑ y
+  ≼→⊑ {x} {y} = ⊥-rec-Prop
+    {P = λ x → x ≼ y → x ⊑ y}
+    (record
+       { pe = never ≼ y  ↝⟨ (λ _ → never⊑ y) ⟩
+              never ⊑ y   □
+       ; po = λ x →
+                now x ≼ y              ↝⟨ (λ hyp → hyp x refl) ⟩
+                y ⇓ x                  ↔⟨ inverse equality-characterisation-⊥ ⟩
+                y ⊑ now x × y ⊒ now x  ↝⟨ proj₂ ⟩□
+                now x ⊑ y              □
+       ; pl = λ s s≼y→s⊑y →
+                ⨆ s ≼ y                        ↝⟨ id ⟩
+                (∀ z → ⨆ s ⇓ z → y ⇓ z)        ↝⟨ (λ hyp n z →
+
+                  s [ n ] ⇓ z                       ↝⟨ larger-terminate-with-same-value (upper-bound s n) z ⟩
+                  ⨆ s ⇓ z                           ↝⟨ hyp z ⟩□
+                  y ⇓ z                             □) ⟩
+
+                (∀ n z → s [ n ] ⇓ z → y ⇓ z)  ↝⟨ id ⟩
+                (∀ n → s [ n ] ≼ y)            ↝⟨ (λ hyp n → s≼y→s⊑y n (hyp n)) ⟩
+                (∀ n → s [ n ] ⊑ y)            ↝⟨ least-upper-bound s y ⟩□
+                ⨆ s ⊑ y                        □
+       ; pp = λ _ →
+                Π-closure ext 1 λ _ →
+                ⊑-propositional
+       })
+    x
+
+  -- The two relations _≼_ and _⊑_ are pointwise equivalent.
+  --
+  -- Capretta proved a similar result in "General Recursion via
+  -- Coinductive Types".
+
+  ≼≃⊑ : {x y : A ⊥} → (x ≼ y) ≃ (x ⊑ y)
+  ≼≃⊑ = _↔_.to (Eq.⇔↔≃ ext ≼-propositional ⊑-propositional)
+               (record { to   = ≼→⊑
+                       ; from = larger-terminate-with-same-value
+                       })
 
 ------------------------------------------------------------------------
 -- Monotone functions
