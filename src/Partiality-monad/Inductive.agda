@@ -14,6 +14,7 @@ module Partiality-monad.Inductive where
 
 open import Equality.Propositional
 open import Logical-equivalence using (_⇔_)
+import Nat
 open import Prelude hiding (⊥; map; _>>=_)
 
 open import Bijection equality-with-J using (_↔_)
@@ -557,7 +558,7 @@ module _ {a q} {A : Set a} {Q : {x y : A ⊥} → x ⊑ y → Set q}
   inc-rec-⊑ (_ , inc) = ⊑-rec-⊑ ∘ inc
 
 ------------------------------------------------------------------------
--- Some simple properties
+-- Some simple definitions and properties
 
 module _ {a} {A : Set a} where
 
@@ -698,6 +699,14 @@ module _ {a} {A : Set a} where
   never≡⨆never : never ≡ ⨆ ((λ _ → never {A = A}) , λ _ → never⊑ never)
   never≡⨆never =
     antisymmetry (never⊑ _) (least-upper-bound _ _ λ _ → never⊑ never)
+
+  -- A termination predicate: x ⇓ y means that x terminates with the
+  -- value y.
+
+  infix 4 _⇓_
+
+  _⇓_ : A ⊥ → A → Set a
+  x ⇓ y = x ≡ now y
 
 ------------------------------------------------------------------------
 -- An alternative characterisation of _⊑_
@@ -949,6 +958,89 @@ module _ {a} {A : Set a} (univ : Univalence a) where
                                                      ; from = λ ∥x≡y∥ → ∥x≡y∥ , ∥∥-map sym ∥x≡y∥
                                                      }) ⟩□
     ∥ x ≡ y ∥                      □
+
+  -- A computation can terminate with at most one value.
+
+  termination-value-merely-unique :
+    ∀ {x y z} → x ⇓ y → x ⇓ z → ∥ y ≡ z ∥
+  termination-value-merely-unique {x} {y} {z} x⇓y x⇓z =
+    _≃_.to now≡now≃∥≡∥ (
+      now y  ≡⟨ sym x⇓y ⟩
+      x      ≡⟨ x⇓z ⟩∎
+      now z  ∎)
+
+  -- If a computation terminates with a certain value, then all larger
+  -- computations terminate with the same value.
+  --
+  -- Capretta proved a similar result in "General Recursion via
+  -- Coinductive Types".
+
+  larger-terminate-with-same-value :
+    {x y : A ⊥} → x ⊑ y → ∀ z → x ⇓ z → y ⇓ z
+  larger-terminate-with-same-value = ⊑-rec-⊑
+    {Q = λ {x y} _ → ∀ z → x ⇓ z → y ⇓ z}
+    (record
+       { qr = λ x z →
+                x ⇓ z  ↝⟨ id ⟩□
+                x ⇓ z  □
+       ; qe = λ x z →
+                never ⇓ z  ↝⟨ now≢never z ∘ sym ⟩
+                ⊥₀         ↝⟨ ⊥-elim ⟩□
+                x ⇓ z      □
+       ; qu = λ s ub _ n q qu x s[n]⇓x →                 $⟨ (λ _ n≤m → lemma s (flip q x) n≤m s[n]⇓x) ⟩
+                (∀ m → n ≤ m → s [ m ] ≡ now x)          ↝⟨ (λ hyp m n≤m → proj₁ (_≃_.from equality-characterisation-⊥ (hyp m n≤m))) ⟩
+                (∀ m → n ≤ m → s [ m ] ⊑ now x)          ↝⟨ (λ hyp m → [ (λ m≤n →
+
+                  s [ m ]                                     ⊑⟨ later-larger s m≤n ⟩
+                  s [ n ]                                     ⊑⟨ s[n]⇓x ⟩≡
+                  now x                                       ■) , hyp m ]) ⟩
+
+                (∀ m → m ≤ n ⊎ n ≤ m → s [ m ] ⊑ now x)  ↝⟨ (λ hyp m → hyp m (Nat.total m n)) ⟩
+                (∀ m → s [ m ] ⊑ now x)                  ↝⟨ least-upper-bound s (now x) ⟩
+                ⨆ s ⊑ now x                              ↝⟨ flip antisymmetry (
+
+                  now x                                       ⊑⟨ sym s[n]⇓x ⟩≡
+                  s [ n ]                                     ⊑⟨ upper-bound s n ⟩■
+                  ⨆ s                                         ■) ⟩
+
+                ⨆ s ⇓ x                                  ↝⟨ qu x ⟩□
+                ub ⇓ x                                   □
+       ; ql = λ s ub _ q qu x →
+           ⨆ s ⇓ x                                                  ↔⟨ inverse equality-characterisation-⊥ ⟩
+           ⨆ s ⊑ now x × ⨆ s ⊒ now x                                ↔⟨ ⊑≃≲ ×-cong ⊑≃≲ ⟩
+           ⨆ s ≲ now x × now x ≲ ⨆ s                                ↝⟨ id ⟩
+           (∀ n → s [ n ] ≲ now x) × ∥ ∃ (λ n → now x ≲ s [ n ]) ∥  ↝⟨ (uncurry λ all → ∥∥-map (Σ-map id (λ {n} →
+
+             now x ≲ s [ n ]                                             ↝⟨ (λ now-x≲s[n] → now-x≲s[n] , all n) ⟩
+             now x ≲ s [ n ] × s [ n ] ≲ now x                           ↔⟨ inverse (⊑≃≲ ×-cong ⊑≃≲) ⟩
+             now x ⊑ s [ n ] × s [ n ] ⊑ now x                           ↔⟨ equality-characterisation-⊥ ⟩
+             now x ≡ s [ n ]                                             ↝⟨ sym ⟩□
+             s [ n ] ⇓ x                                                 □))) ⟩
+
+           ∥ ∃ (λ n → s [ n ] ⇓ x) ∥                                ↝⟨ Trunc.rec (⊥-is-set _ _) (uncurry (flip qu x)) ⟩□
+           ub ⇓ x                                                   □
+       ; qp = λ _ → Π-closure ext 1 λ _ →
+                    Π-closure ext 1 λ _ →
+                    ⊥-is-set _ _
+       })
+    where
+    lemma : ∀ s {x} →
+            (∀ n → s [ n ] ⇓ x → s [ suc n ] ⇓ x) →
+            ∀ {m n} → m ≤ n → s [ m ] ⇓ x → s [ n ] ⇓ x
+    lemma s     hyp     ≤-refl             = id
+    lemma s {x} hyp {m} (≤-step {n = n} p) =
+      s [ m ]     ⇓ x  ↝⟨ lemma s hyp p ⟩
+      s [ n ]     ⇓ x  ↝⟨ hyp n ⟩□
+      s [ suc n ] ⇓ x  □
+
+  -- If now x is smaller than or equal to y, then y terminates with
+  -- the value x.
+
+  now⊑→⇓ : {x : A} {y : A ⊥} → now x ⊑ y → y ⇓ x
+  now⊑→⇓ {x} {y} =
+    now x ⊑ y                  ↝⟨ larger-terminate-with-same-value ⟩
+    (∀ z → now x ⇓ z → y ⇓ z)  ↝⟨ (λ hyp → hyp x refl) ⟩□
+    y ⇓ x                      □
 
 ------------------------------------------------------------------------
 -- Monotone functions
