@@ -6,7 +6,7 @@
 -- encode a higher inductive-inductive type.
 
 -- This code is heavily inspired by the section on Cauchy reals in the
--- HoTT book.
+-- HoTT book (first edition).
 
 {-# OPTIONS --without-K --rewriting #-}
 
@@ -19,9 +19,10 @@ open import Prelude hiding (⊥; map; _>>=_)
 open import Bijection equality-with-J using (_↔_)
 open import Equality.Decidable-UIP equality-with-J
 open import Equivalence equality-with-J as Eq using (_≃_)
-open import Function-universe equality-with-J hiding (id; _∘_)
+open import Function-universe equality-with-J as F hiding (id; _∘_)
 open import H-level equality-with-J
 open import H-level.Closure equality-with-J
+open import H-level.Truncation.Propositional as Trunc
 open import Interval using (ext)
 open import Surjection equality-with-J using (module _↠_)
 open import Univalence-axiom equality-with-J
@@ -698,63 +699,256 @@ module _ {a} {A : Set a} where
   never≡⨆never =
     antisymmetry (never⊑ _) (least-upper-bound _ _ λ _ → never⊑ never)
 
+------------------------------------------------------------------------
+-- An alternative characterisation of _⊑_
+
+-- This characterisation uses a technique from the first edition of
+-- the HoTT book (Theorems 11.3.16 and 11.3.32).
+--
+-- The characterisation was developed together with Paolo Capriotti
+-- and Nicolai Kraus.
+--
+-- The characterisation uses univalence.
+
+module _ {a} {A : Set a} (univ : Univalence a) where
+
+  -- A binary relation, defined using structural recursion.
+
+  private
+
+    now[_]≲-args : A → Rec-args-nd A (Proposition a)
+                                   (λ P Q → proj₁ P → proj₁ Q)
+    now[ x ]≲-args = record
+      { pe = Prelude.⊥ , ⊥-propositional
+      ; po = λ y → ∥ x ≡ y ∥ , truncation-is-proposition
+      ; pl = λ { s (now-x≲s[_] , _) → ∥ ∃ (λ n → proj₁ (now-x≲s[ n ])) ∥
+                                    , truncation-is-proposition
+               }
+      ; pa = λ now-x≲y now-x≲z now-x≲y→now-x≲z now-x≲z→now-x≲y →
+                                              $⟨ record { to = now-x≲y→now-x≲z; from = now-x≲z→now-x≲y } ⟩
+               proj₁ now-x≲y ⇔ proj₁ now-x≲z  ↝⟨ _↔_.to (⇔↔≡′ ext univ) ⟩□
+               now-x≲y ≡ now-x≲z              □
+      ; qr = λ { _ (now-x≲y , _) →
+                 now-x≲y  ↝⟨ id ⟩□
+                 now-x≲y  □
+               }
+      ; qe = λ { _ (now-x≲⊥ , _) →
+                 Prelude.⊥  ↝⟨ ⊥-elim ⟩□
+                 now-x≲⊥    □
+               }
+      ; qu = λ { _ _ _ n (now-x≲s[_] , _) (now-x≲ub , _)
+                 now-x≲s[]→now-x≲ub →
+
+                 proj₁ now-x≲s[ n ]                ↝⟨ ∣_∣ ∘ (n ,_) ⟩
+                 ∥ ∃ (λ n → proj₁ now-x≲s[ n ]) ∥  ↝⟨ now-x≲s[]→now-x≲ub ⟩□
+                 now-x≲ub                          □
+               }
+      ; ql = λ { s ub is-ub (now-x≲s[_] , _) now-x≲ub now-x≲s[]→now-x≲ub →
+                 ∥ ∃ (λ n → proj₁ now-x≲s[ n ]) ∥  ↝⟨ Trunc.rec (proj₂ now-x≲ub) (uncurry now-x≲s[]→now-x≲ub) ⟩□
+                 proj₁ now-x≲ub                    □
+               }
+      ; qp = λ _ now-x≲z → Π-closure ext 1 λ _ →
+                           proj₂ now-x≲z
+      }
+
+    ≲-args : Rec-args-nd A (A ⊥ → Proposition a)
+                         (λ P Q → ∀ z → proj₁ (Q z) → proj₁ (P z))
+    ≲-args = record
+      { pe = λ _ → ↑ _ ⊤ , ↑-closure 1 (mono₁ 0 ⊤-contractible)
+      ; po = λ x y → ⊥-rec-nd now[ x ]≲-args y
+      ; pl = λ { _ (s[_]≲ , _) y → (∀ n → proj₁ (s[ n ]≲ y))
+                                 , Π-closure ext 1 λ n →
+                                   proj₂ (s[ n ]≲ y)
+               }
+      ; pa = λ x≲ y≲ y≲→x≲ x≲→y≲ → ext λ z →
+                                            $⟨ record { to = x≲→y≲ z; from = y≲→x≲ z } ⟩
+               proj₁ (x≲ z) ⇔ proj₁ (y≲ z)  ↝⟨ _↔_.to (⇔↔≡′ ext univ) ⟩
+               x≲ z ≡ y≲ z                  □
+      ; qr = λ _ x≲ z →
+               proj₁ (x≲ z)  ↝⟨ id ⟩□
+               proj₁ (x≲ z)  □
+      ; qe = λ _ ⊥≲ z →
+               proj₁ (⊥≲ z)  ↝⟨ _ ⟩□
+               ↑ _ ⊤         □
+      ; qu = λ { _ _ _ n (s[_]≲ , _) ub≲ ub≲→s[]≲ z →
+                 proj₁ (ub≲ z)      ↝⟨ flip (ub≲→s[]≲ z) n ⟩□
+                 proj₁ (s[ n ]≲ z)  □
+               }
+      ; ql = λ { _ _ _ (s[_]≲ , _) ub≲ ub≲→s[]≲ z →
+                 proj₁ (ub≲ z)              ↝⟨ flip (flip ub≲→s[]≲ z) ⟩□
+                 (∀ n → proj₁ (s[ n ]≲ z))  □
+               }
+      ; qp = λ x≲ y≲ → Π-closure ext 1 λ z →
+                       Π-closure ext 1 λ _ →
+                       proj₂ (x≲ z)
+      }
+
+  infix 4 _≲_
+
+  _≲_ : A ⊥ → A ⊥ → Set a
+  x ≲ y = proj₁ (⊥-rec-nd ≲-args x y)
+
+  -- The relation is propositional.
+
+  ≲-propositional : ∀ x y → Is-proposition (x ≲ y)
+  ≲-propositional x y = proj₂ (⊥-rec-nd ≲-args x y)
+
+  -- A form of transitivity involving _⊑_ and _≲_.
+
+  ⊑≲-trans : ∀ {x y} (z : A ⊥) → x ⊑ y → y ≲ z → x ≲ z
+  ⊑≲-trans z x⊑y = ⊑-rec-nd ≲-args x⊑y z
+
+  private
+
+    -- Lemmas showing how _≲_ evaluates.
+
+    never≲ : ∀ y → (never ≲ y) ≡ ↑ _ ⊤
+    never≲ _ = refl
+
+    ⨆≲ : ∀ s y → (⨆ s ≲ y) ≡ ∀ n → s [ n ] ≲ y
+    ⨆≲ _ _ = refl
+
+    now≲never : ∀ x → (now x ≲ never) ≡ Prelude.⊥
+    now≲never _ = refl
+
+    now≲now : ∀ x y → (now x ≲ now y) ≡ ∥ x ≡ y ∥
+    now≲now _ _ = refl
+
+    now≲⨆ : ∀ x s → (now x ≲ ⨆ s) ≡ ∥ (∃ λ n → now x ≲ s [ n ]) ∥
+    now≲⨆ _ _ = refl
+
+  -- _≲_ is reflexive.
+
+  ≲-refl : ∀ x → x ≲ x
+  ≲-refl = ⊥-rec-Prop (record
+    { po = λ _ → ∣ refl ∣
+    ; pl = λ s →
+             (∀ n → s [ n ] ≲ s [ n ])  ↝⟨ (λ s≲s n → ⨆-lemma s (s [ n ]) n (s≲s n)) ⟩
+             (∀ n → s [ n ] ≲ ⨆ s)      □
+    ; pp = λ x → ≲-propositional x x
+    })
+    where
+    ⨆-lemma : ∀ s x n → x ≲ s [ n ] → x ≲ ⨆ s
+    ⨆-lemma s = ⊥-rec-Prop
+      {P = λ x → ∀ n → x ≲ s [ n ] → x ≲ ⨆ s}
+      (record
+         { po = λ x n →
+                  now x ≲ s [ n ]                ↝⟨ ∣_∣ ∘ (n ,_) ⟩
+                  ∥ (∃ λ n → now x ≲ s [ n ]) ∥  □
+         ; pl = λ s′ →
+                  (∀ m n → s′ [ m ] ≲ s [ n ] → s′ [ m ] ≲ ⨆ s)  ↝⟨ (λ hyp n s′≲s m → hyp m n (s′≲s m)) ⟩
+                  (∀ n → (∀ m → s′ [ m ] ≲ s [ n ]) →
+                         (∀ m → s′ [ m ] ≲ ⨆ s))                 □
+         ; pp = λ x → Π-closure ext 1 λ _ →
+                      Π-closure ext 1 λ _ →
+                      ≲-propositional x (⨆ s)
+         })
+
+  -- _⊑_ and _≲_ are pointwise isomorphic.
+
+  ⊑≃≲ : ∀ {x y} → (x ⊑ y) ≃ (x ≲ y)
+  ⊑≃≲ {x} {y} =
+    _↔_.to (Eq.⇔↔≃ ext ⊑-propositional (≲-propositional x y))
+      (record { to   = ⊑-rec-⊑ to-args
+              ; from = ⊥-rec-Prop from-args _ _
+              })
+    where
+    to-args : Rec-args-⊑ (λ {x y} _ → x ≲ y)
+    to-args = record
+      { qr = λ x → ≲-refl x
+      ; qu = λ s ub _ n _ ⨆s≲ub → ⨆s≲ub n
+      ; ql = λ s ub _ _ s[_]≲ub n → s[ n ]≲ub
+      ; qp = λ {x y} _ → ≲-propositional x y
+      }
+
+    now-lemma : ∀ x y → now x ≲ y → now x ⊑ y
+    now-lemma x y = ⊥-rec-Prop
+      {P = λ y → now x ≲ y → now x ⊑ y}
+      (record
+         { pe = Prelude.⊥      ↝⟨ ⊥-elim ⟩□
+                now x ⊑ never  □
+         ; po = λ y →
+                  ∥ x ≡ y ∥        ↝⟨ Trunc.rec ⊑-propositional (
+
+                    x ≡ y               ↝⟨ cong now ⟩
+                    now x ≡ now y       ↝⟨ flip (subst (_ ⊑_)) (⊑-refl _) ⟩□
+                    now x ⊑ now y       □) ⟩□
+
+                  now x ⊑ now y    □
+         ; pl = λ s now-x≲s→now-x⊑s →
+                  ∥ ∃ (λ n → now x ≲ s [ n ]) ∥  ↝⟨ Trunc.rec ⊑-propositional (uncurry λ n now-x≲s[n] →
+
+                    now x                             ⊑⟨ now-x≲s→now-x⊑s n now-x≲s[n] ⟩
+                    s [ n ]                           ⊑⟨ upper-bound s n ⟩■
+                    ⨆ s                               ■) ⟩□
+
+                  now x ⊑ ⨆ s                    □
+         ; pp = λ _ → Π-closure ext 1 λ _ →
+                      ⊑-propositional
+         })
+      y
+
+    from-args : Rec-args-Prop (λ x → ∀ y → x ≲ y → x ⊑ y)
+    from-args = record
+      { pe = λ y _ → never⊑ y
+      ; po = now-lemma
+      ; pl = λ s s≲→s⊑ y →
+               (∀ n → s [ n ] ≲ y)  ↝⟨ (λ s[_]≲y n → s≲→s⊑ n y s[ n ]≲y) ⟩
+               (∀ n → s [ n ] ⊑ y)  ↝⟨ least-upper-bound s y ⟩□
+               ⨆ s ⊑ y              □
+      ; pp = λ _ → Π-closure ext 1 λ _ →
+                   Π-closure ext 1 λ _ →
+                   ⊑-propositional
+      }
+
+------------------------------------------------------------------------
+-- Some properties that follow from the alternative characterisation
+-- of _⊑_ (still assuming univalence)
+
   -- Defined values of the form now x are never smaller than or equal
   -- to never (assuming univalence).
   --
   -- This lemma was proved together with Paolo Capriotti and Nicolai
   -- Kraus.
 
-  now⋢never : Univalence a →
-              (x : A) → ¬ now x ⊑ never
-  now⋢never univ x =
-    now x ⊑ never          ↝⟨ P-downwards-closed ⟩
-    (P never → P (now x))  ↝⟨ _∘ lift ⟩
-    (⊤ → Prelude.⊥)        ↝⟨ _$ tt ⟩
-    Prelude.⊥              ↝⟨ ⊥-elim ⟩□
-    ⊥₀                     □
-    where
-    args : Rec-args-nd A (Proposition a) (λ P Q → proj₁ Q → proj₁ P)
-    args = record
-      { pe = ↑ _ ⊤ , mono₁ 0 (↑-closure 0 ⊤-contractible)
-      ; po = λ _ → Prelude.⊥ , ⊥-propositional
-      ; pl = λ { _ (p , _) → (∀ n → proj₁ (p n))
-                           , Π-closure ext 1 λ n →
-                             proj₂ (p n)
-               }
-      ; pa = λ P Q Q→P P→Q →      $⟨ record { to = P→Q; from = Q→P } ⟩
-               proj₁ P ⇔ proj₁ Q  ↝⟨ _↠_.from (≡↠⇔ univ (proj₂ P) (proj₂ Q)) ⟩
-               proj₁ P ≡ proj₁ Q  ↝⟨ _↔_.to (ignore-propositional-component (H-level-propositional ext 1)) ⟩□
-               P ≡ Q              □
-      ; qr = λ { _ (P , _) →
-                 P  ↝⟨ id ⟩□
-                 P  □
-               }
-      ; qu = λ { _ _ _ n (P , _) Q Q→∀nPn →
-                 proj₁ Q      ↝⟨ flip Q→∀nPn n ⟩
-                 proj₁ (P n)  □
-               }
-      ; ql = λ { _ _ _ (P , _) (Q , _) ∀nQ→Pn →
-                 Q                    ↝⟨ flip ∀nQ→Pn ⟩□
-                 (∀ n → proj₁ (P n))  □
-               }
-      ; qp = λ P _ →
-               Π-closure ext 1 λ _ →
-               proj₂ P
-      }
+  now⋢never : (x : A) → ¬ now x ⊑ never
+  now⋢never x =
+    now x ⊑ never  ↔⟨ ⊑≃≲ ⟩
+    now x ≲ never  ↝⟨ ⊥-elim ⟩□
+    ⊥₀             □
 
-    P : A ⊥ → Set a
-    P = proj₁ ∘ ⊥-rec-nd args
+  -- Defined values of the form now x are never equal to never.
 
-    P-downwards-closed : {x y : A ⊥} → x ⊑ y → P y → P x
-    P-downwards-closed = ⊑-rec-nd args
+  now≢never : (x : A) → now x ≢ never
+  now≢never x =
+    now x ≡ never                  ↝⟨ _≃_.from equality-characterisation-⊥ ⟩
+    now x ⊑ never × now x ⊒ never  ↝⟨ proj₁ ⟩
+    now x ⊑ never                  ↝⟨ now⋢never x ⟩□
+    ⊥₀                             □
 
-  -- Defined values of the form now x are never equal to never
-  -- (assuming extensionality and univalence).
+  -- There is an equivalence between "now x is smaller than or equal
+  -- to now y" and "x is merely equal to y".
 
-  now≢never : Univalence a →
-              (x : A) → now x ≢ never
-  now≢never univ x now≡never =
-    now⋢never univ x (subst (now x ⊑_) now≡never (⊑-refl _))
+  now⊑now≃∥≡∥ : {x y : A} → (now x ⊑ now y) ≃ ∥ x ≡ y ∥
+  now⊑now≃∥≡∥ {x} {y} =
+    now x ⊑ now y  ↝⟨ ⊑≃≲ ⟩
+    now x ≲ now y  ↝⟨ F.id ⟩□
+    ∥ x ≡ y ∥      □
+
+  -- There is an equivalence between "now x is equal to now y" and "x
+  -- is merely equal to y".
+
+  now≡now≃∥≡∥ : {x y : A} → (now x ≡ now y) ≃ ∥ x ≡ y ∥
+  now≡now≃∥≡∥ {x} {y} =
+    now x ≡ now y                  ↝⟨ inverse equality-characterisation-⊥ ⟩
+    now x ⊑ now y × now x ⊒ now y  ↝⟨ now⊑now≃∥≡∥ ×-cong now⊑now≃∥≡∥ ⟩
+    ∥ x ≡ y ∥ × ∥ y ≡ x ∥          ↝⟨ _↔_.to (Eq.⇔↔≃ ext (×-closure 1 truncation-is-proposition
+                                                                      truncation-is-proposition)
+                                                         truncation-is-proposition)
+                                             (record { to = proj₁
+                                                     ; from = λ ∥x≡y∥ → ∥x≡y∥ , ∥∥-map sym ∥x≡y∥
+                                                     }) ⟩□
+    ∥ x ≡ y ∥                      □
 
 ------------------------------------------------------------------------
 -- Monotone functions
