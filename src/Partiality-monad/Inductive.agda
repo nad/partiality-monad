@@ -822,7 +822,7 @@ module _ {a} {A : Set a} (univ : Univalence a) where
 
   private
 
-    -- Lemmas showing how _≲_ evaluates.
+    -- Lemmas showing certain aspects of how _≲_ evaluates.
 
     never≲ : ∀ y → (never ≲ y) ≡ ↑ _ ⊤
     never≲ _ = refl
@@ -1369,8 +1369,8 @@ equality-characterisation-strict {f = f} {g} =
   f⊑ = proj₁ fω
   f  = proj₁ f⊑
 
--- Strict ω-continuous functions are isomorphic to regular partial
--- functions.
+-- Strict ω-continuous functions from A ⊥ to B ⊥ are isomorphic to
+-- functions from A to B ⊥.
 
 partial↔strict :
   ∀ {a b} {A : Set a} {B : Set b} →
