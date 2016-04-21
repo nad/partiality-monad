@@ -1043,6 +1043,15 @@ module _ {a} {A : Set a} (univ : Univalence a) where
       s [ n ]     ⇓ x  ↝⟨ hyp n ⟩□
       s [ suc n ] ⇓ x  □
 
+  -- If one element in an increasing sequence terminates with a given
+  -- value, then this value is the sequence's least upper bound.
+
+  terminating-element-is-⨆ :
+    ∀ (s : Increasing-sequence A) {n x} →
+    s [ n ] ⇓ x → ⨆ s ⇓ x
+  terminating-element-is-⨆ s {n} {x} =
+    larger-terminate-with-same-value (upper-bound s n) x
+
   -- The relation _≼_ is contained in _⊑_.
   --
   -- Capretta proved a similar result in "General Recursion via
