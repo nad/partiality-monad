@@ -866,7 +866,7 @@ module _ {a} {A : Set a} (univ : Univalence a) where
                       ≲-propositional x (⨆ s)
          })
 
-  -- _⊑_ and _≲_ are pointwise isomorphic.
+  -- _⊑_ and _≲_ are pointwise equivalent.
 
   ⊑≃≲ : ∀ {x y} → (x ⊑ y) ≃ (x ≲ y)
   ⊑≃≲ {x} {y} =
