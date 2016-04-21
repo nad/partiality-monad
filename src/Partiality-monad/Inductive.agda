@@ -1101,6 +1101,22 @@ module _ {a} {A : Set a} (univ : Univalence a) where
                x ⇓ y                      □
       })
 
+  -- Another alternative characterisation of _⇓_.
+
+  infix 4 _⇊_
+
+  _⇊_ : A ⊥ → A → Set a
+  x ⇊ y = now y ≲ x
+
+  -- The relations _⇓_ and _⇊_ are pointwise equivalent.
+
+  ⇓≃⇊ : ∀ {x y} → (x ⇓ y) ≃ (x ⇊ y)
+  ⇓≃⇊ {x} {y} =
+    x ⇓ y      ↝⟨ ⇓≃now⊑ ⟩
+    now y ⊑ x  ↝⟨ ⊑≃≲ ⟩
+    now y ≲ x  ↝⟨ F.id ⟩□
+    x ⇊ y      □
+
 ------------------------------------------------------------------------
 -- Monotone functions
 
