@@ -1043,15 +1043,6 @@ module _ {a} {A : Set a} (univ : Univalence a) where
       s [ n ]     ⇓ x  ↝⟨ hyp n ⟩□
       s [ suc n ] ⇓ x  □
 
-  -- If now x is smaller than or equal to y, then y terminates with
-  -- the value x.
-
-  now⊑→⇓ : {x : A} {y : A ⊥} → now x ⊑ y → y ⇓ x
-  now⊑→⇓ {x} {y} =
-    now x ⊑ y                  ↝⟨ larger-terminate-with-same-value ⟩
-    (∀ z → now x ⇓ z → y ⇓ z)  ↝⟨ (λ hyp → hyp x refl) ⟩□
-    y ⇓ x                      □
-
   -- The relation _≼_ is contained in _⊑_.
   --
   -- Capretta proved a similar result in "General Recursion via
@@ -1096,6 +1087,19 @@ module _ {a} {A : Set a} (univ : Univalence a) where
                (record { to   = ≼→⊑
                        ; from = larger-terminate-with-same-value
                        })
+
+  -- An alternative characterisation of _⇓_.
+
+  ⇓≃now⊑ : ∀ {x} {y : A} → (x ⇓ y) ≃ (now y ⊑ x)
+  ⇓≃now⊑ {x} {y} =
+    _↔_.to (Eq.⇔↔≃ ext (⊥-is-set _ _) ⊑-propositional) (record
+      { to   = x ≡ now y              ↔⟨ inverse equality-characterisation-⊥ ⟩
+               x ⊑ now y × x ⊒ now y  ↝⟨ proj₂ ⟩□
+               now y ⊑ x              □
+      ; from = now y ⊑ x                  ↝⟨ larger-terminate-with-same-value ⟩
+               (∀ z → now y ⇓ z → x ⇓ z)  ↝⟨ (λ hyp → hyp y refl) ⟩□
+               x ⇓ y                      □
+      })
 
 ------------------------------------------------------------------------
 -- Monotone functions
