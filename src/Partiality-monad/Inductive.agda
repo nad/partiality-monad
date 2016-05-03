@@ -15,7 +15,7 @@ module Partiality-monad.Inductive where
 open import Equality.Propositional
 open import Logical-equivalence using (_⇔_)
 import Nat
-open import Prelude hiding (⊥; map; _>>=_)
+open import Prelude hiding (⊥)
 
 open import Bijection equality-with-J using (_↔_)
 open import Equality.Decidable-UIP equality-with-J
@@ -25,6 +25,7 @@ open import H-level equality-with-J
 open import H-level.Closure equality-with-J
 open import H-level.Truncation.Propositional as Trunc
 open import Interval using (ext)
+import Monad
 open import Surjection equality-with-J using (module _↠_)
 open import Univalence-axiom equality-with-J
 
@@ -1223,14 +1224,10 @@ equality-characterisation-continuous {a} {A = A} {B} {f} {g} =
   f ≡ g                                          □
 
 ------------------------------------------------------------------------
--- _⊥ is a monad
+-- The partiality monad's monad instance
 
--- Return/unit.
-
-return : ∀ {a} {A : Set a} → A → A ⊥
-return = now
-
--- Bind.
+-- Functions of type A → B ⊥ can be lifted to /ω-continuous/ functions
+-- from A ⊥ to B ⊥.
 
 module _ {a b} {A : Set a} {B : Set b} (f : A → B ⊥) where
 
@@ -1258,52 +1255,69 @@ module _ {a b} {A : Set a} {B : Set b} (f : A → B ⊥) where
   _∗-inc_ : Increasing-sequence A → Increasing-sequence B
   _∗-inc_ = inc-rec-nd =<<-args
 
-infixl 15 _>>=_
+-- A universe-polymorphic variant of bind.
 
-_>>=_ : ∀ {a b} {A : Set a} {B : Set b} →
-        A ⊥ → (A → B ⊥) → B ⊥
-x >>= f = proj₁ (proj₁ (f ∗)) x
+infixl 5 _>>=′_
 
--- Monad laws.
+_>>=′_ : ∀ {a b} {A : Set a} {B : Set b} →
+         A ⊥ → (A → B ⊥) → B ⊥
+x >>=′ f = proj₁ (proj₁ (f ∗)) x
 
-left-identity : ∀ {a b} {A : Set a} {B : Set b} x (f : A → B ⊥) →
-                return x >>= f ≡ f x
-left-identity x f = refl
+-- Instances of the monad laws with extra universe polymorphism.
 
-right-identity : ∀ {a} {A : Set a} (x : A ⊥) →
-                 x >>= return ≡ x
-right-identity = ⊥-rec-Prop
-  (record
-     { pe = refl
-     ; po = λ _ → refl
-     ; pl = λ s hyp →
-              ⨆ s >>= return      ≡⟨⟩
-              ⨆ (return ∗-inc s)  ≡⟨ cong ⨆ (_↔_.to equality-characterisation-increasing λ n →
+module Monad-laws where
 
-                s [ n ] >>= return       ≡⟨ hyp n ⟩∎
-                s [ n ]                  ∎) ⟩∎
+  left-identity : ∀ {a b} {A : Set a} {B : Set b} x (f : A → B ⊥) →
+                  now x >>=′ f ≡ f x
+  left-identity x f = refl
 
-              ⨆ s                 ∎
-     ; pp = λ _ → ⊥-is-set _ _
-     })
+  right-identity : ∀ {a} {A : Set a} (x : A ⊥) →
+                   x >>=′ now ≡ x
+  right-identity = ⊥-rec-Prop
+    (record
+       { pe = refl
+       ; po = λ _ → refl
+       ; pl = λ s hyp →
+                ⨆ s >>=′ now        ≡⟨⟩
+                ⨆ (now ∗-inc s)     ≡⟨ cong ⨆ (_↔_.to equality-characterisation-increasing λ n →
 
-associativity : ∀ {a b c} {A : Set a} {B : Set b} {C : Set c} →
-                (x : A ⊥) (f : A → B ⊥) (g : B → C ⊥) →
-                x >>= (λ x → f x >>= g) ≡ x >>= f >>= g
-associativity x f g = ⊥-rec-Prop
-  (record
-     { pe = refl
-     ; po = λ _ → refl
-     ; pl = λ s hyp →
-              ⨆ ((λ x → f x >>= g) ∗-inc s)  ≡⟨ cong ⨆ (_↔_.to equality-characterisation-increasing λ n →
+                  s [ n ] >>=′ now       ≡⟨ hyp n ⟩∎
+                  s [ n ]                ∎) ⟩∎
 
-                s [ n ] >>= (λ x → f x >>= g)       ≡⟨ hyp n ⟩∎
-                s [ n ] >>= f >>= g                 ∎) ⟩∎
+                ⨆ s                 ∎
+       ; pp = λ _ → ⊥-is-set _ _
+       })
 
-              ⨆ (g ∗-inc (f ∗-inc s))        ∎
-     ; pp = λ _ → ⊥-is-set _ _
-     })
-  x
+  associativity : ∀ {a b c} {A : Set a} {B : Set b} {C : Set c} →
+                  (x : A ⊥) (f : A → B ⊥) (g : B → C ⊥) →
+                  x >>=′ (λ x → f x >>=′ g) ≡ x >>=′ f >>=′ g
+  associativity x f g = ⊥-rec-Prop
+    (record
+       { pe = refl
+       ; po = λ _ → refl
+       ; pl = λ s hyp →
+                ⨆ ((λ x → f x >>=′ g) ∗-inc s)     ≡⟨ cong ⨆ (_↔_.to equality-characterisation-increasing λ n →
+
+                  s [ n ] >>=′ (λ x → f x >>=′ g)       ≡⟨ hyp n ⟩∎
+                  s [ n ] >>=′ f >>=′ g                 ∎) ⟩∎
+
+                ⨆ (g ∗-inc (f ∗-inc s))            ∎
+       ; pp = λ _ → ⊥-is-set _ _
+       })
+    x
+
+open Monad equality-with-J
+
+instance
+
+  -- The partiality monad's monad instance.
+
+  partiality-monad : ∀ {ℓ} → Monad (_⊥ {a = ℓ})
+  Raw-monad.return (Monad.raw-monad partiality-monad) = now
+  Raw-monad._>>=_  (Monad.raw-monad partiality-monad) = _>>=′_
+  Monad.left-identity  partiality-monad = Monad-laws.left-identity
+  Monad.right-identity partiality-monad = Monad-laws.right-identity
+  Monad.associativity  partiality-monad = Monad-laws.associativity
 
 -- _⊥ is a functor.
 
@@ -1324,14 +1338,14 @@ map-id =
 map-∘ : ∀ {a b c} {A : Set a} {B : Set b} {C : Set c}
         (f : B → C) (g : A → B) →
         map (f ∘ g) ≡ map f ∘ω map g
-map-∘ {a} f g =
-  (return ∘ f ∘ g) ∗                ≡⟨ _↔_.to equality-characterisation-continuous (λ x →
+map-∘ f g =
+  (now ∘ f ∘ g) ∗                ≡⟨ _↔_.to equality-characterisation-continuous (λ x →
 
-    x >>= (return ∘ f ∘ g)                       ≡⟨⟩
-    x >>= (λ x → return (g x) >>= (return ∘ f))  ≡⟨ associativity x (return ∘ g) (return ∘ f) ⟩∎
-    x >>= (return ∘ g) >>= (return ∘ f)          ∎) ⟩∎
+    x >>=′ (now ∘ f ∘ g)                     ≡⟨⟩
+    x >>=′ (λ x → now (g x) >>=′ (now ∘ f))  ≡⟨ Monad-laws.associativity x (now ∘ g) (now ∘ f) ⟩∎
+    x >>=′ (now ∘ g) >>=′ (now ∘ f)          ∎) ⟩∎
 
-  (return ∘ f) ∗ ∘ω (return ∘ g) ∗  ∎
+  (now ∘ f) ∗ ∘ω (now ∘ g) ∗  ∎
 
 ------------------------------------------------------------------------
 -- Strict ω-continuous functions
@@ -1375,15 +1389,15 @@ equality-characterisation-strict {f = f} {g} =
   ∀ {a b} {A : Set a} {B : Set b} →
   (fs : [ A ⊥→ B ⊥]-strict) →
   let f = proj₁ (proj₁ (proj₁ fs)) in
-  ∀ x → x >>= (f ∘ return) ≡ f x
+  ∀ x → x >>=′ (f ∘ return) ≡ f x
 >>=-∘-return fs = ⊥-rec-Prop
-  {P = λ x → x >>= (f ∘ return) ≡ f x}
+  {P = λ x → x >>=′ (f ∘ return) ≡ f x}
   (record
      { pe = never    ≡⟨ sym (proj₂ fs) ⟩∎
             f never  ∎
      ; po = λ _ → refl
      ; pl = λ s p →
-              ⨆ s >>= (f ∘ return)      ≡⟨⟩
+              ⨆ s >>=′ (f ∘ return)     ≡⟨⟩
               ⨆ ((f ∘ return) ∗-inc s)  ≡⟨ cong ⨆ (_↔_.to equality-characterisation-increasing λ n →
 
                 (f ∘ return) ∗-inc s [ n ]   ≡⟨ p n ⟩∎
@@ -1413,12 +1427,12 @@ partial↔strict {a} = record
     ; right-inverse-of    = λ fs →
         let f = proj₁ (proj₁ (proj₁ fs)) in
         _↔_.to equality-characterisation-strict λ x →
-          x >>= (f ∘ return)  ≡⟨ >>=-∘-return fs x ⟩∎
-          f x                 ∎
+          x >>=′ (f ∘ return)  ≡⟨ >>=-∘-return fs x ⟩∎
+          f x                  ∎
     }
   ; left-inverse-of = λ f → ext λ x →
-      return x >>= f  ≡⟨ left-identity x f ⟩∎
-      f x             ∎
+      return x >>=′ f  ≡⟨ Monad-laws.left-identity x f ⟩∎
+      f x              ∎
   }
 
 ------------------------------------------------------------------------
