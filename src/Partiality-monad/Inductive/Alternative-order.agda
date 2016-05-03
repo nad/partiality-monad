@@ -416,16 +416,8 @@ terminating-element-is-⨆ s {n} {x} =
 
 -- Another alternative characterisation of _⇓_.
 
-infix 4 _⇊_
-
-_⇊_ : A ⊥ → A → Set a
-x ⇊ y = now y ≲ x
-
--- The relations _⇓_ and _⇊_ are pointwise equivalent.
-
-⇓≃⇊ : ∀ {x y} → (x ⇓ y) ≃ (x ⇊ y)
-⇓≃⇊ {x} {y} =
+⇓≃now≲ : ∀ {x y} → (x ⇓ y) ≃ (now y ≲ x)
+⇓≃now≲ {x} {y} =
   x ⇓ y      ↝⟨ ⇓≃now⊑ ⟩
-  now y ⊑ x  ↝⟨ ⊑≃≲ ⟩
-  now y ≲ x  ↝⟨ F.id ⟩□
-  x ⇊ y      □
+  now y ⊑ x  ↝⟨ ⊑≃≲ ⟩□
+  now y ≲ x  □
