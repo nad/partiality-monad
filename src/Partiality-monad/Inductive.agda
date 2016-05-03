@@ -40,8 +40,8 @@ private
 
   -- The partiality monad _⊥ and the information ordering _⊑_ are
   -- defined as a single inductive family D. A boolean index is used
-  -- to separate the two types. I think Conor McBride once pointed out
-  -- that inductive-inductive types can be encoded as
+  -- to separate the two types. I (NAD) think that Conor McBride once
+  -- pointed out that inductive-inductive types can be encoded as
   -- inductive-recursive types in (roughly) the following way.
 
   I : ∀ {a} → Set a → Bool → Set a
@@ -312,8 +312,8 @@ module _ {a} {A : Set a} where
 
 -- Dependent eliminators.
 --
--- I have tried to follow the spirit of the rules for HITs specified
--- in the HoTT-Agda library
+-- I (NAD) have tried to follow the spirit of the rules for HITs
+-- specified in the HoTT-Agda library
 -- (https://github.com/HoTT/HoTT-Agda/blob/master/lib/types/HIT_README.txt).
 -- However, at the time of writing those rules don't apply to
 -- indexed types.
