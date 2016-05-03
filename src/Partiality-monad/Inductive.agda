@@ -893,7 +893,7 @@ module _ {a} {A : Set a} (univ : Univalence a) where
                   ∥ x ≡ y ∥        ↝⟨ Trunc.rec ⊑-propositional (
 
                     x ≡ y               ↝⟨ cong now ⟩
-                    now x ≡ now y       ↝⟨ flip (subst (_ ⊑_)) (⊑-refl _) ⟩□
+                    now x ≡ now y       ↝⟨ flip (subst (now x ⊑_)) (⊑-refl _) ⟩□
                     now x ⊑ now y       □) ⟩□
 
                   now x ⊑ now y    □
