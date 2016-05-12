@@ -153,12 +153,13 @@ module _ {a} {A : Set a} where
   only-never-⊑-never : {x : A ⊥} → x ⊑ never → x ≡ never
   only-never-⊑-never x⊑never = antisymmetry x⊑never (never⊑ _)
 
-  -- The least value never is equal to the least upper bound of a
-  -- constant sequence of nevers.
+  -- The least upper bound of a constant sequence is equal to the
+  -- value in the sequence.
 
-  never≡⨆never : never ≡ ⨆ ((λ _ → never {A = A}) , λ _ → never⊑ never)
-  never≡⨆never =
-    antisymmetry (never⊑ _) (least-upper-bound _ _ λ _ → never⊑ never)
+  ⨆-const : ∀ {x : A ⊥} {inc} → ⨆ (const x , inc) ≡ x
+  ⨆-const {x} =
+    antisymmetry (least-upper-bound _ _ (λ _ → ⊑-refl x))
+                 (upper-bound _ 0)
 
   -- A termination predicate: x ⇓ y means that x terminates with the
   -- value y.
