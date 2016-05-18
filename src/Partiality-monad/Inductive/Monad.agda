@@ -57,6 +57,28 @@ _>>=′_ : ∀ {a b} {A : Set a} {B : Set b} →
          A ⊥ → (A → B ⊥) → B ⊥
 x >>=′ f = proj₁ (proj₁ (f ∗)) x
 
+-- Bind is monotone.
+
+infixl 5 _>>=-mono_
+
+_>>=-mono_ :
+  ∀ {a b} {A : Set a} {B : Set b} {x y : A ⊥} {f g : A → B ⊥} →
+  x ⊑ y → (∀ z → f z ⊑ g z) → x >>=′ f ⊑ y >>=′ g
+_>>=-mono_ {x = x} {y} {f} {g} x⊑y f⊑g =
+  x >>=′ f ⊑⟨ proj₂ (proj₁ (f ∗)) x⊑y ⟩
+  y >>=′ f ⊑⟨ ⊥-rec-Prop {P = λ y → y >>=′ f ⊑ y >>=′ g} (record
+                { pe = never⊑ never
+                ; po = f⊑g
+                ; pl = λ s ih →
+                         ⨆ s >>=′ f     ⊑⟨⟩
+                         ⨆ (f ∗-inc s)  ⊑⟨ ⨆-mono ih ⟩
+                         ⨆ (g ∗-inc s)  ⊑⟨⟩
+                         ⨆ s >>=′ g     ■
+                ; pp = λ _ → ⊑-propositional
+                })
+                y ⟩
+  y >>=′ g ■
+
 -- Instances of the monad laws with extra universe polymorphism.
 
 module Monad-laws where
