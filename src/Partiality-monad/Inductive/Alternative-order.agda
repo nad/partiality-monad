@@ -421,3 +421,14 @@ terminating-element-is-⨆ s {n} {x} =
   x ⇓ y      ↝⟨ ⇓≃now⊑ ⟩
   now y ⊑ x  ↝⟨ ⊑≃≲ ⟩□
   now y ≲ x  □
+
+-- A corollary of ⇓≃now≲.
+
+⨆⇓≃∥∃⇓∥ :
+  ∀ (s : Increasing-sequence A) {x} →
+  (⨆ s ⇓ x) ≃ ∥ ∃ (λ n → s [ n ] ⇓ x) ∥
+⨆⇓≃∥∃⇓∥ s {x} =
+  ⨆ s ⇓ x                        ↝⟨ ⇓≃now≲ ⟩
+  now x ≲ ⨆ s                    ↝⟨ F.id ⟩
+  ∥ ∃ (λ n → now x ≲ s [ n ]) ∥  ↝⟨ ∥∥-cong (∃-cong λ _ → inverse ⇓≃now≲) ⟩□
+  ∥ ∃ (λ n → s [ n ] ⇓ x) ∥      □
