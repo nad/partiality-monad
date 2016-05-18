@@ -89,8 +89,8 @@ module _ {a} {A : Set a} where
 
   later-larger : (s : Increasing-sequence A) →
                  ∀ {m n} → m ≤ n → s [ m ] ⊑ s [ n ]
-  later-larger s {m} ≤-refl             = s [ m ] ■
-  later-larger s {m} (≤-step {n = n} p) =
+  later-larger s {m} (≤-refl′ refl)           = s [ m ] ■
+  later-larger s {m} (≤-step′ {k = n} p refl) =
     s [ m ]      ⊑⟨ later-larger s p ⟩
     s [ n ]      ⊑⟨ increasing s n ⟩■
     s [ suc n ]  ■

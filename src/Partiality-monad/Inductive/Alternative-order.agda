@@ -16,7 +16,6 @@ module Partiality-monad.Inductive.Alternative-order
 open import H-level.Truncation.Propositional as Trunc
 open import Interval using (ext)
 open import Logical-equivalence using (_⇔_)
-import Nat
 open import Prelude hiding (⊥)
 
 open import Bijection equality-with-J using (_↔_)
@@ -24,6 +23,7 @@ open import Equivalence equality-with-J as Eq using (_≃_)
 open import Function-universe equality-with-J as F hiding (id; _∘_)
 open import H-level equality-with-J
 open import H-level.Closure equality-with-J
+open import Nat equality-with-J as Nat
 
 open import Partiality-monad.Inductive
 open import Partiality-monad.Inductive.Eliminators
@@ -341,8 +341,8 @@ larger-terminate-with-same-value = ⊑-rec-⊑
   lemma : ∀ s {x} →
           (∀ n → s [ n ] ⇓ x → s [ suc n ] ⇓ x) →
           ∀ {m n} → m ≤ n → s [ m ] ⇓ x → s [ n ] ⇓ x
-  lemma s     hyp     ≤-refl             = id
-  lemma s {x} hyp {m} (≤-step {n = n} p) =
+  lemma s     hyp     (≤-refl′ refl)           = id
+  lemma s {x} hyp {m} (≤-step′ {k = n} p refl) =
     s [ m ]     ⇓ x  ↝⟨ lemma s hyp p ⟩
     s [ n ]     ⇓ x  ↝⟨ hyp n ⟩□
     s [ suc n ] ⇓ x  □

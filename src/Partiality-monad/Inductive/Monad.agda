@@ -100,7 +100,7 @@ module Monad-laws where
        })
     x
 
-open Monad equality-with-J
+open Monad equality-with-J hiding (map; map-id; map-∘)
 
 instance
 
