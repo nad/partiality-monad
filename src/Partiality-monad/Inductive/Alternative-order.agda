@@ -19,10 +19,12 @@ open import Logical-equivalence using (_⇔_)
 open import Prelude hiding (⊥)
 
 open import Bijection equality-with-J using (_↔_)
+open import Double-negation equality-with-J
 open import Equivalence equality-with-J as Eq using (_≃_)
 open import Function-universe equality-with-J as F hiding (id; _∘_)
 open import H-level equality-with-J
 open import H-level.Closure equality-with-J
+open import Monad equality-with-J
 open import Nat equality-with-J as Nat
 
 open import Partiality-monad.Inductive
@@ -432,6 +434,36 @@ terminating-element-is-⨆ s {n} {x} =
   now x ≲ ⨆ s                    ↝⟨ F.id ⟩
   ∥ ∃ (λ n → now x ≲ s [ n ]) ∥  ↝⟨ ∥∥-cong (∃-cong λ _ → inverse ⇓≃now≲) ⟩□
   ∥ ∃ (λ n → s [ n ] ⇓ x) ∥      □
+
+-- If x does not terminate, then x is equal to never.
+
+¬⇓→⇑ : {x : A ⊥} → ¬ (∃ λ y → x ⇓ y) → x ⇑
+¬⇓→⇑ {x} = ⊥-rec-Prop
+  {P = λ x → ¬ (∃ λ y → x ⇓ y) → x ⇑}
+  (record
+     { pe = ¬ ∃ (never ⇓_)  ↝⟨ const refl ⟩□
+            never ⇑         □
+     ; po = λ x →
+              ¬ ∃ (now x ⇓_) ↝⟨ _$ (x , refl) ⟩
+              ⊥₀             ↝⟨ ⊥-elim ⟩□
+              now x ⇑        □
+     ; pl = λ s ih →
+              ¬ ∃ (⨆ s ⇓_)                           ↔⟨ →-cong ext (∃-cong (λ _ → ⨆⇓≃∥∃⇓∥ s)) F.id ⟩
+              ¬ ∃ (λ x → ∥ ∃ (λ n → s [ n ] ⇓ x) ∥)  ↝⟨ (λ { hyp (n , x , s[n]⇓x) → hyp (x , ∣ n , s[n]⇓x ∣) }) ⟩
+              ¬ ∃ (λ n → ∃ λ x → s [ n ] ⇓ x)        ↝⟨ (λ hyp n → ih n (hyp ∘ (n ,_))) ⟩
+              (∀ n → s [ n ] ⇑)                      ↝⟨ sym ∘ _↔_.to equality-characterisation-increasing ⟩
+              constˢ never ≡ s                       ↝⟨ flip (subst (λ s → ⨆ s ⇑)) ⨆-const ⟩□
+              ⨆ s ⇑                                  □
+     ; pp = λ _ → Π-closure ext 1 λ _ →
+                  ⊥-is-set _ _
+     })
+  x
+
+-- In the double-negation monad a computation is either terminating or
+-- non-terminating.
+
+now-or-never : (x : A ⊥) → ¬ ¬ ((∃ λ y → x ⇓ y) ⊎ x ⇑)
+now-or-never x = run (map (⊎-map id ¬⇓→⇑) excluded-middle)
 
 -- Some "constructors" for □.
 

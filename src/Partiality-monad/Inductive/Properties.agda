@@ -171,10 +171,15 @@ module _ {a} {A : Set a} where
   -- A termination predicate: x ⇓ y means that x terminates with the
   -- value y.
 
-  infix 4 _⇓_
+  infix 4 _⇓_ _⇑
 
   _⇓_ : A ⊥ → A → Set a
   x ⇓ y = x ≡ now y
+
+  -- A non-termination predicate.
+
+  _⇑ : A ⊥ → Set a
+  x ⇑ = x ≡ never
 
   -- An alternative characterisation of _⊑_.
   --
