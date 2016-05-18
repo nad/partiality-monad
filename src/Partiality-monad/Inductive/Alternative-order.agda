@@ -11,7 +11,7 @@ open import Univalence-axiom equality-with-J
 -- The characterisation uses univalence.
 
 module Partiality-monad.Inductive.Alternative-order
-         {a} {A : Set a} (univ : Univalence a) where
+         {a} (univ : Univalence a) {A : Set a} where
 
 open import H-level.Truncation.Propositional as Trunc
 open import Interval using (ext)
@@ -88,7 +88,7 @@ private
              }
     ; pa = λ x≲ y≲ y≲→x≲ x≲→y≲ → ext λ z →
                                           $⟨ record { to = x≲→y≲ z; from = y≲→x≲ z } ⟩
-             proj₁ (x≲ z) ⇔ proj₁ (y≲ z)  ↝⟨ _↔_.to (⇔↔≡′ ext univ) ⟩
+             proj₁ (x≲ z) ⇔ proj₁ (y≲ z)  ↝⟨ _↔_.to (⇔↔≡′ ext univ) ⟩□
              x≲ z ≡ y≲ z                  □
     ; qr = λ _ x≲ z →
              proj₁ (x≲ z)  ↝⟨ id ⟩□
@@ -149,7 +149,7 @@ private
 ≲-refl = ⊥-rec-Prop (record
   { po = λ _ → ∣ refl ∣
   ; pl = λ s →
-           (∀ n → s [ n ] ≲ s [ n ])  ↝⟨ (λ s≲s n → ⨆-lemma s (s [ n ]) n (s≲s n)) ⟩
+           (∀ n → s [ n ] ≲ s [ n ])  ↝⟨ (λ s≲s n → ⨆-lemma s (s [ n ]) n (s≲s n)) ⟩□
            (∀ n → s [ n ] ≲ ⨆ s)      □
   ; pp = λ x → ≲-propositional x x
   })
@@ -159,10 +159,10 @@ private
     {P = λ x → ∀ n → x ≲ s [ n ] → x ≲ ⨆ s}
     (record
        { po = λ x n →
-                now x ≲ s [ n ]                ↝⟨ ∣_∣ ∘ (n ,_) ⟩
+                now x ≲ s [ n ]                ↝⟨ ∣_∣ ∘ (n ,_) ⟩□
                 ∥ (∃ λ n → now x ≲ s [ n ]) ∥  □
        ; pl = λ s′ →
-                (∀ m n → s′ [ m ] ≲ s [ n ] → s′ [ m ] ≲ ⨆ s)  ↝⟨ (λ hyp n s′≲s m → hyp m n (s′≲s m)) ⟩
+                (∀ m n → s′ [ m ] ≲ s [ n ] → s′ [ m ] ≲ ⨆ s)  ↝⟨ (λ hyp n s′≲s m → hyp m n (s′≲s m)) ⟩□
                 (∀ n → (∀ m → s′ [ m ] ≲ s [ n ]) →
                        (∀ m → s′ [ m ] ≲ ⨆ s))                 □
        ; pp = λ x → Π-closure ext 1 λ _ →
@@ -365,7 +365,7 @@ terminating-element-is-⨆ s {n} {x} =
 ≼→⊑ {x} {y} = ⊥-rec-Prop
   {P = λ x → x ≼ y → x ⊑ y}
   (record
-     { pe = never ≼ y  ↝⟨ (λ _ → never⊑ y) ⟩
+     { pe = never ≼ y  ↝⟨ (λ _ → never⊑ y) ⟩□
             never ⊑ y   □
      ; po = λ x →
               now x ≼ y              ↝⟨ (λ hyp → hyp x refl) ⟩
@@ -432,3 +432,54 @@ terminating-element-is-⨆ s {n} {x} =
   now x ≲ ⨆ s                    ↝⟨ F.id ⟩
   ∥ ∃ (λ n → now x ≲ s [ n ]) ∥  ↝⟨ ∥∥-cong (∃-cong λ _ → inverse ⇓≃now≲) ⟩□
   ∥ ∃ (λ n → s [ n ] ⇓ x) ∥      □
+
+-- Some "constructors" for □.
+
+□-never :
+  ∀ {ℓ} {P : A → Set ℓ} →
+  □ P never
+□-never {P = P} y =
+  never ⇓ y  ↔⟨ ⇓≃now≲ ⟩
+  Prelude.⊥  ↝⟨ ⊥-elim ⟩□
+  P y        □
+
+□-now :
+  ∀ {ℓ} {P : A → Set ℓ} {x} →
+  Is-proposition (P x) →
+  P x → □ P (now x)
+□-now {P = P} {x} P-prop p y =
+  now x ⇓ y  ↔⟨ now≡now≃∥≡∥ ⟩
+  ∥ x ≡ y ∥  ↝⟨ (λ ∥x≡y∥ →
+                   Trunc.rec (Trunc.rec (H-level-propositional ext 1)
+                                        (λ x≡y → subst (Is-proposition ∘ P) x≡y P-prop)
+                                        ∥x≡y∥)
+                             (λ x≡y → subst P x≡y p)
+                             ∥x≡y∥) ⟩□
+  P y        □
+
+□-⨆ :
+  ∀ {ℓ} {P : A → Set ℓ} →
+  (∀ x → Is-proposition (P x)) →
+  ∀ {s} → (∀ n → □ P (s [ n ])) → □ P (⨆ s)
+□-⨆ {P = P} P-prop {s} p y =
+  ⨆ s ⇓ y                        ↔⟨ ⇓≃now≲ ⟩
+  ∥ ∃ (λ n → now y ≲ s [ n ]) ∥  ↔⟨ ∥∥-cong (∃-cong λ _ → inverse ⇓≃now≲) ⟩
+  ∥ ∃ (λ n → s [ n ] ⇓ y) ∥      ↝⟨ Trunc.rec (P-prop y) (uncurry λ n s[n]⇓y → p n y s[n]⇓y) ⟩□
+  P y                            □
+
+-- One "non-constructor" and one "constructor" for ◇.
+
+◇-never :
+  ∀ {ℓ} {P : A → Set ℓ} →
+  ¬ ◇ P never
+◇-never {P = P} =
+  ◇ P never                      ↝⟨ id ⟩
+  ∥ (∃ λ y → never ⇓ y × P y) ∥  ↝⟨ Trunc.rec ⊥-propositional (now≢never _ ∘ sym ∘ proj₁ ∘ proj₂) ⟩□
+  ⊥₀                             □
+
+◇-⨆ :
+  ∀ {ℓ} {P : A → Set ℓ} →
+  ∀ {s n} → ◇ P (s [ n ]) → ◇ P (⨆ s)
+◇-⨆ {P = P} =
+  ∥∥-map (Σ-map id (λ {x} → Σ-map {Q = λ _ → P x}
+                                  (terminating-element-is-⨆ _) id))

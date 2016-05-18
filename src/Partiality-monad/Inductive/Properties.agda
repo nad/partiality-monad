@@ -7,6 +7,7 @@
 module Partiality-monad.Inductive.Properties where
 
 open import Equality.Propositional
+open import H-level.Truncation.Propositional
 open import Interval using (ext)
 open import Logical-equivalence using (_⇔_)
 open import Prelude hiding (⊥)
@@ -190,3 +191,28 @@ module _ {a} {A : Set a} where
     Π-closure ext 1 λ _ →
     Π-closure ext 1 λ _ →
     ⊥-is-set _ _
+
+  -- Box and diamond.
+
+  □ : ∀ {ℓ} → (A → Set ℓ) → A ⊥ → Set (a ⊔ ℓ)
+  □ P x = ∀ y → x ⇓ y → P y
+
+  ◇ : ∀ {ℓ} → (A → Set ℓ) → A ⊥ → Set (a ⊔ ℓ)
+  ◇ P x = ∥ (∃ λ y → x ⇓ y × P y) ∥
+
+  -- All h-levels are closed under box.
+
+  □-closure : ∀ {ℓ} {P : A → Set ℓ} {x} n →
+              (∀ x → H-level n (P x)) → H-level n (□ P x)
+  □-closure n h =
+    Π-closure ext n λ y →
+    Π-closure ext n λ _ →
+    h y
+
+  -- A "constructor" for ◇. For more "constructors" for □ and ◇, see
+  -- Partiality-monad.Inductive.Alternative-order.
+
+  ◇-now :
+    ∀ {ℓ} {P : A → Set ℓ} →
+    ∀ {x} → P x → ◇ P (now x)
+  ◇-now p = ∣ _ , refl , p ∣

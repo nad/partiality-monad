@@ -7,12 +7,21 @@
 module Partiality-monad.Inductive.Monad where
 
 open import Equality.Propositional
+open import H-level.Truncation.Propositional as Trunc
+open import Interval using (ext)
+open import Logical-equivalence using (_⇔_)
 import Monad
 open import Prelude hiding (⊥)
 
 open import Bijection equality-with-J using (_↔_)
+open import Equivalence equality-with-J as Eq using (_≃_)
+open import Function-universe equality-with-J as F hiding (id; _∘_)
+open import H-level equality-with-J
+open import H-level.Closure equality-with-J
+open import Univalence-axiom equality-with-J
 
 open import Partiality-monad.Inductive
+import Partiality-monad.Inductive.Alternative-order as Alternative-order
 open import Partiality-monad.Inductive.Eliminators
 open import Partiality-monad.Inductive.Omega-continuous
 open import Partiality-monad.Inductive.Properties
@@ -163,3 +172,96 @@ map-∘ f g =
     x >>=′ (now ∘ g) >>=′ (now ∘ f)          ∎) ⟩∎
 
   (now ∘ f) ∗ ∘ω (now ∘ g) ∗  ∎
+
+------------------------------------------------------------------------
+-- Some properties
+
+-- A kind of inversion lemma for _⇓_.
+
+>>=-⇓ :
+  ∀ {a b} {A : Set a} {B : Set b}
+    {x : A ⊥} {f : A → B ⊥} {y} →
+  Univalence a →
+  Univalence b →
+  (x >>=′ f ⇓ y) ≃ ∥ ∃ (λ z → x ⇓ z × f z ⇓ y) ∥
+>>=-⇓ {x = x} {f} {y} univ-a univ-b = ⊥-rec-Prop
+  {P = λ x → (x >>=′ f ⇓ y) ≃ ∥ ∃ (λ z → x ⇓ z × f z ⇓ y) ∥}
+  (record
+     { pe = never ⇓ y                          ↝⟨ ⇓≃now≲ ⟩
+            Prelude.⊥                          ↔⟨ inverse (not-inhabited⇒∥∥↔⊥ id) ⟩
+            ∥ Prelude.⊥ ∥                      ↔⟨ ∥∥-cong (inverse ×-right-zero) ⟩
+            ∥ ∃ (λ z → ⊥₀) ∥                   ↔⟨ ∥∥-cong (∃-cong (λ _ → inverse ×-left-zero)) ⟩
+            ∥ ∃ (λ z → Prelude.⊥ × f z ⇓ y) ∥  ↝⟨ ∥∥-cong (∃-cong (λ _ → inverse (Alternative-order.⇓≃now≲ univ-a) ×-cong F.id)) ⟩□
+            ∥ ∃ (λ z → never ⇓ z × f z ⇓ y) ∥  □
+     ; po = λ x →
+              now x >>=′ f ⇓ y                                   ↝⟨ F.id ⟩
+              f x ⇓ y                                            ↔⟨ inverse (∥∥↔ (⊥-is-set _ _)) ⟩
+              ∥ f x ⇓ y ∥                                        ↔⟨ ∥∥-cong (inverse $ drop-⊤-left-Σ $ inverse $
+                                                                      _⇔_.to contractible⇔⊤↔ (singleton-contractible _)) ⟩
+              ∥ ∃ (λ (p : ∃ (λ z → z ≡ x)) → f (proj₁ p) ⇓ y) ∥  ↔⟨ ∥∥-cong (inverse Σ-assoc) ⟩
+              ∥ ∃ (λ z → z ≡ x × f z ⇓ y) ∥                      ↔⟨ inverse $ Trunc.flatten′
+                                                                      (λ F → ∃ (λ _ → F (_ ≡ _) × _))
+                                                                      (λ f → Σ-map id (Σ-map f id))
+                                                                      (λ { (x , y , z) → ∥∥-map ((x ,_) ∘ (_, z)) y }) ⟩
+              ∥ ∃ (λ z → ∥ z ≡ x ∥ × f z ⇓ y) ∥                  ↝⟨ ∥∥-cong (∃-cong λ _ → inverse (Alternative-order.⇓≃now≲ univ-a)
+                                                                                            ×-cong
+                                                                                          F.id) ⟩□
+              ∥ ∃ (λ z → now x ⇓ z × f z ⇓ y) ∥                  □
+     ; pl = λ s ih →
+              ⨆ s >>=′ f ⇓ y                                     ↝⟨ F.id ⟩
+              ⨆ (f ∗-inc s) ⇓ y                                  ↝⟨ ⨆⇓≃∥∃⇓∥ _ ⟩
+              ∥ (∃ λ n → s [ n ] >>=′ f ⇓ y) ∥                   ↝⟨ ∥∥-cong (∃-cong ih) ⟩
+              ∥ (∃ λ n → ∥ ∃ (λ z → s [ n ] ⇓ z × f z ⇓ y) ∥) ∥  ↔⟨ Trunc.flatten′ (λ F → ∃ λ _ → F (∃ λ _ → _ × _))
+                                                                                   (λ f → Σ-map id f)
+                                                                                   (uncurry λ x → ∥∥-map (x ,_)) ⟩
+              ∥ (∃ λ n → ∃ λ z → s [ n ] ⇓ z × f z ⇓ y) ∥        ↔⟨ ∥∥-cong ∃-comm ⟩
+              ∥ (∃ λ z → ∃ λ n → s [ n ] ⇓ z × f z ⇓ y) ∥        ↔⟨ ∥∥-cong (∃-cong λ _ → Σ-assoc) ⟩
+              ∥ (∃ λ z → (∃ λ n → s [ n ] ⇓ z) × f z ⇓ y) ∥      ↔⟨ inverse $ Trunc.flatten′
+                                                                      (λ F → (∃ λ _ → F (∃ λ _ → _ ⇓ _) × _))
+                                                                      (λ f → Σ-map id (Σ-map f id))
+                                                                      (λ { (x , y , z) → ∥∥-map ((x ,_) ∘ (_, z)) y }) ⟩
+              ∥ (∃ λ z → ∥ (∃ λ n → s [ n ] ⇓ z) ∥ × f z ⇓ y) ∥  ↝⟨ ∥∥-cong (∃-cong λ _ →
+                                                                               inverse (Alternative-order.⨆⇓≃∥∃⇓∥ univ-a _)
+                                                                                 ×-cong
+                                                                               F.id) ⟩□
+              ∥ ∃ (λ z → ⨆ s ⇓ z × f z ⇓ y) ∥                    □
+     ; pp = λ _ → Eq.right-closure ext 0 truncation-is-proposition
+     })
+  x
+  where
+  open Alternative-order univ-b
+
+-- □ is closed, in a certain sense, under bind (assuming univalence).
+
+□->>= :
+  ∀ {a b p q} {A : Set a} {B : Set b} {P : A → Set p} {Q : B → Set q}
+    {x : A ⊥} {f : A → B ⊥} →
+  Univalence a →
+  Univalence b →
+  (∀ x → Is-proposition (Q x)) →
+  □ P x → (∀ {x} → P x → □ Q (f x)) → □ Q (x >>=′ f)
+□->>= {Q = Q} {x} {f} univ-a univ-b Q-prop □-x □-f y =
+  x >>=′ f ⇓ y                   ↔⟨ >>=-⇓ univ-a univ-b ⟩
+  ∥ (∃ λ z → x ⇓ z × f z ⇓ y) ∥  ↝⟨ Trunc.rec (Q-prop y) (λ { (z , x⇓z , fz⇓y) → □-f (□-x z x⇓z) y fz⇓y }) ⟩□
+  Q y                            □
+
+-- ◇ is closed, in a certain sense, under bind.
+
+◇->>= :
+  ∀ {a b p q} {A : Set a} {B : Set b} {P : A → Set p} {Q : B → Set q}
+    {x : A ⊥} {f : A → B ⊥} →
+  ◇ P x → (∀ {x} → P x → ◇ Q (f x)) → ◇ Q (x >>=′ f)
+◇->>= {x = x} {f} ◇-x ◇-f = Trunc.rec
+  truncation-is-proposition
+  (λ { (y , x⇓y , Py) →
+       ∥∥-map (λ { (z , fy⇓z , Qz) →
+                     z
+                   , (x >>=′ f      ≡⟨ cong (_>>=′ f) x⇓y ⟩
+                      now y >>=′ f  ≡⟨⟩
+                      f y           ≡⟨ fy⇓z ⟩∎
+                      now z         ∎)
+                   , Qz
+                 })
+              (◇-f Py)
+     })
+  ◇-x
