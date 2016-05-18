@@ -7,6 +7,9 @@
 
 module README where
 
+------------------------------------------------------------------------
+-- The partiality monad
+
 -- The code is heavily inspired by the section on Cauchy reals in the
 -- HoTT book (first edition).
 
@@ -51,3 +54,33 @@ import Partiality-monad.Inductive.Strict-omega-continuous
 -- Fixpoint combinators.
 
 import Partiality-monad.Inductive.Fixpoints
+
+------------------------------------------------------------------------
+-- An example
+
+-- Some developments from "Operational Semantics Using the Partiality
+-- Monad" by Danielsson, ported to the present setting.
+--
+-- These developments to a large extent mirror developments in
+-- "Coinductive big-step operational semantics" by Leroy and Grall.
+
+-- The syntax of, and a type system for, the untyped λ-calculus with
+-- constants.
+
+import Lambda.Syntax
+
+-- A definitional interpreter.
+
+import Lambda.Interpreter
+
+-- A type soundness result.
+
+import Lambda.Type-soundness
+
+-- A virtual machine.
+
+import Lambda.Virtual-machine
+
+-- A correct compiler. (TODO: Finish the correctness proof.)
+
+import Lambda.Compiler

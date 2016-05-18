@@ -17,6 +17,7 @@ open import Equivalence equality-with-J as Eq using (_≃_)
 open import Function-universe equality-with-J hiding (id; _∘_)
 open import H-level equality-with-J
 open import H-level.Closure equality-with-J
+open import Nat equality-with-J
 
 open import Partiality-monad.Inductive
 open import Partiality-monad.Inductive.Eliminators
@@ -216,3 +217,96 @@ module _ {a} {A : Set a} where
     ∀ {ℓ} {P : A → Set ℓ} →
     ∀ {x} → P x → ◇ P (now x)
   ◇-now p = ∣ _ , refl , p ∣
+
+  ----------------------------------------------------------------------
+  -- Combinators that may make it a bit easier to prove that two least
+  -- upper bounds are equal
+
+  -- A relation between increasing sequences.
+
+  infix 4 _≈_
+
+  data _≈_ : Increasing-sequence A → Increasing-sequence A → Set a where
+    ≈-trans                : ∀ {s₁ s₂ s₃} → s₁ ≈ s₂ → s₂ ≈ s₃ → s₁ ≈ s₃
+    infinitely-often-equal :
+      ∀ {s₁ s₂} →
+      (∀ n → ∃ λ k₁ → ∃ λ k₂ → s₁ [ k₁ + n ] ≡ s₂ [ k₂ + n ]) →
+      s₁ ≈ s₂
+
+  -- The relation is an equivalence relation.
+
+  infix  -1 _∎≈
+  infixr -2 _≈⟨_⟩_ _≡⟨_⟩≈_
+
+  _∎≈ : ∀ s → s ≈ s
+  _ ∎≈ = infinitely-often-equal λ _ → 0 , 0 , refl
+
+  ≈-sym : ∀ {s₁ s₂} → s₁ ≈ s₂ → s₂ ≈ s₁
+  ≈-sym (≈-trans s₁≈s₂ s₂≈s₃)          = ≈-trans (≈-sym s₂≈s₃)
+                                                 (≈-sym s₁≈s₂)
+  ≈-sym (infinitely-often-equal s₁≈s₂) =
+    infinitely-often-equal λ n →
+      let k₁ , k₂ ,     eq = s₁≈s₂ n
+      in  k₂ , k₁ , sym eq
+
+  _≈⟨_⟩_ : ∀ s₁ {s₂ s₃} → s₁ ≈ s₂ → s₂ ≈ s₃ → s₁ ≈ s₃
+  _≈⟨_⟩_ _ = ≈-trans
+
+  _≡⟨_⟩≈_ : ∀ s₁ {s₂ s₃} →
+            (∀ n → s₁ [ n ] ≡ s₂ [ n ]) → s₂ ≈ s₃ → s₁ ≈ s₃
+  s₁ ≡⟨ s₁≡s₂ ⟩≈ (≈-trans s₂≈s₃ s₃≈s₄) =
+    ≈-trans (s₁ ≡⟨ s₁≡s₂ ⟩≈ s₂≈s₃) s₃≈s₄
+
+  s₁ ≡⟨ s₁≡s₂ ⟩≈ infinitely-often-equal {s₁ = s₂} {s₂ = s₃} s₂≈s₃ =
+    infinitely-often-equal λ n →
+      let k₁ , k₂ , eq = s₂≈s₃ n
+      in    k₁
+          , k₂
+          , (s₁ [ k₁ + n ]  ≡⟨ s₁≡s₂ (k₁ + n) ⟩
+             s₂ [ k₁ + n ]  ≡⟨ eq ⟩∎
+             s₃ [ k₂ + n ]  ∎)
+
+  -- If two increasing sequences are related, then their least upper
+  -- bounds are equal.
+
+  ≈→⨆≡⨆ : ∀ {s₁ s₂} → s₁ ≈ s₂ → ⨆ s₁ ≡ ⨆ s₂
+  ≈→⨆≡⨆ s₁≈s₂ = antisymmetry
+    (≈→⊑         s₁≈s₂)
+    (≈→⊑ $ ≈-sym s₁≈s₂)
+    where
+    ≈→⊑ : ∀ {s₁ s₂} → s₁ ≈ s₂ → ⨆ s₁ ⊑ ⨆ s₂
+    ≈→⊑ {s₁} {s₂} (infinitely-often-equal s₁≈s₂) =
+      least-upper-bound s₁ (⨆ s₂) λ n →
+        let k₁ , k₂ , s₁[k₁+n]≡s₂[k₂+n] = s₁≈s₂ n in
+
+        s₁ [ n ]       ⊑⟨ later-larger s₁ (m≤n+m n k₁) ⟩
+        s₁ [ k₁ + n ]  ⊑⟨ s₁[k₁+n]≡s₂[k₂+n] ⟩≡
+        s₂ [ k₂ + n ]  ⊑⟨ upper-bound s₂ (k₂ + n) ⟩
+        ⨆ s₂           ■
+    ≈→⊑ (≈-trans {s₁ = s₁} {s₂ = s₂} {s₃ = s₃} s₁≈s₂ s₂≈s₃) =
+      ⨆ s₁  ⊑⟨ ≈→⊑ s₁≈s₂ ⟩
+      ⨆ s₂  ⊑⟨ ≈→⊑ s₂≈s₃ ⟩■
+      ⨆ s₃  ■
+
+  -- Some "stepping" combinators.
+
+  laterˡ : ∀ {s₁ s₂} → tailˢ s₁ ≈ s₂ → s₁ ≈ s₂
+  laterˡ (≈-trans s₁≈s₂ s₂≈s₃)          = ≈-trans (laterˡ s₁≈s₂) s₂≈s₃
+  laterˡ (infinitely-often-equal s₁≈s₂) =
+    infinitely-often-equal λ n →
+      Σ-map suc id (s₁≈s₂ n)
+
+  laterʳ : ∀ {s₁ s₂} → s₁ ≈ tailˢ s₂ → s₁ ≈ s₂
+  laterʳ (≈-trans s₁≈s₂ s₂≈s₃)          = ≈-trans s₁≈s₂ (laterʳ s₂≈s₃)
+  laterʳ (infinitely-often-equal s₁≈s₂) =
+    infinitely-often-equal λ n →
+      Σ-map id (Σ-map suc id) (s₁≈s₂ n)
+
+  later : ∀ {s₁ s₂} → tailˢ s₁ ≈ tailˢ s₂ → s₁ ≈ s₂
+  later = laterʳ ∘ laterˡ
+
+  step⇑ : ∀ {s} → tailˢ s ≈ s
+  step⇑ = laterʳ (_ ∎≈)
+
+  step⇓ : ∀ {s} → s ≈ tailˢ s
+  step⇓ = laterˡ (_ ∎≈)
