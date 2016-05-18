@@ -153,6 +153,11 @@ module _ {a} {A : Set a} where
   only-never-⊑-never : {x : A ⊥} → x ⊑ never → x ≡ never
   only-never-⊑-never x⊑never = antisymmetry x⊑never (never⊑ _)
 
+  -- Constant sequences.
+
+  constˢ : A ⊥ → Increasing-sequence A
+  constˢ x = const x , const (⊑-refl x)
+
   -- The least upper bound of a constant sequence is equal to the
   -- value in the sequence.
 
