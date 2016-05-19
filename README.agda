@@ -81,6 +81,6 @@ import Lambda.Type-soundness
 
 import Lambda.Virtual-machine
 
--- A correct compiler. (TODO: Finish the correctness proof.)
+-- A correct compiler.
 
 import Lambda.Compiler
