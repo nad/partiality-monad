@@ -56,130 +56,103 @@ mutual
 mutual
 
   ⟦⟧-correct :
-    ∀ {n} t {ρ : T.Env n} {c s} {k : T.Value → MaybeT _⊥ C.Value} n →
-    (∀ v → ∃ λ m →
-       steps ⟨ c , val (comp-val v) ∷ s , comp-env ρ ⟩ (m + n) ≡
-       run (k v)) →
-    ∃ λ m → steps ⟨ comp t c , s , comp-env ρ ⟩ (m + n) ≡
-            run (⟦ t ⟧′ ρ n >>= k)
-  ⟦⟧-correct (con i) {ρ} {c} {s} {k} n hyp =
-    let m , h = hyp (T.con i) in
-      1 + m
-    , (steps ⟨ con i ∷ c , s , comp-env ρ ⟩ (1 + m + n)                 ≡⟨⟩
-       steps ⟨ c , val (comp-val (T.con i)) ∷ s , comp-env ρ ⟩ (m + n)  ≡⟨ h ⟩
-       run (k (T.con i))                                                ≡⟨⟩
-       run (⟦ con i ⟧′ ρ n >>= k)                                       ∎)
+    ∀ {n} t {ρ : T.Env n} {c s} {k : ℕ → T.Value → M C.Value} {n} →
+    (∀ v → steps ⟨ c , val (comp-val v) ∷ s , comp-env ρ ⟩ ≳[ n ]
+           λ n → run (k n v)) →
+    steps ⟨ comp t c , s , comp-env ρ ⟩ ≳[ n ]
+    λ n → run (⟦ t ⟧′ ρ n >>= k n)
+  ⟦⟧-correct (con i) {ρ} {c} {s} {k} hyp =
+    steps ⟨ con i ∷ c , s , comp-env ρ ⟩                     ≳⟨ step⇓ ⟩
+    steps ⟨ c , val (comp-val (T.con i)) ∷ s , comp-env ρ ⟩  ≳⟨ hyp (T.con i) ⟩
+    (λ n → run (k n (T.con i)))                              ≳⟨⟩
+    (λ n → run (⟦ con i ⟧′ ρ n >>= k n))                     ∎≳
 
-  ⟦⟧-correct (var x) {ρ} {c} {s} {k} n hyp =
-    let m , h = hyp (ρ x) in
-      1 + m
-    , (steps ⟨ var x ∷ c , s , comp-env ρ ⟩ (1 + m + n)             ≡⟨⟩
-       steps ⟨ c , val (comp-val (ρ x)) ∷ s , comp-env ρ ⟩ (m + n)  ≡⟨ h ⟩
-       run (k (ρ x))                                                ≡⟨⟩
-       run (⟦ var x ⟧′ ρ n >>= k)                                   ∎)
+  ⟦⟧-correct (var x) {ρ} {c} {s} {k} hyp =
+    steps ⟨ var x ∷ c , s , comp-env ρ ⟩                 ≳⟨ step⇓ ⟩
+    steps ⟨ c , val (comp-val (ρ x)) ∷ s , comp-env ρ ⟩  ≳⟨ hyp (ρ x) ⟩
+    (λ n → run (k n (ρ x)))                              ≳⟨⟩
+    (λ n → run (⟦ var x ⟧′ ρ n >>= k n))                 ∎≳
 
-  ⟦⟧-correct (ƛ t) {ρ} {c} {s} {k} n hyp =
-    let m , h = hyp (T.ƛ t ρ) in
-      1 + m
-    , (steps ⟨ clo (comp t (ret ∷ [])) ∷ c , s , comp-env ρ ⟩ (1 + m + n)  ≡⟨⟩
-       steps ⟨ c , val (comp-val (T.ƛ t ρ)) ∷ s , comp-env ρ ⟩ (m + n)     ≡⟨ h ⟩
-       run (k (T.ƛ t ρ))                                                   ≡⟨⟩
-       run (⟦ ƛ t ⟧′ ρ n >>= k)                                            ∎)
+  ⟦⟧-correct (ƛ t) {ρ} {c} {s} {k} hyp =
+    steps ⟨ clo (comp t (ret ∷ [])) ∷ c , s , comp-env ρ ⟩   ≳⟨ step⇓ ⟩
+    steps ⟨ c , val (comp-val (T.ƛ t ρ)) ∷ s , comp-env ρ ⟩  ≳⟨ hyp (T.ƛ t ρ) ⟩
+    (λ n → run (k n (T.ƛ t ρ)))                              ≳⟨⟩
+    (λ n → run (⟦ ƛ t ⟧′ ρ n >>= k n))                       ∎≳
 
-  ⟦⟧-correct (t₁ · t₂) {ρ} {c} {s} {k} n hyp =
-    let m , h = ⟦⟧-correct t₁ n λ v₁ →
-                ⟦⟧-correct t₂ n λ v₂ →
-                ∙-correct v₁ v₂ n hyp in
-      m
-    , (steps ⟨ comp t₁ (comp t₂ (app ∷ c)) , s , comp-env ρ ⟩ (m + n)  ≡⟨ h ⟩
+  ⟦⟧-correct (t₁ · t₂) {ρ} {c} {s} {k} {n} hyp =
+    steps ⟨ comp t₁ (comp t₂ (app ∷ c)) , s , comp-env ρ ⟩     ≳⟨ (⟦⟧-correct t₁ λ v₁ → ⟦⟧-correct t₂ λ v₂ → ∙-correct v₁ v₂ hyp) ⟩
 
-       run (⟦ t₁ ⟧′ ρ n >>= λ v₁ →
-            ⟦ t₂ ⟧′ ρ n >>= λ v₂ →
-            (v₁ ∙ v₂) n >>= k)                                         ≡⟨ cong (λ f → run (⟦ t₁ ⟧′ ρ n >>= f))
-                                                                               (ext λ v₁ → Monad.associativity tr (⟦ t₂ ⟧′ ρ n) _ _) ⟩
-       run (⟦ t₁ ⟧′ ρ n >>= λ v₁ →
-            (⟦ t₂ ⟧′ ρ n >>= λ v₂ → (v₁ ∙ v₂) n) >>= k)                ≡⟨ cong MaybeT.run $ Monad.associativity tr (⟦ t₁ ⟧′ ρ n) _ _ ⟩∎
+    (λ n → run (⟦ t₁ ⟧′ ρ n >>= λ v₁ →
+                ⟦ t₂ ⟧′ ρ n >>= λ v₂ →
+                (v₁ ∙ v₂) n >>= k n))                          ≳⟨ cong (λ f → run (⟦ t₁ ⟧′ ρ n >>= f))
+                                                                       (ext λ v₁ → Monad.associativity tr (⟦ t₂ ⟧′ ρ n) _ _) ⟩≡
+    (λ n → run (⟦ t₁ ⟧′ ρ n >>= λ v₁ →
+               (⟦ t₂ ⟧′ ρ n >>= λ v₂ → (v₁ ∙ v₂) n) >>= k n))  ≳⟨ cong MaybeT.run $ Monad.associativity tr (⟦ t₁ ⟧′ ρ n) _ _ ⟩≡
 
-       run (⟦ t₁ · t₂ ⟧′ ρ n >>= k)                                    ∎)
+    (λ n → run (⟦ t₁ · t₂ ⟧′ ρ n >>= k n))                     ∎≳
     where
     tr = Monad-transformer.transform (Maybe.monad-transformer ext)
 
   ∙-correct :
-    ∀ {n} v₁ v₂ {ρ : T.Env n} {c s} {k : T.Value → M C.Value} n →
-    (∀ v → ∃ λ m →
-       steps ⟨ c , val (comp-val v) ∷ s , comp-env ρ ⟩ (m + n) ≡
-       run (k v)) →
-    ∃ λ m →
-      steps ⟨ app ∷ c
-            , val (comp-val v₂) ∷ val (comp-val v₁) ∷ s
-            , comp-env ρ
-            ⟩ (m + n) ≡
-      run ((v₁ ∙ v₂) n >>= k)
+    ∀ {n} v₁ v₂ {ρ : T.Env n} {c s} {k : ℕ → T.Value → M C.Value} {n} →
+    (∀ v → steps ⟨ c , val (comp-val v) ∷ s , comp-env ρ ⟩ ≳[ n ]
+           λ n → run (k n v)) →
+    steps ⟨ app ∷ c
+          , val (comp-val v₂) ∷ val (comp-val v₁) ∷ s
+          , comp-env ρ
+          ⟩ ≳[ n ]
+    λ n → run ((v₁ ∙ v₂) n >>= k n)
+  ∙-correct (T.con i) v₂ {ρ} {c} {s} {k} hyp =
+    steps ⟨ app ∷ c
+          , val (comp-val v₂) ∷ val (C.con i) ∷ s
+          , comp-env ρ
+          ⟩                                        ≳⟨⟩
 
-  ∙-correct (T.con i) v₂ {ρ} {c} {s} {k} n hyp =
-      0
-    , (steps ⟨ app ∷ c
-             , val (comp-val v₂) ∷ val (C.con i) ∷ s
-             , comp-env ρ
-             ⟩ n                                      ≡⟨⟩
+    const (run fail)                               ≳⟨⟩
 
-       run fail                                       ≡⟨⟩
+    (λ n → run ((T.con i ∙ v₂) n >>= k n))         ∎≳
 
-       run ((T.con i ∙ v₂) n >>= k)                   ∎)
+  ∙-correct (T.ƛ t₁ ρ₁) v₂ {ρ} {c} {s} {k} {zero} hyp =
+    steps ⟨ app ∷ c
+          , val (comp-val v₂) ∷ val (comp-val (T.ƛ t₁ ρ₁)) ∷ s
+          , comp-env ρ
+          ⟩                                                     ≳⟨ refl ⟩≡
 
-  ∙-correct (T.ƛ t₁ ρ₁) v₂ {ρ} {c} {s} {k} zero hyp =
-      0
-    , (steps ⟨ app ∷ c
-             , val (comp-val v₂) ∷ val (comp-val (T.ƛ t₁ ρ₁)) ∷ s
-             , comp-env ρ
-             ⟩ 0                                                   ≡⟨⟩
+    const never                                                 ≳⟨ 0 ∣ refl ⟩≡
 
-       never                                                       ≡⟨⟩
+    (λ n → run ((T.ƛ t₁ ρ₁ ∙ v₂) n >>= k n))                    ∎≳
 
-       run ((T.ƛ t₁ ρ₁ ∙ v₂) 0 >>= k)                              ∎)
+  ∙-correct (T.ƛ t₁ ρ₁) v₂ {ρ} {c} {s} {k} {suc n} hyp = later (
+    steps ⟨ app ∷ c
+          , val (comp-val v₂) ∷
+            val (comp-val (T.ƛ t₁ ρ₁)) ∷ s
+          , comp-env ρ
+          ⟩ ∘ suc                                         ≳⟨⟩
 
-  ∙-correct (T.ƛ t₁ ρ₁) v₂ {ρ} {c} {s} {k} (suc n) hyp =
-    let m , h = ⟦⟧-correct t₁ n λ v →
+    steps ⟨ comp t₁ (ret ∷ [])
+          , ret c (comp-env ρ) ∷ s
+          , snoc (comp-env ρ₁) (comp-val v₂)
+          ⟩                                               ≳⟨ (λ n → cong (λ ρ′ → steps ⟨ comp t₁ (ret ∷ []) , ret c (comp-env ρ) ∷ s , ρ′ ⟩ n)
+                                                                         (ext (maybe (λ _ → refl) refl))) ⟩≡∀
+    steps ⟨ comp t₁ (ret ∷ [])
+          , ret c (comp-env ρ) ∷ s
+          , comp-env (snoc ρ₁ v₂)
+          ⟩                                               ≳⟨ (⟦⟧-correct t₁ λ v →
 
-          let m , h = hyp v in
-            2 + m
-          , (steps ⟨ ret ∷ []
-                   , val (comp-val v) ∷ ret c (comp-env ρ) ∷ s
-                   , comp-env (snoc ρ₁ v₂)
-                   ⟩ (2 + m + n)                                          ≡⟨⟩
+        steps ⟨ ret ∷ []
+              , val (comp-val v) ∷ ret c (comp-env ρ) ∷ s
+              , comp-env (snoc ρ₁ v₂)
+              ⟩                                                ≳⟨ step⇓ ⟩
 
-             steps ⟨ c , val (comp-val v) ∷ s , comp-env ρ ⟩ (1 + m + n)  ≡⟨ cong (steps ⟨ c , _ , _ ⟩) (suc+≡+suc m) ⟩
+        steps ⟨ c , val (comp-val v) ∷ s , comp-env ρ ⟩        ≳⟨ hyp v ⟩
 
-             steps ⟨ c , val (comp-val v) ∷ s , comp-env ρ ⟩ (m + suc n)  ≡⟨ h ⟩∎
+        (λ n → run (k n v))                                    ≳⟨ step⇓ ⟩
 
-             run (k v)                                                    ∎)
-    in
-      m
-    , (steps ⟨ app ∷ c
-             , val (comp-val v₂) ∷
-               val (comp-val (T.ƛ t₁ ρ₁)) ∷ s
-             , comp-env ρ
-             ⟩ (m + suc n)                       ≡⟨ cong (steps ⟨ app ∷ _ , val _ ∷ val (comp-val (T.ƛ t₁ ρ₁)) ∷ _ , _ ⟩)
-                                                         (sym $ suc+≡+suc m) ⟩
-       steps ⟨ app ∷ c
-             , val (comp-val v₂) ∷
-               val (comp-val (T.ƛ t₁ ρ₁)) ∷ s
-             , comp-env ρ
-             ⟩ (1 + m + n)                       ≡⟨⟩
+        (λ n → run (k (suc n) v))                              ∎≳) ⟩
 
-       steps ⟨ comp t₁ (ret ∷ [])
-             , ret c (comp-env ρ) ∷ s
-             , snoc (comp-env ρ₁) (comp-val v₂)
-             ⟩ (m + n)                           ≡⟨ cong (λ ρ′ → steps ⟨ comp t₁ (ret ∷ []) , ret c (comp-env ρ) ∷ s , ρ′ ⟩ (m + n))
-                                                         (ext (maybe (λ _ → refl) refl)) ⟩
-       steps ⟨ comp t₁ (ret ∷ [])
-             , ret c (comp-env ρ) ∷ s
-             , comp-env (snoc ρ₁ v₂)
-             ⟩ (m + n)                           ≡⟨ h ⟩
+    (λ n → run (⟦ t₁ ⟧′ (snoc ρ₁ v₂) n >>= k (suc n)))    ≳⟨⟩
 
-       run (⟦ t₁ ⟧′ (snoc ρ₁ v₂) n >>= k)        ≡⟨⟩
-
-       run ((T.ƛ t₁ ρ₁ ∙ v₂) (suc n) >>= k)      ∎)
+    (λ n → run ((T.ƛ t₁ ρ₁ ∙ v₂) (suc n) >>= k (suc n)))  ∎≳)
 
 -- Note that the equality that is used here is syntactic.
 
@@ -192,20 +165,8 @@ correct t =
 
   wrap (exec ⟨ comp t [] , [] , comp-env empty ⟩)         ≡⟨⟩
 
-  wrap (⨆ (stepsˢ ⟨ comp t [] , [] , comp-env empty ⟩))   ≡⟨ cong wrap $ antisymmetry
-                                                               (⨆-mono λ n →
-                                                                  let m , h = ⟦⟧-correct t n λ v →
-                                                                                 0 , (MaybeT.run (return (comp-val v)) ∎) in
-      steps ⟨ comp t [] , [] , comp-env empty ⟩ n                 ⊑⟨ later-larger (stepsˢ ⟨ comp t [] , _ , _ ⟩) (m≤n+m _ m) ⟩
-      steps ⟨ comp t [] , [] , comp-env empty ⟩ (m + n)           ⊑⟨ h ⟩≡
-      run (⟦ t ⟧′ empty n >>= λ v → return (comp-val v))          ■)
-                                                               (least-upper-bound _ _ λ n →
-                                                                  let m , h = ⟦⟧-correct t n λ v →
-                                                                                 0 , (MaybeT.run (return (comp-val v)) ∎) in
-      run (⟦ t ⟧′ empty n >>= λ v → return (comp-val v))          ⊑⟨ sym h ⟩≡
-      steps ⟨ comp t [] , [] , comp-env empty ⟩ (m + n)           ⊑⟨ upper-bound _ _ ⟩■
-      ⨆ (stepsˢ ⟨ comp t [] , [] , comp-env empty ⟩)              ■) ⟩
-
+  wrap (⨆ (stepsˢ ⟨ comp t [] , [] , comp-env empty ⟩))   ≡⟨ cong wrap (≳→⨆≡⨆ $ ⟦⟧-correct t λ v →
+                                                                                  const (MaybeT.run (return (comp-val v))) ∎≳) ⟩
   wrap (⨆ (⟦ t ⟧ˢ empty >>=ˢ λ v →
            constˢ (MaybeT.run (return (comp-val v)))))    ≡⟨ cong (λ s → wrap (⨆ s))
                                                                   (_↔_.to equality-characterisation-increasing (λ _ → refl)) ⟩∎

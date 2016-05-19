@@ -222,3 +222,118 @@ module _ {a} {A : Set a} where
     ∀ {ℓ} {P : A → Set ℓ} →
     ∀ {x} → P x → ◇ P (now x)
   ◇-now p = ∣ _ , refl , p ∣
+
+  ----------------------------------------------------------------------
+  -- Combinators that can be used to prove that two least upper bounds
+  -- are equal
+
+  -- For an example of how these combinators can be used, see
+  -- Lambda.Compiler.
+
+  -- A relation between sequences.
+
+  infix 4 _≳[_]_
+
+  record _≳[_]_ (s₁ : ℕ → A ⊥) (n : ℕ) (s₂ : ℕ → A ⊥) : Set a where
+    constructor wrap
+    field
+      run : ∃ λ k → s₁ (k + n) ≡ s₂ n
+
+  open _≳[_]_ public
+
+  steps-≳ : ∀ {s₁ n s₂} → s₁ ≳[ n ] s₂ → ℕ
+  steps-≳ = proj₁ ∘ run
+
+  -- If two increasing sequences are universally related, then their
+  -- least upper bounds are equal.
+
+  ≳→⨆≡⨆ : ∀ {s₁ s₂} → (∀ {n} → proj₁ s₁ ≳[ n ] proj₁ s₂) → ⨆ s₁ ≡ ⨆ s₂
+  ≳→⨆≡⨆ {s₁} {s₂} s₁≳s₂ = antisymmetry
+    (⨆-mono λ n →
+       let k , s₁[k+n]≡s₂[n] = run s₁≳s₂ in
+
+       s₁ [     n ]  ⊑⟨ later-larger s₁ (m≤n+m n k) ⟩
+       s₁ [ k + n ]  ⊑⟨ s₁[k+n]≡s₂[n] ⟩≡
+       s₂ [     n ]  ■)
+    (least-upper-bound s₂ (⨆ s₁) λ n →
+       let k , s₁[k+n]≡s₂[n] = run s₁≳s₂ in
+
+       s₂ [ n ]      ⊑⟨ sym s₁[k+n]≡s₂[n] ⟩≡
+       s₁ [ k + n ]  ⊑⟨ upper-bound s₁ (k + n) ⟩■
+       ⨆ s₁          ■)
+
+  -- Preorder-like reasoning combinators.
+
+  infix  -1 _∎≳
+  infixr -2 _≳⟨⟩_ trans-≳ trans-≡≳ trans-≡≳∀ trans-≡≳′
+
+  _∎≳ : ∀ s {n} → s ≳[ n ] s
+  run (_ ∎≳) = 0 , refl
+
+  _≳⟨⟩_ : ∀ {n} s₁ {s₂} → s₁ ≳[ n ] s₂ → s₁ ≳[ n ] s₂
+  _ ≳⟨⟩ s₁≳s₂ = s₁≳s₂
+
+  trans-≳ : ∀ {n} s₁ {s₂ s₃}
+            (s₂≳s₃ : s₂ ≳[ n ] s₃) →
+            s₁ ≳[ steps-≳ s₂≳s₃ + n ] s₂ →
+            s₁ ≳[ n ] s₃
+  run (trans-≳ {n} s₁ {s₂} {s₃} s₂≳s₃ s₁≳s₂) =
+    let k₁ , eq₁ = run s₂≳s₃
+        k₂ , eq₂ = run s₁≳s₂
+    in
+      k₂ + k₁
+    , (s₁ ((k₂ + k₁) + n)  ≡⟨ cong s₁ (sym $ +-assoc k₂) ⟩
+       s₁ (k₂ + (k₁ + n))  ≡⟨ eq₂ ⟩
+       s₂       (k₁ + n)   ≡⟨ eq₁ ⟩∎
+       s₃             n    ∎)
+
+  trans-≡≳ : ∀ {n} s₁ {s₂ s₃}
+             (s₂≳s₃ : s₂ ≳[ n ] s₃) →
+             s₁ (steps-≳ s₂≳s₃ + n) ≡ s₂ (steps-≳ s₂≳s₃ + n) →
+             s₁ ≳[ n ] s₃
+  trans-≡≳ _ s₂≳s₃ s₁≡s₂ = _ ≳⟨ wrap (0 , s₁≡s₂) ⟩ s₂≳s₃
+
+  trans-≡≳∀ : ∀ {n} s₁ {s₂ s₃}
+              (s₂≳s₃ : s₂ ≳[ n ] s₃) →
+              (∀ n → s₁ n ≡ s₂ n) →
+              s₁ ≳[ n ] s₃
+  trans-≡≳∀ _ s₂≳s₃ s₁≡s₂ = trans-≡≳ _ s₂≳s₃ (s₁≡s₂ _)
+
+  trans-≡≳′ : ∀ n s₁ {s₂ s₃}
+              (s₂≳s₃ : s₂ ≳[ n ] s₃) →
+              s₁ (steps-≳ s₂≳s₃ + n) ≡ s₂ (steps-≳ s₂≳s₃ + n) →
+              s₁ ≳[ n ] s₃
+  trans-≡≳′ _ = trans-≡≳
+
+  syntax trans-≳     s₁ s₂≳s₃ s₁≳s₂ = s₁ ≳⟨     s₁≳s₂ ⟩   s₂≳s₃
+  syntax trans-≡≳    s₁ s₂≳s₃ s₁≡s₂ = s₁ ≳⟨     s₁≡s₂ ⟩≡  s₂≳s₃
+  syntax trans-≡≳∀   s₁ s₂≳s₃ s₁≡s₂ = s₁ ≳⟨     s₁≡s₂ ⟩≡∀ s₂≳s₃
+  syntax trans-≡≳′ n s₁ s₂≳s₃ s₁≡s₂ = s₁ ≳⟨ n ∣ s₁≡s₂ ⟩≡  s₂≳s₃
+
+  -- Some "stepping" combinators.
+
+  later : ∀ {n s₁ s₂} →
+          s₁ ∘ suc ≳[ n ] s₂ ∘ suc → s₁ ≳[ suc n ] s₂
+  run (later {n} {s₁} {s₂} s₁≳s₂) =
+    let k , eq = run s₁≳s₂
+    in
+      k
+    , (s₁ (k + suc n)  ≡⟨ cong s₁ (sym $ suc+≡+suc k) ⟩
+       s₁ (suc k + n)  ≡⟨ eq ⟩∎
+       s₂ (suc n)      ∎)
+
+  earlier : ∀ {n s₁ s₂} →
+            s₁ ≳[ suc n ] s₂ → s₁ ∘ suc ≳[ n ] s₂ ∘ suc
+  run (earlier {n} {s₁} {s₂} s₁≳s₂) =
+    let k , eq = run s₁≳s₂
+    in
+      k
+    , (s₁ (suc k + n)  ≡⟨ cong s₁ (suc+≡+suc k) ⟩
+       s₁ (k + suc n)  ≡⟨ eq ⟩∎
+       s₂ (suc n)      ∎)
+
+  laterˡ : ∀ {n s₁ s₂} → s₁ ∘ suc ≳[ n ] s₂ → s₁ ≳[ n ] s₂
+  run (laterˡ s₁≳s₂) = Σ-map suc id (run s₁≳s₂)
+
+  step⇓ : ∀ {n s} → s ≳[ n ] s ∘ suc
+  step⇓ = laterˡ (_ ∎≳)
