@@ -71,25 +71,17 @@ infixr 8 _⇾_
 
 mutual
 
-  data Ty′ (i : Size) : Set where
-    nat : Ty′ i
-    _⇾_ : (σ τ : ∞Ty′ i) → Ty′ i
+  data Ty : Set where
+    nat : Ty
+    _⇾_ : (σ τ : ∞Ty) → Ty
 
-  record ∞Ty′ (i : Size) : Set where
+  record ∞Ty : Set where
     coinductive
+    constructor [_]
     field
-      force : {j : Size< i} → Ty′ j
+      force : Ty
 
-open ∞Ty′ public
-
-Ty : Set
-Ty = Ty′ ∞
-
-∞Ty : Set
-∞Ty = ∞Ty′ ∞
-
-[_] : Ty → ∞Ty
-force [ σ ] = σ
+open ∞Ty public
 
 -- Contexts.
 
