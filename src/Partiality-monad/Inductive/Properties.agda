@@ -221,6 +221,19 @@ x ≼ y = ∀ z → x ⇓ z → y ⇓ z
   ∀ {x} → P x → ◇ P (now x)
 ◇-now p = ∣ _ , refl , p ∣
 
+-- Runs the computation. The given number is used to decide which
+-- element to choose in sequences that are encountered.
+
+approximate : A ⊥ → ℕ → ∥ Maybe A ∥
+approximate x n = ⊥-rec-Prop
+  (record
+     { pe = ∣ nothing ∣
+     ; po = λ x → ∣ just x ∣
+     ; pl = λ _ rec → rec n
+     ; pp = λ _ → truncation-is-proposition
+     })
+  x
+
 ----------------------------------------------------------------------
 -- Combinators that can be used to prove that two least upper bounds
 -- are equal
