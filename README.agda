@@ -116,3 +116,14 @@ import Delay-monad.Least-upper-bound
 -- The delay monad is a monad up to strong bisimilarity.
 
 import Delay-monad.Monad
+
+------------------------------------------------------------------------
+-- The delay monad quotiented by weak bisimilarity
+
+-- The delay monad quotiented by weak bisimilarity.
+
+import Partiality-monad.Coinductive
+
+-- A partial order.
+
+import Partiality-monad.Coinductive.Partial-order
