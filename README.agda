@@ -59,7 +59,8 @@ import Partiality-monad.Inductive.Fixpoints
 -- An example
 
 -- Some developments from "Operational Semantics Using the Partiality
--- Monad" by Danielsson, ported to the present setting.
+-- Monad" by Danielsson, implemented using the higher
+-- inductive-inductive partiality monad.
 --
 -- These developments to a large extent mirror developments in
 -- "Coinductive big-step operational semantics" by Leroy and Grall.
@@ -84,3 +85,34 @@ import Lambda.Virtual-machine
 -- A correct compiler.
 
 import Lambda.Compiler
+
+------------------------------------------------------------------------
+-- The delay monad
+
+-- The delay monad, defined coinductively.
+
+import Delay-monad
+
+-- Strong bisimilarity.
+
+import Delay-monad.Strong-bisimilarity
+
+-- Weak bisimilarity.
+
+import Delay-monad.Weak-bisimilarity
+
+-- An alternative definition of the delay monad.
+
+import Delay-monad.Alternative
+
+-- A partial order.
+
+import Delay-monad.Partial-order
+
+-- Least upper bounds.
+
+import Delay-monad.Least-upper-bound
+
+-- The delay monad is a monad up to strong bisimilarity.
+
+import Delay-monad.Monad
