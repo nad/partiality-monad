@@ -276,7 +276,7 @@ steps-≳ = proj₁ ∘ run
 -- Preorder-like reasoning combinators.
 
 infix  -1 _∎≳
-infixr -2 _≳⟨⟩_ trans-≳ trans-≡≳ trans-≡≳∀ trans-≡≳′
+infixr -2 _≳⟨⟩_ trans-≳ trans-≡≳ trans-≡≳∀
 
 _∎≳ : ∀ s {n} → s ≳[ n ] s
 run (_ ∎≳) = 0 , refl
@@ -310,16 +310,9 @@ trans-≡≳∀ : ∀ {n} s₁ {s₂ s₃}
             s₁ ≳[ n ] s₃
 trans-≡≳∀ _ s₂≳s₃ s₁≡s₂ = trans-≡≳ _ s₂≳s₃ (s₁≡s₂ _)
 
-trans-≡≳′ : ∀ n s₁ {s₂ s₃}
-            (s₂≳s₃ : s₂ ≳[ n ] s₃) →
-            s₁ (steps-≳ s₂≳s₃ + n) ≡ s₂ (steps-≳ s₂≳s₃ + n) →
-            s₁ ≳[ n ] s₃
-trans-≡≳′ _ = trans-≡≳
-
-syntax trans-≳     s₁ s₂≳s₃ s₁≳s₂ = s₁ ≳⟨     s₁≳s₂ ⟩   s₂≳s₃
-syntax trans-≡≳    s₁ s₂≳s₃ s₁≡s₂ = s₁ ≳⟨     s₁≡s₂ ⟩≡  s₂≳s₃
-syntax trans-≡≳∀   s₁ s₂≳s₃ s₁≡s₂ = s₁ ≳⟨     s₁≡s₂ ⟩≡∀ s₂≳s₃
-syntax trans-≡≳′ n s₁ s₂≳s₃ s₁≡s₂ = s₁ ≳⟨ n ∣ s₁≡s₂ ⟩≡  s₂≳s₃
+syntax trans-≳   s₁ s₂≳s₃ s₁≳s₂ = s₁ ≳⟨ s₁≳s₂ ⟩   s₂≳s₃
+syntax trans-≡≳  s₁ s₂≳s₃ s₁≡s₂ = s₁ ≳⟨ s₁≡s₂ ⟩≡  s₂≳s₃
+syntax trans-≡≳∀ s₁ s₂≳s₃ s₁≡s₂ = s₁ ≳⟨ s₁≡s₂ ⟩≡∀ s₂≳s₃
 
 -- Some "stepping" combinators.
 

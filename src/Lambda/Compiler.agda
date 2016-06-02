@@ -118,7 +118,7 @@ mutual
           , comp-env ρ
           ⟩                                                     ≳⟨ refl ⟩≡
 
-    const never                                                 ≳⟨ 0 ∣ refl ⟩≡
+    const never                                                 ≳⟨ refl ⟩≡
 
     (λ n → run ((T.ƛ t₁ ρ₁ ∙ v₂) n >>= k n))                    ∎≳
 
