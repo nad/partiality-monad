@@ -41,7 +41,7 @@ upper-bound s = upper-bound′ s (⨆ s) (⊑-refl (⨆ s))
   (record
      { qr = λ _ → id
      ; qe = λ _ _ → never⊑ _
-     ; qu = λ s ub is-ub n q qu {z} ⨆s⊑z →
+     ; qu = λ s ub is-ub q qu n {z} ⨆s⊑z →
               q n (upper-bound′ s z (qu ⨆s⊑z) (suc n))
      ; ql = λ s ub _ _ qu {z} ub⊑z →
               least-upper-bound s z (λ n → qu n ub⊑z)

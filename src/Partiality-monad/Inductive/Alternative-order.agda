@@ -64,8 +64,8 @@ private
                Prelude.⊥  ↝⟨ ⊥-elim ⟩□
                now-x≲⊥    □
              }
-    ; qu = λ { _ _ _ n (now-x≲s[_] , _) (now-x≲ub , _)
-               now-x≲s[]→now-x≲ub →
+    ; qu = λ { _ _ _ (now-x≲s[_] , _) (now-x≲ub , _)
+               now-x≲s[]→now-x≲ub n →
 
                proj₁ now-x≲s[ n ]                ↝⟨ ∣_∣ ∘ (n ,_) ⟩
                ∥ ∃ (λ n → proj₁ now-x≲s[ n ]) ∥  ↝⟨ now-x≲s[]→now-x≲ub ⟩□
@@ -98,7 +98,7 @@ private
     ; qe = λ _ ⊥≲ z →
              proj₁ (⊥≲ z)  ↝⟨ _ ⟩□
              ↑ _ ⊤         □
-    ; qu = λ { _ _ _ n (s[_]≲ , _) ub≲ ub≲→s[]≲ z →
+    ; qu = λ { _ _ _ (s[_]≲ , _) ub≲ ub≲→s[]≲ n z →
                proj₁ (ub≲ z)      ↝⟨ flip (ub≲→s[]≲ z) n ⟩□
                proj₁ (s[ n ]≲ z)  □
              }
@@ -184,7 +184,7 @@ private
   to-args : Rec-args-⊑ (λ {x y} _ → x ≲ y)
   to-args = record
     { qr = λ x → ≲-refl x
-    ; qu = λ s ub _ n _ ⨆s≲ub → ⨆s≲ub n
+    ; qu = λ s ub _ _ ⨆s≲ub n → ⨆s≲ub n
     ; ql = λ s ub _ _ s[_]≲ub n → s[ n ]≲ub
     ; qp = λ {x y} _ → ≲-propositional x y
     }
@@ -305,7 +305,7 @@ larger-terminate-with-same-value = ⊑-rec-⊑
               never ⇓ z  ↝⟨ now≢never z ∘ sym ⟩
               ⊥₀         ↝⟨ ⊥-elim ⟩□
               x ⇓ z      □
-     ; qu = λ s ub _ n q qu x s[n]⇓x →                 $⟨ (λ _ n≤m → lemma s (flip q x) n≤m s[n]⇓x) ⟩
+     ; qu = λ s ub _ q qu n x s[n]⇓x →                 $⟨ (λ _ n≤m → lemma s (flip q x) n≤m s[n]⇓x) ⟩
               (∀ m → n ≤ m → s [ m ] ≡ now x)          ↝⟨ (λ hyp m n≤m → proj₁ (_≃_.from equality-characterisation-⊥ (hyp m n≤m))) ⟩
               (∀ m → n ≤ m → s [ m ] ⊑ now x)          ↝⟨ (λ hyp m → [ (λ m≤n →
 

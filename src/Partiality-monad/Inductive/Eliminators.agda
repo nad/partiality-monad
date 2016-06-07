@@ -33,8 +33,8 @@ record Rec-args-nd
     qr : (x : A ⊥) (p : P) → Q p p
     qe : (x : A ⊥) (p : P) → Q pe p
     qu : (s : Increasing-sequence A) (ub : A ⊥) (is-ub : ⨆ s ⊑ ub)
-         (n : ℕ) (pq : Inc-nd A P Q) (pu : P)
-         (qu : Q (pl s pq) pu) →
+         (pq : Inc-nd A P Q) (pu : P)
+         (qu : Q (pl s pq) pu) (n : ℕ) →
          Q (proj₁ pq n) pu
     ql : ∀ s (ub : A ⊥) (is-ub : Is-upper-bound s ub) pq (pu : P)
          (qu : ∀ n → Q (proj₁ pq n) pu) →
@@ -141,7 +141,7 @@ record Rec-args-⊑ {a q} {A : Set a}
   field
     qr : ∀ x → Q (⊑-refl x)
     qe : ∀ x → Q (never⊑ x)
-    qu : ∀ s ub is-ub n (q : ∀ n → Q (increasing s n)) (qu : Q is-ub) →
+    qu : ∀ s ub is-ub (q : ∀ n → Q (increasing s n)) (qu : Q is-ub) n →
          Q (upper-bound′ s ub is-ub n)
     ql : ∀ s ub is-ub (q : ∀ n → Q (increasing s n))
          (qu : ∀ n → Q (is-ub n)) →
@@ -159,7 +159,7 @@ module _ {a q} {A : Set a} {Q : {x y : A ⊥} → x ⊑ y → Set q}
     { pa = λ _ _ _ _ _ _ → refl
     ; qr = λ x _ → qr x
     ; qe = λ x _ → qe x
-    ; qu = λ s ub is-ub n pq _ → qu s ub is-ub n (proj₂ pq)
+    ; qu = λ s ub is-ub pq _ → qu s ub is-ub (proj₂ pq)
     ; ql = λ s ub is-ub pq _ → ql s ub is-ub (proj₂ pq)
     ; qp = λ _ _ → _⇔_.to propositional⇔irrelevant ∘ qp
     })
