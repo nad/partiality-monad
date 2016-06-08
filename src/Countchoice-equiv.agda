@@ -7,6 +7,7 @@
 module Countchoice-equiv where
 
 open import Prelude
+open import Equality
 open import Equality.Propositional
 open import H-level equality-with-J
 open import H-level.Closure equality-with-J
@@ -65,12 +66,7 @@ module _ {a} {Aset : SET a} where
 
   -- The goal: a function Delay A ∞ → Seq.
 
-  Seq→D : Delay A ∞ → Seq
-  Seq→D x = {!!}
-
---  analyse : (x : Delay A ∞) → (x ≡ 
-
-  -- intuition: given and (x : Delay A ∞) and a number n, we try to evaluate x by removing 'laters'.
+  -- intuition: given (x : Delay A ∞) and a number n, we try to evaluate x by removing 'laters'.
   -- We give up after n steps.
   k : ℕ → Delay A ∞ → Maybe A
   k zero    = λ { (now a)   → just a ;
@@ -91,13 +87,61 @@ module _ {a} {Aset : SET a} where
   k-is-mon x n | nothing with k (suc n) x
   k-is-mon x n | nothing | nothing = inj₁ refl
   k-is-mon x n | nothing | just y  = inj₂ (refl , (λ ()))
-  k-is-mon x n | just a = inj₁ (sym (k-lemma {!!} {!!} {!!} {!!}))
+  k-is-mon x n | just a = inj₁ (sym (k-lemma x n a {!refl!}))
 
-{-
-  k-is-mon x n | nothing | nothing = inj₁ refl
-  k-is-mon x n | nothing | just a  = inj₂ (refl , (λ ()))
-  k-is-mon x n | just a = ?
+
+  D→Seq : Delay A ∞ → Seq
+  D→Seq x = (λ n → k n x) , k-is-mon x
+
+  -- this function D→Seq SHOULD be definable in a more elegant way as follows; however, the termination checker seems to make problems because it's not clear that we do "induction on n":
+  D→Seq' : Delay A ∞ → Seq
+  D→Seq' (now a)   = (λ _ → just a) , (λ _ → inj₁ refl)
+  D→Seq' (later y) = shift (D→Seq' {!force y!})
+
+  -- what we can do instead is this:
+  D→Seq-lem : (y : _) → D→Seq (later y) ≡ shift (D→Seq (force y))
+  D→Seq-lem y = {!!}
+
+
+{- doing it explicitly, not using unshift
+  Seq→D : Seq → Delay A ∞
+  Seq→D (f , m) with f zero
+  Seq→D (f , m) | nothing = later (∞Seq→D (f , m)) where
+    ∞Seq→D : Seq → ∞Delay A ∞
+    force (∞Seq→D (f , m)) = Seq→D (f , m) 
+  Seq→D (f , m) | just a = now a
 -}
+
+  Seq→D : Seq → Delay A ∞
+  Seq→D (f , m) with f zero
+  Seq→D (f , m) | nothing = later (∞Seq→D (unshift (f , m))) where
+    ∞Seq→D : Seq → ∞Delay A ∞
+    force (∞Seq→D (f , m)) = Seq→D (f , m) -- I have copied this from the other file ('Alternative'). I know this is what I want, but I don't know what this syntax is doing to be honest.
+  Seq→D (f , m) | just a  = now a
+
+
+  -- test: unshift is strictly a retraction of shift! (thanks to η for Σ)
+  unshift-shift : (x : Seq) → unshift (shift x) ≡ x
+  unshift-shift x = refl
+
+
+  D→Set→D : (x : Delay A ∞) → Seq→D (D→Seq x) ≡ x
+  D→Set→D (now a)   = refl
+  D→Set→D (later y) =
+    Seq→D (D→Seq (later y))
+      ≡⟨ {!refl!} ⟩
+    Seq→D {! (shift (D→Seq (force y))) !}
+      ≡⟨ {!!} ⟩
+    {! ( (Seq→D (unshift (shift (D→Seq (force y))))))!}
+      ≡⟨ {!!} ⟩ 
+
+    {!later (force (Seq→D (unshift (shift (D→Seq (force y))))))!}
+      ≡⟨ {!!} ⟩
+    {!!}
+      ≡⟨ {!!} ⟩ 
+    later y ∎ 
+
+
 
   Delay≃Seq : Delay A ∞ ≃ Seq -- (Delay A) ≃  Seq
   Delay≃Seq = ↔⇒≃ (record { surjection = record { logical-equivalence = record { to = {!!} ; from = {!!} } ; right-inverse-of = λ x → {!!} } ; left-inverse-of = λ x → {!!} })
