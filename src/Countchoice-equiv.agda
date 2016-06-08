@@ -1,5 +1,6 @@
 
-
+-- Goal of this module: establish an equivalence between
+-- the QIIT partiality monad and the quotiented delay monad.
 
 {-# OPTIONS --without-K #-}
 
@@ -62,14 +63,41 @@ module _ {a} {Aset : SET a} where
   (f , m) ↓ a = Σ ℕ (λ n → f n ≡ just a × ((n' : ℕ) → (f n' ≢ nothing) → n ≤ n')) -- CAVEAT: this could possibly be nicer with <
 
 
+  -- The goal: a function Delay A ∞ → Seq.
 
-  k : Delay A ∞ × ℕ → Maybe A
-  k (now a , _) = just a
-  k (later _ , zero) = nothing
-  k (later x , suc n) = k ({!x!} , n)
+  Seq→D : Delay A ∞ → Seq
+  Seq→D x = {!!}
 
-  test : (a : A) → k ({!force!} , zero) ≡ nothing
-  test = {!!}
+--  analyse : (x : Delay A ∞) → (x ≡ 
+
+  -- intuition: given and (x : Delay A ∞) and a number n, we try to evaluate x by removing 'laters'.
+  -- We give up after n steps.
+  k : ℕ → Delay A ∞ → Maybe A
+  k zero    = λ { (now a)   → just a ;
+                  (later _) → nothing }
+  k (suc n) = λ { (now a)   → just a ;
+                  (later x) → k n (force x) }
+
+  k-lemma : (x : Delay A ∞) (n : ℕ) (a : A) → (k n x ≡ just a) → (k (suc n) x ≡ just a)
+  k-lemma x zero a k₀x≡justₐ with x  
+  k-lemma x zero a k₀x≡justₐ | now b = k₀x≡justₐ
+  k-lemma x zero a ()        | just y
+  k-lemma x (suc n) a kₙx≡justₐ with x
+  k-lemma x (suc n) a kₙx≡justₐ | now b = kₙx≡justₐ
+  k-lemma x (suc n) a kₙx≡justₐ | later y = k-lemma (force y) n a kₙx≡justₐ
+
+  k-is-mon : (x : Delay A ∞) → is-monotone (λ n → k n x)
+  k-is-mon x n with k n x 
+  k-is-mon x n | nothing with k (suc n) x
+  k-is-mon x n | nothing | nothing = inj₁ refl
+  k-is-mon x n | nothing | just y  = inj₂ (refl , (λ ()))
+  k-is-mon x n | just a = inj₁ (sym (k-lemma {!!} {!!} {!!} {!!}))
+
+{-
+  k-is-mon x n | nothing | nothing = inj₁ refl
+  k-is-mon x n | nothing | just a  = inj₂ (refl , (λ ()))
+  k-is-mon x n | just a = ?
+-}
 
   Delay≃Seq : Delay A ∞ ≃ Seq -- (Delay A) ≃  Seq
   Delay≃Seq = ↔⇒≃ (record { surjection = record { logical-equivalence = record { to = {!!} ; from = {!!} } ; right-inverse-of = λ x → {!!} } ; left-inverse-of = λ x → {!!} })
