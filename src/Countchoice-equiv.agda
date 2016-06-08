@@ -39,4 +39,4 @@ module _ {a} {Aset : SET a} where
       (inj₂ (fn≡nothing₁ , fSn≢nothing₁)) (inj₂ (fn≡nothing₂ , fSn≢nothing₂)) →
         cong inj₂ (Σ-≡,≡→≡ {B = λ _ → f (suc n) ≢ nothing}
                     (_⇔_.to set⇔UIP MA-is-set _ _)
-                    {!!}) }))
+                    (_⇔_.to propositional⇔irrelevant (¬-propositional ext) _ _)) }))
