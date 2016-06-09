@@ -88,6 +88,11 @@ module monotone-sequences {a} {Aset : SET a} where
   _↓_ : Seq → A → Set _
   (f , m) ↓ a = Σ ℕ (λ n → f n ≡ just a × ((n' : ℕ) → (f n' ≢ nothing) → n ≤ n')) -- CAVEAT: this could possibly be nicer with <
 
+
+  -- if *any* element in a sequence is a, then the sequence 'evaluates' to a
+  any≡a→↓a : (fp : Seq) → (a : A) → (n : ℕ) → (proj₁ fp n ≡ just a) → fp ↓ a
+  any≡a→↓a = {!TODO!}
+
   ↓-is-prop : (fp : Seq) → (a : A) → Is-proposition (fp ↓ a)
   ↓-is-prop (f , p) a =
     _⇔_.from propositional⇔irrelevant
@@ -162,10 +167,11 @@ module monotone-and-QIIT {a} {Aset : SET a} where
                cgq-is-ub : (n : ℕ) → Seq→Increasing (f , p) [ n ] ⊑ canonical gq
                cgq-is-ub n with destruct-f n
                cgq-is-ub n | inj₁ fn≡nothing = subst (λ x → x ⊑ _) (cong aux (sym fn≡nothing)) (never⊑ _)
-               cgq-is-ub n | inj₂ (a , fn≡justₐ) = {! !}
+               cgq-is-ub n | inj₂ (a , fn≡justₐ) = {!use any≡a→↓a!}
                  where
 
                    -- THIS IS TOTALLY USELESS. I should have a rest :/
+                   -- and even if it was not useless, it should be done in a lemma in the other module...
                    fSn≡justₐ : f (suc n) ≡ just a
                    fSn≡justₐ with p n
                    fSn≡justₐ | inj₁ this = trans (sym this) fn≡justₐ
