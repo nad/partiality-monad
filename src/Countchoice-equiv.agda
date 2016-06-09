@@ -52,7 +52,7 @@ module _ {a} {Aset : SET a} where
 
   -- equality on Seq
   Seq≡ : (s₁ s₂ : Seq) → ((n : ℕ) → proj₁ s₁ n ≡ proj₁ s₂ n) → s₁ ≡ s₂
-  Seq≡ (f , _) (g , _) p = {! !}
+  Seq≡ (f , _) (g , _) p = Σ-≡,≡→≡ (ext p) (_⇔_.to propositional⇔irrelevant (is-monotone-is-prop _) _ _) 
 
   shift : Seq → Seq
   shift (f , m) = (λ { zero → nothing ; (suc n) → f n })
@@ -105,8 +105,6 @@ module _ {a} {Aset : SET a} where
   D→Seq' (later y) = shift (D→Seq' {!force y!})
 
   -- what we can do instead is this:
-  -- maybe first:
-
   D→Seq-lem : (y : _) → D→Seq (later y) ≡ shift (D→Seq (force y))
   D→Seq-lem y = Seq≡ _ _ (D→Seq-lem-aux _) where
     D→Seq-lem-aux : (y : _) → (n : ℕ) → proj₁ (D→Seq (later y)) n ≡ proj₁ (shift (D→Seq (force y))) n
@@ -137,8 +135,11 @@ module _ {a} {Aset : SET a} where
   unshift-shift x = refl
 
   -- another lemma
-  Seq→D-lem : (x : _) → {!force ( later (Seq→D x))!}  ≡ Seq→D (shift x)
-  Seq→D-lem = {!!}
+  Seq→D-lem : (fm : _) → {! (later (Seq→D fm))!}  ≡ Seq→D (shift fm)
+  Seq→D-lem fm = {! (Seq→D fm)!}
+
+  test : (x : ∞Delay A ∞) → (y : Delay A ∞) → ℕ
+  test x y = {!later (x)!}
 
 
   D→Set→D : (x : Delay A ∞) → Seq→D (D→Seq x) ≡ x
