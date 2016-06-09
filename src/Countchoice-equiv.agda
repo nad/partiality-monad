@@ -34,6 +34,8 @@ module _ {a} {Aset : SET a} where
   is-monotone : (f : ℕ → Maybe A) → Set a
   is-monotone f = (n : ℕ) → (f n ≡ f (suc n)) ⊎ f n ≡ nothing × f (suc n) ≢ nothing
 
+
+
   is-monotone-is-prop : (f : ℕ → Maybe A) → Is-proposition (is-monotone f) 
   is-monotone-is-prop f =
     Π-closure {A = ℕ} ext 1 (λ n → _⇔_.from propositional⇔irrelevant (λ {
@@ -47,6 +49,10 @@ module _ {a} {Aset : SET a} where
 
   Seq : Set a
   Seq = Σ (ℕ → Maybe A) is-monotone
+
+  -- equality on Seq
+  Seq≡ : (s₁ s₂ : Seq) → ((n : ℕ) → proj₁ s₁ n ≡ proj₁ s₂ n) → s₁ ≡ s₂
+  Seq≡ (f , _) (g , _) p = {! !}
 
   shift : Seq → Seq
   shift (f , m) = (λ { zero → nothing ; (suc n) → f n })
@@ -99,8 +105,14 @@ module _ {a} {Aset : SET a} where
   D→Seq' (later y) = shift (D→Seq' {!force y!})
 
   -- what we can do instead is this:
+  -- maybe first:
+
   D→Seq-lem : (y : _) → D→Seq (later y) ≡ shift (D→Seq (force y))
-  D→Seq-lem y = {!!}
+  D→Seq-lem y = Seq≡ _ _ (D→Seq-lem-aux _) where
+    D→Seq-lem-aux : (y : _) → (n : ℕ) → proj₁ (D→Seq (later y)) n ≡ proj₁ (shift (D→Seq (force y))) n
+    D→Seq-lem-aux y zero = refl
+    D→Seq-lem-aux y (suc n) = refl
+
 
 
 {- doing it explicitly, not using unshift
@@ -124,13 +136,17 @@ module _ {a} {Aset : SET a} where
   unshift-shift : (x : Seq) → unshift (shift x) ≡ x
   unshift-shift x = refl
 
+  -- another lemma
+  Seq→D-lem : (x : _) → {!force ( later (Seq→D x))!}  ≡ Seq→D (shift x)
+  Seq→D-lem = {!!}
+
 
   D→Set→D : (x : Delay A ∞) → Seq→D (D→Seq x) ≡ x
   D→Set→D (now a)   = refl
   D→Set→D (later y) =
     Seq→D (D→Seq (later y))
-      ≡⟨ {!refl!} ⟩
-    Seq→D {! (shift (D→Seq (force y))) !}
+      ≡⟨ cong Seq→D (D→Seq-lem _) ⟩
+    Seq→D (shift (D→Seq (force y)))
       ≡⟨ {!!} ⟩
     {! ( (Seq→D (unshift (shift (D→Seq (force y))))))!}
       ≡⟨ {!!} ⟩ 
