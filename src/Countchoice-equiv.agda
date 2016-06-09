@@ -8,21 +8,40 @@ module Countchoice-equiv where
 
 open import Prelude
 open import Equality
-open import Equality.Propositional
+open import Equality.Propositional hiding (elim)
 open import H-level equality-with-J
 open import H-level.Closure equality-with-J
-open import Logical-equivalence
+open import Logical-equivalence hiding (_∘_)
 open import Nat equality-with-J
-open import Equivalence equality-with-J
+open import Equivalence equality-with-J hiding (_∘_)
 
-open import Delay-monad
+open import Quotient.HIT hiding ([_])
+
+
+-- open import Delay-monad
+
+
+
+-- open import Partiality-monad.Inductive
+-- Specialised eliminators.
+-- open import Partiality-monad.Inductive.Eliminators
+-- Some definitions and properties.
+-- open import Partiality-monad.Inductive.Properties
 
 
 postulate
   ext : ∀ {a b} → Extensionality a b
 
 
-module _ {a} {Aset : SET a} where
+-- is this (in general form) somewhere in the used library?
+module _ {a} {A : Set a} where
+  disj-constructors : {a : A} → nothing ≢ just a
+  disj-constructors () 
+
+
+module monotone-sequences {a} {Aset : SET a} where
+
+  open import Delay-monad
 
   A = proj₁ Aset
   A-is-set = proj₂ Aset
@@ -69,6 +88,120 @@ module _ {a} {Aset : SET a} where
   _↓_ : Seq → A → Set _
   (f , m) ↓ a = Σ ℕ (λ n → f n ≡ just a × ((n' : ℕ) → (f n' ≢ nothing) → n ≤ n')) -- CAVEAT: this could possibly be nicer with <
 
+  ↓-is-prop : (fp : Seq) → (a : A) → Is-proposition (fp ↓ a)
+  ↓-is-prop (f , p) a =
+    _⇔_.from propositional⇔irrelevant
+      (λ { x y → Σ-≡,≡→≡ (number-unique x y) {!second component is propositional!} }) where
+
+        -- this is certainly somewhere in the library, but I cannot find it right now.
+        lib-lemma : {m n : ℕ} → (m ≤ n) → (n ≤ m) → m ≡ n
+        lib-lemma = {!!}
+
+        number-unique : (x y : (f , p) ↓ a) → proj₁ x ≡ proj₁ y
+        number-unique (m , p₁ , p₂) (n , q₁ , q₂) = lib-lemma (p₂ n (λ e → disj-constructors (trans (sym e) q₁)))
+                                                              (q₂ m (λ e → disj-constructors (trans (sym e) p₁)))
+
+  _≲_ : Seq → Seq → Set _
+  f ≲ g = (a : A) → (f ↓ a) → (g ↓ a)
+
+  ≲-is-prop : (f g : Seq) → Is-proposition (f ≲ g)
+  ≲-is-prop f g = Π-closure ext 1 (λ a → Π-closure ext 1 (λ _ → ↓-is-prop g a))
+
+  _~_ : Seq → Seq → Set _
+  f ~ g = (f ≲ g) × (g ≲ f)
+
+  ~-is-prop : (f g : Seq) → Is-proposition (f ~ g)
+  ~-is-prop f g = ×-closure 1 (≲-is-prop f g) (≲-is-prop g f)
+
+  Seq/~ : Set _
+  Seq/~ = Seq / (λ f g → (f ~ g , ~-is-prop f g))
+
+
+module monotone-and-QIIT {a} {Aset : SET a} where
+
+  open monotone-sequences {a} {Aset}
+
+--  canonical : Seq → 
+
+  open import Partiality-monad.Inductive -- renaming (now to pnow ; never to pnever)
+-- Specialised eliminators.
+-- open import Partiality-monad.Inductive.Eliminators
+-- Some definitions and properties.
+  open import Partiality-monad.Inductive.Properties
+
+  aux : Maybe A → _⊥ A 
+  aux nothing  = never
+  aux (just a) = now a 
+
+  mon→⊑-pointwise : (x y : Maybe A) → ((x ≡ y) ⊎ x ≡ nothing × y ≢ nothing) → aux x ⊑ aux y
+  mon→⊑-pointwise x .x (inj₁ refl) = ⊑-refl _
+  mon→⊑-pointwise .nothing y (inj₂ (refl , y≢n)) = never⊑ _
+
+  Seq→Increasing : Seq → Increasing-sequence A
+  Seq→Increasing (f , p) = aux ∘ f , (λ n → mon→⊑-pointwise (f n) (f (suc n)) (p n))
+
+  canonical : Seq → (_⊥ A)
+  canonical = ⨆ ∘ Seq→Increasing
+
+  canonical-≲-⊑ : {fp gq : Seq} → fp ≲ gq → canonical fp ⊑ canonical gq
+  canonical-≲-⊑ {f , p} {gq} fp≲gq =
+    least-upper-bound (Seq→Increasing (f , p))
+                      (canonical gq)
+                      cgq-is-ub
+               where
+
+               -- The 'with ...' construct seems to forget the witness of the equality.
+               -- I wished this equality was judgmental, which it does not seem to be.
+               -- Hence, I use the following way. I am sure there must be some Agda standard
+               -- way to do this. How do you usually do this?
+               destruct-f : (n : ℕ) → f n ≡ nothing ⊎ Σ A λ a → f n ≡ just a
+               destruct-f n with f n
+               destruct-f n | nothing = inj₁ refl
+               destruct-f n | just a  = inj₂ (a , refl)
+
+               cgq-is-ub : (n : ℕ) → Seq→Increasing (f , p) [ n ] ⊑ canonical gq
+               cgq-is-ub n with destruct-f n
+               cgq-is-ub n | inj₁ fn≡nothing = subst (λ x → x ⊑ _) (cong aux (sym fn≡nothing)) (never⊑ _)
+               cgq-is-ub n | inj₂ (a , fn≡justₐ) = {! !}
+                 where
+
+                   -- THIS IS TOTALLY USELESS. I should have a rest :/
+                   fSn≡justₐ : f (suc n) ≡ just a
+                   fSn≡justₐ with p n
+                   fSn≡justₐ | inj₁ this = trans (sym this) fn≡justₐ
+                   fSn≡justₐ | inj₂ (fn≡nothing , _) = ⊥-elim (disj-constructors (trans (sym fn≡nothing) fn≡justₐ))
+
+                   fn≡fSn : f n ≡ f (suc n)
+                   fn≡fSn = trans fn≡justₐ (sym fSn≡justₐ)
+
+
+{-
+with f n
+                 cgq-is-ub n | nothing = never⊑ _
+                 cgq-is-ub n | just a with p n
+                 cgq-is-ub n | just a | inj₁ x = {!x!}
+                 cgq-is-ub n | just a | inj₂ y with proj₁ y
+                 cgq-is-ub n | just a | inj₂ y | asd = {!disj-constructors (sym asd)!}
+-}
+{-
+aux (f n)  ⊑⟨ {!!} ⟩
+                               {!!}       ⊑⟨ {!!} ⟩■
+                               ⨆ (Seq→Increasing gq) ■
+
+-}
+
+  canonical-respects-~ : {fp gq : Seq} → fp ~ gq → canonical fp ≡ canonical gq
+  canonical-respects-~ (fp≲gq , gq≲fp) = antisymmetry (canonical-≲-⊑ fp≲gq) (canonical-≲-⊑ gq≲fp)
+
+  canonical' : Seq/~ → (_⊥ A)
+  canonical' = rec {P = _⊥ A} canonical canonical-respects-~ ⊥-is-set 
+
+
+-- coinductive Delay and monotone sequences
+module delay-and-monotone {a} {Aset : SET a} where
+
+  open import Delay-monad
+  open monotone-sequences {a} {Aset}
 
   -- The goal: a function Delay A ∞ → Seq.
 
@@ -139,7 +272,7 @@ module _ {a} {Aset : SET a} where
   Seq→D-lem fm = {! (Seq→D fm)!}
 
   test : (x : ∞Delay A ∞) → (y : Delay A ∞) → ℕ
-  test x y = {!later (x)!}
+  test x y = {!later  (x)!}
 
 
   D→Set→D : (x : Delay A ∞) → Seq→D (D→Seq x) ≡ x
@@ -149,7 +282,7 @@ module _ {a} {Aset : SET a} where
       ≡⟨ cong Seq→D (D→Seq-lem _) ⟩
     Seq→D (shift (D→Seq (force y)))
       ≡⟨ {!!} ⟩
-    {! ( (Seq→D (unshift (shift (D→Seq (force y))))))!}
+    {!  ( (Seq→D (unshift (shift (D→Seq (force y))))))!}
       ≡⟨ {!!} ⟩ 
 
     {!later (force (Seq→D (unshift (shift (D→Seq (force y))))))!}
