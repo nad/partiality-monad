@@ -99,9 +99,9 @@ record Rec-args
          subst P (antisymmetry x⊑y x⊒y) p-x ≡ p-y
     qr : ∀ x (p : P x) → Q p p (⊑-refl x)
     qe : ∀ x (p : P x) → Q pe p (never⊑ x)
-    qu : ∀ s ub is-ub n (pq : Inc P Q s) (pu : P ub)
+    qu : ∀ s ub is-ub (pq : Inc P Q s) (pu : P ub)
          (qu : Q (pl s pq) pu is-ub) →
-         Q (proj₁ pq n) pu (upper-bound′ s ub is-ub n)
+         ∀ n → Q (proj₁ pq n) pu (upper-bound′ s ub is-ub n)
     ql : ∀ s ub is-ub (pq : Inc P Q s) (pu : P ub)
          (qu : ∀ n → Q (proj₁ pq n) pu (is-ub n)) →
          Q (pl s pq) pu (least-upper-bound s ub is-ub)
@@ -156,8 +156,8 @@ module _ {a p q} {A : Set a}
     ⊑-rec-never⊑            : ∀ x → ⊑-rec (never⊑ x) ≡ qe x (⊥-rec x)
     ⊑-rec-upper-bound′      : ∀ s ub is-ub n →
                               ⊑-rec (upper-bound′ s ub is-ub n) ≡
-                              qu s ub is-ub n
-                                 (inc-rec s) (⊥-rec ub) (⊑-rec is-ub)
+                              qu s ub is-ub
+                                 (inc-rec s) (⊥-rec ub) (⊑-rec is-ub) n
     ⊑-rec-least-upper-bound : ∀ s ub is-ub →
                               ⊑-rec (least-upper-bound s ub is-ub) ≡
                               ql s ub is-ub

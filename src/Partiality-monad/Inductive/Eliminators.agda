@@ -33,8 +33,8 @@ record Rec-args-nd
     qr : (x : A ⊥) (p : P) → Q p p
     qe : (x : A ⊥) (p : P) → Q pe p
     qu : (s : Increasing-sequence A) (ub : A ⊥) (is-ub : ⨆ s ⊑ ub)
-         (n : ℕ) (pq : Inc-nd A P Q) (pu : P)
-         (qu : Q (pl s pq) pu) →
+         (pq : Inc-nd A P Q) (pu : P)
+         (qu : Q (pl s pq) pu) (n : ℕ) →
          Q (proj₁ pq n) pu
     ql : ∀ s (ub : A ⊥) (is-ub : Is-upper-bound s ub) pq (pu : P)
          (qu : ∀ n → Q (proj₁ pq n) pu) →
@@ -74,7 +74,7 @@ module _ {a p q} {A : Set a} {P : Set p} {Q : P → P → Set q}
   inc-rec-nd = inc-rec args′
 
 ------------------------------------------------------------------------
--- An eliminator which is trivial for _⊑_
+-- Eliminators which are trivial for _⊑_
 
 record Rec-args-⊥ {a p} {A : Set a}
                   (P : A ⊥ → Set p) : Set (a ⊔ p) where
@@ -82,9 +82,7 @@ record Rec-args-⊥ {a p} {A : Set a}
     pe : P never
     po : ∀ x → P (now x)
     pl : ∀ s (p : ∀ n → P (s [ n ])) → P (⨆ s)
-    pa : ∀ {x y} (x⊑y : x ⊑ y) (x⊒y : x ⊒ y)
-         (p-x : P x) (p-y : P y) →
-         subst P (antisymmetry x⊑y x⊒y) p-x ≡ p-y
+    pp : ∀ x → Is-proposition (P x)
 
 module _ {a p} {A : Set a} {P : A ⊥ → Set p}
          (args : Rec-args-⊥ P) where
@@ -96,7 +94,8 @@ module _ {a p} {A : Set a} {P : A ⊥ → Set p}
     { pe = pe
     ; po = po
     ; pl = λ s pq → pl s (proj₁ pq)
-    ; pa = λ x⊑y x⊒y p-x p-y _ _ → pa x⊑y x⊒y p-x p-y
+    ; pa = λ _ _ _ _ _ _ →
+             _⇔_.to propositional⇔irrelevant (pp _) _ _
     ; qp = λ _ _ _ _ _ → refl
     })
 
@@ -104,36 +103,7 @@ module _ {a p} {A : Set a} {P : A ⊥ → Set p}
   inc-rec-⊥ s = ⊥-rec-⊥ ∘ s
 
 ------------------------------------------------------------------------
--- The previous eliminator can be simplified further if the motive is
--- propositional
-
-record Rec-args-Prop {a p} {A : Set a}
-                     (P : A ⊥ → Set p) : Set (a ⊔ p) where
-  field
-    pe : P never
-    po : ∀ x → P (now x)
-    pl : ∀ s (p : ∀ n → P (s [ n ])) → P (⨆ s)
-    pp : ∀ x → Is-proposition (P x)
-
-module _ {a p} {A : Set a} {P : A ⊥ → Set p}
-         (args : Rec-args-Prop P) where
-
-  open Rec-args-Prop args
-
-  ⊥-rec-Prop : (x : A ⊥) → P x
-  ⊥-rec-Prop = ⊥-rec-⊥ (record
-    { pe = pe
-    ; po = po
-    ; pl = pl
-    ; pa = λ _ _ _ _ →
-             _⇔_.to propositional⇔irrelevant (pp _) _ _
-    })
-
-  inc-rec-Prop : (s : ℕ → A ⊥) → ∀ n → P (s n)
-  inc-rec-Prop s = ⊥-rec-Prop ∘ s
-
-------------------------------------------------------------------------
--- An eliminator which is trivial for _⊥
+-- Eliminators which are trivial for _⊥
 
 record Rec-args-⊑ {a q} {A : Set a}
                   (Q : {x y : A ⊥} → x ⊑ y → Set q) :
@@ -141,7 +111,7 @@ record Rec-args-⊑ {a q} {A : Set a}
   field
     qr : ∀ x → Q (⊑-refl x)
     qe : ∀ x → Q (never⊑ x)
-    qu : ∀ s ub is-ub n (q : ∀ n → Q (increasing s n)) (qu : Q is-ub) →
+    qu : ∀ s ub is-ub (q : ∀ n → Q (increasing s n)) (qu : Q is-ub) n →
          Q (upper-bound′ s ub is-ub n)
     ql : ∀ s ub is-ub (q : ∀ n → Q (increasing s n))
          (qu : ∀ n → Q (is-ub n)) →
@@ -159,7 +129,7 @@ module _ {a q} {A : Set a} {Q : {x y : A ⊥} → x ⊑ y → Set q}
     { pa = λ _ _ _ _ _ _ → refl
     ; qr = λ x _ → qr x
     ; qe = λ x _ → qe x
-    ; qu = λ s ub is-ub n pq _ → qu s ub is-ub n (proj₂ pq)
+    ; qu = λ s ub is-ub pq _ → qu s ub is-ub (proj₂ pq)
     ; ql = λ s ub is-ub pq _ → ql s ub is-ub (proj₂ pq)
     ; qp = λ _ _ → _⇔_.to propositional⇔irrelevant ∘ qp
     })

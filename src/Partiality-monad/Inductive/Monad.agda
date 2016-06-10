@@ -44,8 +44,7 @@ module _ {a b} {A : Set a} {B : Set b} (f : A → B ⊥) where
       ; pa = λ _ _ → antisymmetry
       ; qr = λ _ → ⊑-refl
       ; qe = λ _ → never⊑
-      ; qu = λ _ _ _ n pq pu ⨆pq⊑pu →
-               upper-bound′ pq pu ⨆pq⊑pu n
+      ; qu = λ _ _ _ → upper-bound′
       ; ql = λ _ _ _ → least-upper-bound
       ; qp = λ _ _ → ⊑-propositional
       }
@@ -75,7 +74,7 @@ _>>=-mono_ :
   x ⊑ y → (∀ z → f z ⊑ g z) → x >>=′ f ⊑ y >>=′ g
 _>>=-mono_ {x = x} {y} {f} {g} x⊑y f⊑g =
   x >>=′ f ⊑⟨ proj₂ (proj₁ (f ∗)) x⊑y ⟩
-  y >>=′ f ⊑⟨ ⊥-rec-Prop {P = λ y → y >>=′ f ⊑ y >>=′ g} (record
+  y >>=′ f ⊑⟨ ⊥-rec-⊥ {P = λ y → y >>=′ f ⊑ y >>=′ g} (record
                 { pe = never⊑ never
                 ; po = f⊑g
                 ; pl = λ s ih →
@@ -98,7 +97,7 @@ module Monad-laws where
 
   right-identity : ∀ {a} {A : Set a} (x : A ⊥) →
                    x >>=′ now ≡ x
-  right-identity = ⊥-rec-Prop
+  right-identity = ⊥-rec-⊥
     (record
        { pe = refl
        ; po = λ _ → refl
@@ -116,7 +115,7 @@ module Monad-laws where
   associativity : ∀ {a b c} {A : Set a} {B : Set b} {C : Set c} →
                   (x : A ⊥) (f : A → B ⊥) (g : B → C ⊥) →
                   x >>=′ (λ x → f x >>=′ g) ≡ x >>=′ f >>=′ g
-  associativity x f g = ⊥-rec-Prop
+  associativity x f g = ⊥-rec-⊥
     (record
        { pe = refl
        ; po = λ _ → refl
@@ -184,7 +183,7 @@ map-∘ f g =
   Univalence a →
   Univalence b →
   (x >>=′ f ⇓ y) ≃ ∥ ∃ (λ z → x ⇓ z × f z ⇓ y) ∥
->>=-⇓ {x = x} {f} {y} univ-a univ-b = ⊥-rec-Prop
+>>=-⇓ {x = x} {f} {y} univ-a univ-b = ⊥-rec-⊥
   {P = λ x → (x >>=′ f ⇓ y) ≃ ∥ ∃ (λ z → x ⇓ z × f z ⇓ y) ∥}
   (record
      { pe = never ⇓ y                          ↝⟨ ⇓≃now≲ ⟩
