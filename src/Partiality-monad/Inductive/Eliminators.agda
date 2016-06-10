@@ -74,7 +74,7 @@ module _ {a p q} {A : Set a} {P : Set p} {Q : P → P → Set q}
   inc-rec-nd = inc-rec args′
 
 ------------------------------------------------------------------------
--- An eliminator which is trivial for _⊑_
+-- Eliminators which are trivial for _⊑_
 
 record Rec-args-⊥ {a p} {A : Set a}
                   (P : A ⊥ → Set p) : Set (a ⊔ p) where
@@ -82,9 +82,7 @@ record Rec-args-⊥ {a p} {A : Set a}
     pe : P never
     po : ∀ x → P (now x)
     pl : ∀ s (p : ∀ n → P (s [ n ])) → P (⨆ s)
-    pa : ∀ {x y} (x⊑y : x ⊑ y) (x⊒y : x ⊒ y)
-         (p-x : P x) (p-y : P y) →
-         subst P (antisymmetry x⊑y x⊒y) p-x ≡ p-y
+    pp : ∀ x → Is-proposition (P x)
 
 module _ {a p} {A : Set a} {P : A ⊥ → Set p}
          (args : Rec-args-⊥ P) where
@@ -96,7 +94,8 @@ module _ {a p} {A : Set a} {P : A ⊥ → Set p}
     { pe = pe
     ; po = po
     ; pl = λ s pq → pl s (proj₁ pq)
-    ; pa = λ x⊑y x⊒y p-x p-y _ _ → pa x⊑y x⊒y p-x p-y
+    ; pa = λ _ _ _ _ _ _ →
+             _⇔_.to propositional⇔irrelevant (pp _) _ _
     ; qp = λ _ _ _ _ _ → refl
     })
 
@@ -104,36 +103,7 @@ module _ {a p} {A : Set a} {P : A ⊥ → Set p}
   inc-rec-⊥ s = ⊥-rec-⊥ ∘ s
 
 ------------------------------------------------------------------------
--- The previous eliminator can be simplified further if the motive is
--- propositional
-
-record Rec-args-Prop {a p} {A : Set a}
-                     (P : A ⊥ → Set p) : Set (a ⊔ p) where
-  field
-    pe : P never
-    po : ∀ x → P (now x)
-    pl : ∀ s (p : ∀ n → P (s [ n ])) → P (⨆ s)
-    pp : ∀ x → Is-proposition (P x)
-
-module _ {a p} {A : Set a} {P : A ⊥ → Set p}
-         (args : Rec-args-Prop P) where
-
-  open Rec-args-Prop args
-
-  ⊥-rec-Prop : (x : A ⊥) → P x
-  ⊥-rec-Prop = ⊥-rec-⊥ (record
-    { pe = pe
-    ; po = po
-    ; pl = pl
-    ; pa = λ _ _ _ _ →
-             _⇔_.to propositional⇔irrelevant (pp _) _ _
-    })
-
-  inc-rec-Prop : (s : ℕ → A ⊥) → ∀ n → P (s n)
-  inc-rec-Prop s = ⊥-rec-Prop ∘ s
-
-------------------------------------------------------------------------
--- An eliminator which is trivial for _⊥
+-- Eliminators which are trivial for _⊥
 
 record Rec-args-⊑ {a q} {A : Set a}
                   (Q : {x y : A ⊥} → x ⊑ y → Set q) :

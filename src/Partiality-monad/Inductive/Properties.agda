@@ -225,7 +225,7 @@ x ≼ y = ∀ z → x ⇓ z → y ⇓ z
 -- element to choose in sequences that are encountered.
 
 approximate : A ⊥ → ℕ → ∥ Maybe A ∥
-approximate x n = ⊥-rec-Prop
+approximate x n = ⊥-rec-⊥
   (record
      { pe = ∣ nothing ∣
      ; po = λ x → ∣ just x ∣

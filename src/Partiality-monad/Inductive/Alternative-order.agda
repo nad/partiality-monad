@@ -148,7 +148,7 @@ private
 -- _≲_ is reflexive.
 
 ≲-refl : ∀ x → x ≲ x
-≲-refl = ⊥-rec-Prop (record
+≲-refl = ⊥-rec-⊥ (record
   { po = λ _ → ∣ refl ∣
   ; pl = λ s →
            (∀ n → s [ n ] ≲ s [ n ])  ↝⟨ (λ s≲s n → ⨆-lemma s (s [ n ]) n (s≲s n)) ⟩□
@@ -157,7 +157,7 @@ private
   })
   where
   ⨆-lemma : ∀ s x n → x ≲ s [ n ] → x ≲ ⨆ s
-  ⨆-lemma s = ⊥-rec-Prop
+  ⨆-lemma s = ⊥-rec-⊥
     {P = λ x → ∀ n → x ≲ s [ n ] → x ≲ ⨆ s}
     (record
        { po = λ x n →
@@ -178,7 +178,7 @@ private
 ⊑≃≲ {x} {y} =
   _↔_.to (Eq.⇔↔≃ ext ⊑-propositional (≲-propositional x y))
     (record { to   = ⊑-rec-⊑ to-args
-            ; from = ⊥-rec-Prop from-args _ _
+            ; from = ⊥-rec-⊥ from-args _ _
             })
   where
   to-args : Rec-args-⊑ (λ {x y} _ → x ≲ y)
@@ -190,7 +190,7 @@ private
     }
 
   now-lemma : ∀ x y → now x ≲ y → now x ⊑ y
-  now-lemma x y = ⊥-rec-Prop
+  now-lemma x y = ⊥-rec-⊥
     {P = λ y → now x ≲ y → now x ⊑ y}
     (record
        { pe = Prelude.⊥      ↝⟨ ⊥-elim ⟩□
@@ -216,7 +216,7 @@ private
        })
     y
 
-  from-args : Rec-args-Prop (λ x → ∀ y → x ≲ y → x ⊑ y)
+  from-args : Rec-args-⊥ (λ x → ∀ y → x ≲ y → x ⊑ y)
   from-args = record
     { pe = λ y _ → never⊑ y
     ; po = now-lemma
@@ -364,7 +364,7 @@ terminating-element-is-⨆ s {n} {x} =
 -- Coinductive Types".
 
 ≼→⊑ : {x y : A ⊥} → x ≼ y → x ⊑ y
-≼→⊑ {x} {y} = ⊥-rec-Prop
+≼→⊑ {x} {y} = ⊥-rec-⊥
   {P = λ x → x ≼ y → x ⊑ y}
   (record
      { pe = never ≼ y  ↝⟨ (λ _ → never⊑ y) ⟩□
@@ -438,7 +438,7 @@ terminating-element-is-⨆ s {n} {x} =
 -- If x does not terminate, then x is equal to never.
 
 ¬⇓→⇑ : {x : A ⊥} → ¬ (∃ λ y → x ⇓ y) → x ⇑
-¬⇓→⇑ {x} = ⊥-rec-Prop
+¬⇓→⇑ {x} = ⊥-rec-⊥
   {P = λ x → ¬ (∃ λ y → x ⇓ y) → x ⇑}
   (record
      { pe = ¬ ∃ (never ⇓_)  ↝⟨ const refl ⟩□

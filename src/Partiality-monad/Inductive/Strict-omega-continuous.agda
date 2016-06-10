@@ -61,7 +61,7 @@ equality-characterisation-strict {f = f} {g} =
   (fs : [ A ⊥→ B ⊥]-strict) →
   let f = proj₁ (proj₁ (proj₁ fs)) in
   ∀ x → x >>=′ (f ∘ return) ≡ f x
->>=-∘-return fs = ⊥-rec-Prop
+>>=-∘-return fs = ⊥-rec-⊥
   {P = λ x → x >>=′ (f ∘ return) ≡ f x}
   (record
      { pe = never    ≡⟨ sym (proj₂ fs) ⟩∎
