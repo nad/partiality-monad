@@ -17,6 +17,7 @@ open import Equivalence equality-with-J hiding (_∘_)
 
 open import Quotient.HIT hiding ([_])
 
+open import H-level.Truncation equality-with-J hiding (rec)
 
 -- open import Delay-monad
 
@@ -120,7 +121,7 @@ module monotone-sequences {a} {Aset : SET a} where
   any≡a→↓a : (fp : Seq) → (a : A) → (n : ℕ) → (proj₁ fp n ≡ just a) → fp ↓ a
   any≡a→↓a (f , p) a zero    fn≡justₐ = zero , fn≡justₐ , (λ _ _ → zero≤ _)
   any≡a→↓a (f , p) a (suc n) fSn≡justₐ with inspect (f n)
-  any≡a→↓a (f , p) a (suc n) fSn≡justₐ | nothing , fn≡nothing = suc n , fSn≡justₐ , (λ m fm≢nothing → {!!})
+  any≡a→↓a (f , p) a (suc n) fSn≡justₐ | nothing , fn≡nothing = suc n , fSn≡justₐ , (λ m fm≢nothing → {!do case distinction: if m was smaller than n, then fn could not be nothing!})
   any≡a→↓a (f , p) a (suc n) fSn≡justₐ | just b , fn≡justb with any≡a→↓a (f , p) b n fn≡justb
   any≡a→↓a (f , p) a (suc n) fSn≡justₐ | just b , fn≡justb | min , (fmin≡justb , min-is-min) = min , fmin≡justa , min-is-min  where
 
@@ -223,6 +224,40 @@ module monotone-and-QIIT {a} {Aset : SET a} where
 
   canonical' : Seq/~ → (_⊥ A)
   canonical' = rec {P = _⊥ A} canonical canonical-respects-~ ⊥-is-set 
+
+
+{-
+surjective : ∀ {a} {b} {A : Set a} {B : Set b} → (f : A → B) → Set _
+surjective {A = A} {B = B} f = (b : B) → {!!}
+
+surjective : ∀ {a} {b} {A : Set a} {B : Set b} → (f : A → B) → Set _
+surjective f = {!Surjective!}
+-}
+
+countchoice : ∀ {α} {β} → Set _
+countchoice {α} {β} = (B : ℕ → Set α) → ((n : ℕ) → ∥ (B n) ∥ 1 β) → ∥ ((n : ℕ) → B n) ∥ 1 β 
+
+module canonical-surjective {a} {Aset : SET a} where
+
+  open import Partiality-monad.Inductive.Eliminators
+
+  open monotone-and-QIIT {a} {Aset} 
+  open monotone-sequences {a} {Aset}
+
+  canonical-surjective : (countchoice {a} {a}) → Surjective a canonical
+  canonical-surjective cc =
+    ⊥-rec-Prop {P = λ x → ∥ (Σ Seq λ fp → canonical fp ≡ x) ∥ 1 a}
+      (record { pe = ∣ {!'always nothing sequence' , need eq-constructor to show that LUB of constant never is never... but better make lemma!!} ∣ ;
+                po = λ a → ∣ {!'always just a sequence'!} ∣ ;
+                pl = λ {(f⊥ , f⊥-inc) pointwise → {!cc _ pointwise!}} ;
+                pp = λ x → truncation-has-correct-h-level 1 ext })
+
+module canonical'-injective {a} {Aset : SET a} where
+
+
+module canonical'-equivalence {a} {Aset : SET a} where
+
+
 
 
 -- coinductive Delay and monotone sequences
