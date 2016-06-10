@@ -10,7 +10,7 @@ module Countchoice-equiv where
 open import Prelude
 open import Equality
 open import Equality.Propositional hiding (elim)
-open import H-level equality-with-J
+open import H-level equality-with-J -- hiding (Surjective)
 open import H-level.Closure equality-with-J
 open import Logical-equivalence hiding (_∘_)
 open import Nat equality-with-J
@@ -18,28 +18,49 @@ open import Equivalence equality-with-J hiding (_∘_)
 
 open import Quotient.HIT hiding ([_])
 
-open import H-level.Truncation equality-with-J hiding (rec)
+-- open import H-level.Truncation equality-with-J hiding (rec)
+
+open import H-level.Truncation.Propositional equality-with-J hiding (rec)
 
 
+-- We assume function extensionality without restriction.
+-- I don't think we would be able to do much without.
 postulate
   ext : ∀ {a b} → Extensionality a b
 
 
--- is this (in general form) somewhere in the used library?
-module library-stuff {a} {A : Set a} where
-  disj-constructors : {a : A} → nothing ≢ just a
-  disj-constructors () 
+-- Here are some library lemmas. I include them here in ad-hoc style (should be sorted out later).
+module library-stuff where
 
-  just-injective : {b c : A} → _≡_ {A = Maybe A} (just b) (just c) → b ≡ c
-  just-injective refl = refl
+  module _ {a} {A : Set a} where
 
-module more-library where
-  -- this is certainly somewhere in the library, but I cannot find it right now.
+    disj-constructors : {a : A} → nothing ≢ just a
+    disj-constructors () 
+
+    just-injective : {b c : A} → _≡_ {A = Maybe A} (just b) (just c) → b ≡ c
+    just-injective refl = refl
+
   lib-lemma : {m n : ℕ} → (m ≤ n) → (n ≤ m) → m ≡ n
   lib-lemma = {!!}
+
+  -- small improvement of ≰→≥
+  m≰n→Sn≤m : {m n : ℕ} → ¬(m ≤ n) → suc n ≤ m
+  m≰n→Sn≤m = {!!}
+
+  suc≤suc→≤ : {m n : ℕ} → suc m ≤ suc n → m ≤ n
+  suc≤suc→≤ = {!!}
+
+  ≤-is-prop : {m n : ℕ} → Is-proposition (m ≤ n)
+  ≤-is-prop = {!!}
+
+  -- if P is a property of A (i.e. a family of propositions over A),
+  -- then it is enough to show that any two elements of a which satisfy P
+  -- in order to conclude that Σ A P is propositional.
+  Σ-property : ∀ {α} {β} (A : Set α) (P : A → Set β) → ((a : A) → Is-proposition (P a)) → ((x y : Σ A P) → proj₁ x ≡ proj₁ y) → Is-proposition (Σ A P)
+  Σ-property = {!!}
+
   
 open library-stuff
-open more-library
 
 -- my version of monotone sequences. 
 -- TODO: compare to the ones in the "Alternative" module
@@ -110,6 +131,31 @@ module monotone-sequences {a} {Aset : SET a} where
   seq-unique-element (f , p) m n a b (fm≡a , fn≡b) | inj₁ m≤n = just-injective (trans (sym (seq-stable (f , p) m n m≤n a fm≡a)) fn≡b) 
   seq-unique-element (f , p) m n a b (fm≡a , fn≡b) | inj₂ n≤m = just-injective (trans (sym fm≡a) (seq-stable (f , p) n m n≤m b fn≡b))
 
+  -- if fSn ≡ nothing, then fn ≡ nothing
+  smaller-nothing-step : (fp : Seq) (n : ℕ) → proj₁ fp (suc n) ≡ nothing → proj₁ fp n ≡ nothing
+  smaller-nothing-step (f , p) n fSn≡nothing with p n
+  smaller-nothing-step (f , p) n fSn≡nothing | inj₁ fn≡fSn = trans fn≡fSn fSn≡nothing
+  smaller-nothing-step (f , p) n fSn≡nothing | inj₂ (fn≡nothing , _) = fn≡nothing
+
+  -- if fn ≡ nothing, then fm ≡ nothing for m ≤ n
+  smaller-nothing : (fp : Seq) (m n : ℕ) → (m ≤ n) → proj₁ fp n ≡ nothing → proj₁ fp m ≡ nothing
+  smaller-nothing (f , p) m n (_≤_.≤-refl′ m≡n) fn≡nothing = subst (λ k → f k ≡ nothing) (sym m≡n) fn≡nothing
+  smaller-nothing (f , p) m n (_≤_.≤-step′ {k} m≤k Sk≡n) fn≡nothing =
+    smaller-nothing (f , p) m k m≤k
+                    (smaller-nothing-step (f , p) k (subst (λ j → f j ≡ nothing) (sym Sk≡n) fn≡nothing))
+
+  -- if fm ≡ nothing and fn ≡ just a, then Sm ≤ n.
+  nothing-just-compare : (fp : Seq) (a : A) (m n : ℕ) → (proj₁ fp m ≡ nothing) → (proj₁ fp n ≡ just a) → suc m ≤ n
+  nothing-just-compare (f , p) a m n fm≡nothing fn≡justₐ with suc m ≤? n
+  nothing-just-compare (f , p) a m n fm≡nothing fn≡justₐ | inj₁  Sm≤n = Sm≤n
+  nothing-just-compare (f , p) a m n fm≡nothing fn≡justₐ | inj₂ ¬Sm≤n = ⊥-elim (disj-constructors (trans (sym (smaller-nothing (f , p) n m n≤m fm≡nothing)) fn≡justₐ))
+    where
+      Sn≤Sm : suc n ≤ suc m
+      Sn≤Sm = m≰n→Sn≤m ¬Sm≤n
+      n≤m : n ≤ m
+      n≤m = suc≤suc→≤ Sn≤Sm
+
+
   -- I define the ↓ relation in such a way that it is propositional even without truncation.
   -- I expect this to be useful later.
   _↓_ : Seq → A → Set _
@@ -120,7 +166,12 @@ module monotone-sequences {a} {Aset : SET a} where
   any≡a→↓a : (fp : Seq) → (a : A) → (n : ℕ) → (proj₁ fp n ≡ just a) → fp ↓ a
   any≡a→↓a (f , p) a zero    fn≡justₐ = zero , fn≡justₐ , (λ _ _ → zero≤ _)
   any≡a→↓a (f , p) a (suc n) fSn≡justₐ with inspect (f n)
-  any≡a→↓a (f , p) a (suc n) fSn≡justₐ | nothing , fn≡nothing = suc n , fSn≡justₐ , (λ m fm≢nothing → {!do case distinction: if m was smaller than n, then fn could not be nothing!})
+  any≡a→↓a (f , p) a (suc n) fSn≡justₐ | nothing , fn≡nothing = suc n , fSn≡justₐ , Sn-is-min 
+    where
+      Sn-is-min : (n' : ℕ) → (f n' ≢ nothing) → suc n ≤ n'
+      Sn-is-min n' fn'≢nothing with inspect (f n')
+      Sn-is-min n' fn'≢nothing | nothing , fn'≡nothing = ⊥-elim (fn'≢nothing fn'≡nothing)
+      Sn-is-min n' fn'≢nothing | just b , fn'≡justb    = nothing-just-compare (f , p) b n n' fn≡nothing fn'≡justb
   any≡a→↓a (f , p) a (suc n) fSn≡justₐ | just b , fn≡justb with any≡a→↓a (f , p) b n fn≡justb
   any≡a→↓a (f , p) a (suc n) fSn≡justₐ | just b , fn≡justb | min , (fmin≡justb , min-is-min) = min , fmin≡justa , min-is-min  where
 
@@ -129,14 +180,23 @@ module monotone-sequences {a} {Aset : SET a} where
 
 
   ↓-is-prop : (fp : Seq) → (a : A) → Is-proposition (fp ↓ a)
-  ↓-is-prop (f , p) a =
-    _⇔_.from propositional⇔irrelevant
-      (λ { x y → Σ-≡,≡→≡ (number-unique x y) {!second component is propositional!} }) where
+  ↓-is-prop (f , p) a = Σ-property _ _ (λ _ → ×-closure 1 (MA-is-set _ _)
+                                   (Π-closure ext 1 (λ _ → Π-closure ext 1 (λ _ → ≤-is-prop)))) number-unique
+    where
+      number-unique : (x y : (f , p) ↓ a) → proj₁ x ≡ proj₁ y
+      number-unique (m , p₁ , p₂) (n , q₁ , q₂) = lib-lemma (p₂ n (λ e → disj-constructors (trans (sym e) q₁)))
+                                                            (q₂ m (λ e → disj-constructors (trans (sym e) p₁)))
 
+
+
+  {-
+    _⇔_.from propositional⇔irrelevant
+      (λ { x y → Σ-≡,≡→≡ (number-unique x y) {!_⇔_.to propositional⇔irrelevant ?!} }) where
 
         number-unique : (x y : (f , p) ↓ a) → proj₁ x ≡ proj₁ y
         number-unique (m , p₁ , p₂) (n , q₁ , q₂) = lib-lemma (p₂ n (λ e → disj-constructors (trans (sym e) q₁)))
                                                               (q₂ m (λ e → disj-constructors (trans (sym e) p₁)))
+-}
 
   -- auxiliary relations that we will use to define the equivalence relation on sequences
   
@@ -212,6 +272,38 @@ module monotone-and-QIIT {a} {Aset : SET a} where
   canonical' : Seq/~ → (_⊥ A)
   canonical' = rec {P = _⊥ A} canonical canonical-respects-~ ⊥-is-set 
 
+  -- ... and this is really an extension.
+  canonical'-is-extension : (fp : Seq) → canonical' (Quotient.HIT.[_] fp) ≡ canonical fp
+  canonical'-is-extension fp = {!refl!}
+
+module canonical-simple-properties {a} {Aset : SET a} where
+
+  open import Partiality-monad.Inductive 
+  open import Partiality-monad.Inductive.Properties
+  open monotone-sequences {a} {Aset}
+  open monotone-and-QIIT {a} {Aset}
+
+  -- sequence constantly nothing
+  const-nothing : Seq
+  const-nothing = (λ _ → nothing) , (λ _ → inj₁ refl)
+
+  -- the canonical function maps the constantly nothing sequence to 'never'
+  canonical-nothing-never : canonical const-nothing ≡ never
+  canonical-nothing-never = antisymmetry {x = canonical const-nothing} {y = never}
+                                         (least-upper-bound _ never (λ _ → ⊑-refl never))
+                                         (never⊑ _)
+
+  -- sequencs constantly just a
+  const-seq : (a : A) → Seq
+  const-seq  a = (λ _ → just a) , (λ _ → inj₁ refl)
+
+  -- the canonical function maps the constantly a sequence to 'now a'
+  canonical-const-now : (a : A) → canonical (const-seq a) ≡ now a
+  canonical-const-now a = antisymmetry {x = canonical (const-seq a)} {y = now a}
+                                       (least-upper-bound _ (now a) (λ _ → ⊑-refl _))
+                                       (upper-bound′ (Seq→Increasing (const-seq a)) (canonical (const-seq a)) (⊑-refl _) zero)
+
+
 
 {-
 surjective : ∀ {a} {b} {A : Set a} {B : Set b} → (f : A → B) → Set _
@@ -222,8 +314,11 @@ surjective f = {!Surjective!}
 -}
 
 -- This is "countable choice".
+{-
 countchoice : ∀ {α} {β} → Set _
 countchoice {α} {β} = (B : ℕ → Set α) → ((n : ℕ) → ∥ (B n) ∥ 1 β) → ∥ ((n : ℕ) → B n) ∥ 1 β 
+-}
+-- I had overlooked that this is already defined in Propositional.agda.
 
 -- The goal of the following module is to show that the canonical function
 -- (and thus the extended version of it) is surjective.
@@ -232,16 +327,20 @@ module canonical-surjective {a} {Aset : SET a} where
 
   open import Partiality-monad.Inductive.Eliminators
 
+  -- contains axiom of countable choice 
+--  open import H-level.Truncation.Propositional
+
   open monotone-and-QIIT {a} {Aset} 
   open monotone-sequences {a} {Aset}
+  open canonical-simple-properties {a} {Aset}
 
-  canonical-surjective : (countchoice {a} {a}) → Surjective a canonical
+  canonical-surjective : (Axiom-of-countable-choice a) → Surjective a canonical
   canonical-surjective cc =
     ⊥-rec-⊥ {P = λ x → ∥ (Σ Seq λ fp → canonical fp ≡ x) ∥ 1 a}
-      (record { pe = ∣ {!'always nothing sequence' , need eq-constructor to show that LUB of constant never is never... but better make lemma!!} ∣ ;
-                po = λ a → ∣ {!'always just a sequence'!} ∣ ;
+      (record { pe = ∣ const-nothing , canonical-nothing-never ∣ ;
+                po = λ a → ∣ const-seq a , canonical-const-now a ∣ ;
                 pl = λ {(f⊥ , f⊥-inc) pointwise → {!cc _ pointwise!}} ;
-                pp = λ x → truncation-has-correct-h-level 1 ext })
+                pp = λ x → truncation-is-proposition ext })
 
   -- now: canonical'-surjective
 
