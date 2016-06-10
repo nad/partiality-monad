@@ -64,8 +64,8 @@ private
                Prelude.⊥  ↝⟨ ⊥-elim ⟩□
                now-x≲⊥    □
              }
-    ; qu = λ { _ _ _ n (now-x≲s[_] , _) (now-x≲ub , _)
-               now-x≲s[]→now-x≲ub →
+    ; qu = λ { _ _ _ (now-x≲s[_] , _) (now-x≲ub , _)
+               now-x≲s[]→now-x≲ub n →
 
                proj₁ now-x≲s[ n ]                ↝⟨ ∣_∣ ∘ (n ,_) ⟩
                ∥ ∃ (λ n → proj₁ now-x≲s[ n ]) ∥  ↝⟨ now-x≲s[]→now-x≲ub ⟩□
@@ -98,7 +98,7 @@ private
     ; qe = λ _ ⊥≲ z →
              proj₁ (⊥≲ z)  ↝⟨ _ ⟩□
              ↑ _ ⊤         □
-    ; qu = λ { _ _ _ n (s[_]≲ , _) ub≲ ub≲→s[]≲ z →
+    ; qu = λ { _ _ _ (s[_]≲ , _) ub≲ ub≲→s[]≲ n z →
                proj₁ (ub≲ z)      ↝⟨ flip (ub≲→s[]≲ z) n ⟩□
                proj₁ (s[ n ]≲ z)  □
              }
@@ -148,7 +148,7 @@ private
 -- _≲_ is reflexive.
 
 ≲-refl : ∀ x → x ≲ x
-≲-refl = ⊥-rec-Prop (record
+≲-refl = ⊥-rec-⊥ (record
   { po = λ _ → ∣ refl ∣
   ; pl = λ s →
            (∀ n → s [ n ] ≲ s [ n ])  ↝⟨ (λ s≲s n → ⨆-lemma s (s [ n ]) n (s≲s n)) ⟩□
@@ -157,7 +157,7 @@ private
   })
   where
   ⨆-lemma : ∀ s x n → x ≲ s [ n ] → x ≲ ⨆ s
-  ⨆-lemma s = ⊥-rec-Prop
+  ⨆-lemma s = ⊥-rec-⊥
     {P = λ x → ∀ n → x ≲ s [ n ] → x ≲ ⨆ s}
     (record
        { po = λ x n →
@@ -178,19 +178,19 @@ private
 ⊑≃≲ {x} {y} =
   _↔_.to (Eq.⇔↔≃ ext ⊑-propositional (≲-propositional x y))
     (record { to   = ⊑-rec-⊑ to-args
-            ; from = ⊥-rec-Prop from-args _ _
+            ; from = ⊥-rec-⊥ from-args _ _
             })
   where
   to-args : Rec-args-⊑ (λ {x y} _ → x ≲ y)
   to-args = record
     { qr = λ x → ≲-refl x
-    ; qu = λ s ub _ n _ ⨆s≲ub → ⨆s≲ub n
+    ; qu = λ s ub _ _ ⨆s≲ub n → ⨆s≲ub n
     ; ql = λ s ub _ _ s[_]≲ub n → s[ n ]≲ub
     ; qp = λ {x y} _ → ≲-propositional x y
     }
 
   now-lemma : ∀ x y → now x ≲ y → now x ⊑ y
-  now-lemma x y = ⊥-rec-Prop
+  now-lemma x y = ⊥-rec-⊥
     {P = λ y → now x ≲ y → now x ⊑ y}
     (record
        { pe = Prelude.⊥      ↝⟨ ⊥-elim ⟩□
@@ -216,7 +216,7 @@ private
        })
     y
 
-  from-args : Rec-args-Prop (λ x → ∀ y → x ≲ y → x ⊑ y)
+  from-args : Rec-args-⊥ (λ x → ∀ y → x ≲ y → x ⊑ y)
   from-args = record
     { pe = λ y _ → never⊑ y
     ; po = now-lemma
@@ -305,7 +305,7 @@ larger-terminate-with-same-value = ⊑-rec-⊑
               never ⇓ z  ↝⟨ now≢never z ∘ sym ⟩
               ⊥₀         ↝⟨ ⊥-elim ⟩□
               x ⇓ z      □
-     ; qu = λ s ub _ n q qu x s[n]⇓x →                 $⟨ (λ _ n≤m → lemma s (flip q x) n≤m s[n]⇓x) ⟩
+     ; qu = λ s ub _ q qu n x s[n]⇓x →                 $⟨ (λ _ n≤m → lemma s (flip q x) n≤m s[n]⇓x) ⟩
               (∀ m → n ≤ m → s [ m ] ≡ now x)          ↝⟨ (λ hyp m n≤m → proj₁ (_≃_.from equality-characterisation-⊥ (hyp m n≤m))) ⟩
               (∀ m → n ≤ m → s [ m ] ⊑ now x)          ↝⟨ (λ hyp m → [ (λ m≤n →
 
@@ -364,7 +364,7 @@ terminating-element-is-⨆ s {n} {x} =
 -- Coinductive Types".
 
 ≼→⊑ : {x y : A ⊥} → x ≼ y → x ⊑ y
-≼→⊑ {x} {y} = ⊥-rec-Prop
+≼→⊑ {x} {y} = ⊥-rec-⊥
   {P = λ x → x ≼ y → x ⊑ y}
   (record
      { pe = never ≼ y  ↝⟨ (λ _ → never⊑ y) ⟩□
@@ -438,7 +438,7 @@ terminating-element-is-⨆ s {n} {x} =
 -- If x does not terminate, then x is equal to never.
 
 ¬⇓→⇑ : {x : A ⊥} → ¬ (∃ λ y → x ⇓ y) → x ⇑
-¬⇓→⇑ {x} = ⊥-rec-Prop
+¬⇓→⇑ {x} = ⊥-rec-⊥
   {P = λ x → ¬ (∃ λ y → x ⇓ y) → x ⇑}
   (record
      { pe = ¬ ∃ (never ⇓_)  ↝⟨ const refl ⟩□
