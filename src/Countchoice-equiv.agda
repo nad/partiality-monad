@@ -20,7 +20,7 @@ open import Quotient.HIT hiding ([_])
 
 -- open import H-level.Truncation equality-with-J hiding (rec)
 
-open import H-level.Truncation.Propositional equality-with-J hiding (rec)
+open import H-level.Truncation.Propositional hiding (rec)
 
 
 -- We assume function extensionality without restriction.
@@ -63,7 +63,6 @@ module library-stuff where
 open library-stuff
 
 -- my version of monotone sequences. 
--- TODO: compare to the ones in the "Alternative" module
 module monotone-sequences {a} {Aset : SET a} where
 
   A = proj₁ Aset
@@ -116,6 +115,8 @@ module monotone-sequences {a} {Aset : SET a} where
   unshift (f , m) = (λ n → f (suc n)) , (λ n → m (suc n))
 
 
+  -- What now follows is a bunch of straightforward boring lemmas.
+
   seq-stable-step : (fp : Seq) (m : ℕ) → (a : A) → (proj₁ fp m ≡ just a) → proj₁ fp (suc m) ≡ just a
   seq-stable-step (f , p) m a fm≡justₐ with p m
   seq-stable-step (f , p) m a fm≡justₐ | inj₁ fm≡fSm = trans (sym fm≡fSm) fm≡justₐ
@@ -156,10 +157,43 @@ module monotone-sequences {a} {Aset : SET a} where
       n≤m = suc≤suc→≤ Sn≤Sm
 
 
-  -- I define the ↓ relation in such a way that it is propositional even without truncation.
-  -- I expect this to be useful later.
+  -- I define two variants of the ↓ relation; f ↓ a says that the sequence f "evaluates" to a.
+  -- The two variants are both propositional, and they are equivalent.
+  -- One is defined with truncation and one without.
+  -- The point is that:
+  -- (*) with truncation, it is easier to *show* that a sequence 'evaluates' to a
+  -- (*) without truncation, it is easier to *use* the fact that a sequence 'evaluates' to a.
+
   _↓_ : Seq → A → Set _
   (f , m) ↓ a = Σ ℕ (λ n → f n ≡ just a × ((n' : ℕ) → (f n' ≢ nothing) → n ≤ n')) -- CAVEAT: this could possibly be nicer with <; but it's fine as it is here, I guess.
+
+  ↓-is-prop : (fp : Seq) → (a : A) → Is-proposition (fp ↓ a)
+  ↓-is-prop (f , p) a = Σ-property _ _ (λ _ → ×-closure 1 (MA-is-set _ _)
+                                   (Π-closure ext 1 (λ _ → Π-closure ext 1 (λ _ → ≤-is-prop)))) number-unique
+    where
+      number-unique : (x y : (f , p) ↓ a) → proj₁ x ≡ proj₁ y
+      number-unique (m , p₁ , p₂) (n , q₁ , q₂) = lib-lemma (p₂ n (λ e → disj-constructors (trans (sym e) q₁)))
+                                                            (q₂ m (λ e → disj-constructors (trans (sym e) p₁)))
+
+  _∥↓∥_ : Seq → A → Set _
+  (f , m) ∥↓∥ a = ∥ (Σ ℕ λ n → f n ≡ just a) ∥ 
+
+  ∥↓∥-is-prop : (fp : Seq) → (a : A) → Is-proposition (fp ∥↓∥ a)
+  ∥↓∥-is-prop fp a = truncation-is-proposition
+
+  -- now: the equivalence of ↓ and ∥↓∥
+  ↓→∥↓∥ : ∀ {fp} {a} → (fp ↓ a) → (fp ∥↓∥ a)
+  ↓→∥↓∥ = ?
+
+
+  -- however, we can also define it with truncation. The point is that:
+  -- (*) with truncation, it is easier to *show* that a sequence 'evaluates' to a
+  -- (*) without truncation, it is easier to *use* the fact that a sequence 'evaluates' to a.
+  -- Fortunately, they are equivalent.
+
+  -- TODO: do this. then, delete the work done later which I had to do without this abstraction.
+
+
 
 
   -- if *any* element in a sequence is a, then the sequence 'evaluates' to a
@@ -177,15 +211,6 @@ module monotone-sequences {a} {Aset : SET a} where
 
     fmin≡justa : f min ≡ just a
     fmin≡justa = subst (λ c → f min ≡ just c) (seq-unique-element (f , p) min (suc n) b a (fmin≡justb , fSn≡justₐ)) fmin≡justb 
-
-
-  ↓-is-prop : (fp : Seq) → (a : A) → Is-proposition (fp ↓ a)
-  ↓-is-prop (f , p) a = Σ-property _ _ (λ _ → ×-closure 1 (MA-is-set _ _)
-                                   (Π-closure ext 1 (λ _ → Π-closure ext 1 (λ _ → ≤-is-prop)))) number-unique
-    where
-      number-unique : (x y : (f , p) ↓ a) → proj₁ x ≡ proj₁ y
-      number-unique (m , p₁ , p₂) (n , q₁ , q₂) = lib-lemma (p₂ n (λ e → disj-constructors (trans (sym e) q₁)))
-                                                            (q₂ m (λ e → disj-constructors (trans (sym e) p₁)))
 
 
 
@@ -334,13 +359,13 @@ module canonical-surjective {a} {Aset : SET a} where
   open monotone-sequences {a} {Aset}
   open canonical-simple-properties {a} {Aset}
 
-  canonical-surjective : (Axiom-of-countable-choice a) → Surjective a canonical
+  canonical-surjective : (Axiom-of-countable-choice a) → Surjective canonical
   canonical-surjective cc =
-    ⊥-rec-⊥ {P = λ x → ∥ (Σ Seq λ fp → canonical fp ≡ x) ∥ 1 a}
+    ⊥-rec-⊥ {P = λ x → ∥ (Σ Seq λ fp → canonical fp ≡ x) ∥}
       (record { pe = ∣ const-nothing , canonical-nothing-never ∣ ;
                 po = λ a → ∣ const-seq a , canonical-const-now a ∣ ;
                 pl = λ {(f⊥ , f⊥-inc) pointwise → {!cc _ pointwise!}} ;
-                pp = λ x → truncation-is-proposition ext })
+                pp = λ _ → truncation-is-proposition })
 
   -- now: canonical'-surjective
 
