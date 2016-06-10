@@ -38,6 +38,14 @@ module _ {a} {A : Set a} where
   disj-constructors : {a : A} → nothing ≢ just a
   disj-constructors () 
 
+  just-injective : {b c : A} → _≡_ {A = Maybe A} (just b) (just c) → b ≡ c
+  just-injective refl = refl
+  
+
+-- this is certainly somewhere in the library, but I cannot find it right now.
+lib-lemma : {m n : ℕ} → (m ≤ n) → (n ≤ m) → m ≡ n
+lib-lemma = {!!}
+
 
 module monotone-sequences {a} {Aset : SET a} where
 
@@ -85,22 +93,50 @@ module monotone-sequences {a} {Aset : SET a} where
   unshift : Seq → Seq
   unshift (f , m) = (λ n → f (suc n)) , (λ n → m (suc n))
 
+
+--  open _≤_
+
+  seq-stable-step : (fp : Seq) (m : ℕ) → (a : A) → (proj₁ fp m ≡ just a) → proj₁ fp (suc m) ≡ just a
+  seq-stable-step (f , p) m a fm≡justₐ with p m
+  seq-stable-step (f , p) m a fm≡justₐ | inj₁ fm≡fSm = trans (sym fm≡fSm) fm≡justₐ
+  seq-stable-step (f , p) m a fm≡justₐ | inj₂ (fm≡nothing , _) = ⊥-elim (disj-constructors (trans (sym fm≡nothing) fm≡justₐ))
+
+  seq-stable : (fp : Seq) (m n : ℕ) → (m ≤ n) → (a : A) → (proj₁ fp m ≡ just a) → proj₁ fp n ≡ just a
+  seq-stable (f , p) m n (_≤_.≤-refl′ m≡n) a q = subst (λ k → f k ≡ just a) m≡n q
+  seq-stable (f , p) m n (_≤_.≤-step′ {k} m≤k Sk≡n) a q = subst (λ o → f o ≡ just a) Sk≡n (seq-stable-step (f , p) k a (seq-stable (f , p) m k m≤k a q))  
+
+  -- if fn ≡ a and fm ≡ b, then a ≡ b. 
+  seq-unique-element : (fp : Seq) (m n : ℕ) (a b : A) → (proj₁ fp m ≡ just a) × (proj₁ fp n ≡ just b) → a ≡ b
+  seq-unique-element (f , p) m n a b (fm≡a , fn≡b) with total m n
+  seq-unique-element (f , p) m n a b (fm≡a , fn≡b) | inj₁ m≤n = just-injective (trans (sym (seq-stable (f , p) m n m≤n a fm≡a)) fn≡b) 
+  seq-unique-element (f , p) m n a b (fm≡a , fn≡b) | inj₂ n≤m = just-injective (trans (sym fm≡a) (seq-stable (f , p) n m n≤m b fn≡b))
+
+
   _↓_ : Seq → A → Set _
   (f , m) ↓ a = Σ ℕ (λ n → f n ≡ just a × ((n' : ℕ) → (f n' ≢ nothing) → n ≤ n')) -- CAVEAT: this could possibly be nicer with <
 
 
   -- if *any* element in a sequence is a, then the sequence 'evaluates' to a
   any≡a→↓a : (fp : Seq) → (a : A) → (n : ℕ) → (proj₁ fp n ≡ just a) → fp ↓ a
-  any≡a→↓a = {!TODO!}
+  any≡a→↓a (f , p) a zero    fn≡justₐ = zero , fn≡justₐ , (λ _ _ → zero≤ _)
+  any≡a→↓a (f , p) a (suc n) fSn≡justₐ with inspect (f n)
+  any≡a→↓a (f , p) a (suc n) fSn≡justₐ | nothing , fn≡nothing = suc n , fSn≡justₐ , (λ m fm≢nothing → {!!})
+  any≡a→↓a (f , p) a (suc n) fSn≡justₐ | just b , fn≡justb with any≡a→↓a (f , p) b n fn≡justb
+  any≡a→↓a (f , p) a (suc n) fSn≡justₐ | just b , fn≡justb | min , (fmin≡justb , min-is-min) = min , fmin≡justa , min-is-min  where
+
+    fmin≡justa : f min ≡ just a
+    fmin≡justa = subst (λ c → f min ≡ just c) (seq-unique-element (f , p) min (suc n) b a (fmin≡justb , fSn≡justₐ)) fmin≡justb 
+
+--    a≡b : a ≡ b
+--    a≡b = ?
+
+
 
   ↓-is-prop : (fp : Seq) → (a : A) → Is-proposition (fp ↓ a)
   ↓-is-prop (f , p) a =
     _⇔_.from propositional⇔irrelevant
       (λ { x y → Σ-≡,≡→≡ (number-unique x y) {!second component is propositional!} }) where
 
-        -- this is certainly somewhere in the library, but I cannot find it right now.
-        lib-lemma : {m n : ℕ} → (m ≤ n) → (n ≤ m) → m ≡ n
-        lib-lemma = {!!}
 
         number-unique : (x y : (f , p) ↓ a) → proj₁ x ≡ proj₁ y
         number-unique (m , p₁ , p₂) (n , q₁ , q₂) = lib-lemma (p₂ n (λ e → disj-constructors (trans (sym e) q₁)))
@@ -159,42 +195,28 @@ module monotone-and-QIIT {a} {Aset : SET a} where
                -- I wished this equality was judgmental, which it does not seem to be.
                -- Hence, I use the following way. I am sure there must be some Agda standard
                -- way to do this. How do you usually do this?
-               destruct-f : (n : ℕ) → f n ≡ nothing ⊎ Σ A λ a → f n ≡ just a
-               destruct-f n with f n
-               destruct-f n | nothing = inj₁ refl
-               destruct-f n | just a  = inj₂ (a , refl)
+               -- destruct-f : (n : ℕ) → f n ≡ nothing ⊎ Σ A λ a → f n ≡ just a
+               -- destruct-f n with f n
+               -- destruct-f n | nothing = inj₁ refl
+               -- destruct-f n | just a  = inj₂ (a , refl)
 
                cgq-is-ub : (n : ℕ) → Seq→Increasing (f , p) [ n ] ⊑ canonical gq
-               cgq-is-ub n with destruct-f n
-               cgq-is-ub n | inj₁ fn≡nothing = subst (λ x → x ⊑ _) (cong aux (sym fn≡nothing)) (never⊑ _)
-               cgq-is-ub n | inj₂ (a , fn≡justₐ) = {!use any≡a→↓a!}
+               cgq-is-ub n with inspect (f n)
+               cgq-is-ub n | nothing , fn≡nothing = subst (λ x → x ⊑ _) (cong aux (sym fn≡nothing)) (never⊑ _)
+               cgq-is-ub n | inj₂ a , fn≡justₐ =  aux (f n)  ⊑⟨ subst (λ maybe → aux (f n) ⊑ aux maybe) (trans fn≡justₐ (sym gkₙ≡justₐ)) (⊑-refl _) ⟩
+                                                  aux (g kₙ) ⊑⟨ upper-bound′ (Seq→Increasing gq) (⨆ (Seq→Increasing gq)) (⊑-refl _) kₙ ⟩■
+                                                  ⨆ (Seq→Increasing gq) ■
                  where
+                 g = proj₁ gq
+                 fp↓a : (f , p) ↓ a
+                 fp↓a = any≡a→↓a (f , p) a n fn≡justₐ
+                 gq↓a : gq ↓ a
+                 gq↓a = fp≲gq a fp↓a
+                 kₙ : ℕ 
+                 kₙ = proj₁ gq↓a
+                 gkₙ≡justₐ : g kₙ ≡ just a
+                 gkₙ≡justₐ = proj₁ (proj₂ gq↓a)
 
-                   -- THIS IS TOTALLY USELESS. I should have a rest :/
-                   -- and even if it was not useless, it should be done in a lemma in the other module...
-                   fSn≡justₐ : f (suc n) ≡ just a
-                   fSn≡justₐ with p n
-                   fSn≡justₐ | inj₁ this = trans (sym this) fn≡justₐ
-                   fSn≡justₐ | inj₂ (fn≡nothing , _) = ⊥-elim (disj-constructors (trans (sym fn≡nothing) fn≡justₐ))
-
-                   fn≡fSn : f n ≡ f (suc n)
-                   fn≡fSn = trans fn≡justₐ (sym fSn≡justₐ)
-
-
-{-
-with f n
-                 cgq-is-ub n | nothing = never⊑ _
-                 cgq-is-ub n | just a with p n
-                 cgq-is-ub n | just a | inj₁ x = {!x!}
-                 cgq-is-ub n | just a | inj₂ y with proj₁ y
-                 cgq-is-ub n | just a | inj₂ y | asd = {!disj-constructors (sym asd)!}
--}
-{-
-aux (f n)  ⊑⟨ {!!} ⟩
-                               {!!}       ⊑⟨ {!!} ⟩■
-                               ⨆ (Seq→Increasing gq) ■
-
--}
 
   canonical-respects-~ : {fp gq : Seq} → fp ~ gq → canonical fp ≡ canonical gq
   canonical-respects-~ (fp≲gq , gq≲fp) = antisymmetry (canonical-≲-⊑ fp≲gq) (canonical-≲-⊑ gq≲fp)
