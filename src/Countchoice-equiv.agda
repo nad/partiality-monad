@@ -19,33 +19,26 @@ open import Quotient.HIT hiding ([_])
 
 open import H-level.Truncation equality-with-J hiding (rec)
 
--- open import Delay-monad
-
-
-
--- open import Partiality-monad.Inductive
--- Specialised eliminators.
--- open import Partiality-monad.Inductive.Eliminators
--- Some definitions and properties.
--- open import Partiality-monad.Inductive.Properties
-
 
 postulate
   ext : ∀ {a b} → Extensionality a b
 
 
 -- is this (in general form) somewhere in the used library?
-module _ {a} {A : Set a} where
+module library-stuff {a} {A : Set a} where
   disj-constructors : {a : A} → nothing ≢ just a
   disj-constructors () 
 
   just-injective : {b c : A} → _≡_ {A = Maybe A} (just b) (just c) → b ≡ c
   just-injective refl = refl
-  
 
--- this is certainly somewhere in the library, but I cannot find it right now.
-lib-lemma : {m n : ℕ} → (m ≤ n) → (n ≤ m) → m ≡ n
-lib-lemma = {!!}
+module more-library where
+  -- this is certainly somewhere in the library, but I cannot find it right now.
+  lib-lemma : {m n : ℕ} → (m ≤ n) → (n ≤ m) → m ≡ n
+  lib-lemma = {!!}
+  
+open library-stuff
+open more-library
 
 
 module monotone-sequences {a} {Aset : SET a} where
@@ -55,6 +48,7 @@ module monotone-sequences {a} {Aset : SET a} where
   A = proj₁ Aset
   A-is-set = proj₂ Aset
 
+  -- works only because A is a set, of course.
   MA-is-set : Is-set (Maybe A)
   MA-is-set = ⊎-closure 0 (mono₁ 1 (mono₁ 0 ⊤-contractible)) A-is-set
 
@@ -63,7 +57,11 @@ module monotone-sequences {a} {Aset : SET a} where
   is-monotone f = (n : ℕ) → (f n ≡ f (suc n)) ⊎ f n ≡ nothing × f (suc n) ≢ nothing
 
 
-
+  {- this part only works because of the assumption that A is a set.
+     The equivalence with Delay A should work more generally (todo: check this claim),
+     but it's probably not worth it to emphasize this anyway: As soon as we go to
+     A ⊥, we can only work with sets (otherwise, we would have to change the QIIT to a
+     HIIT with infinite coherences). -}
   is-monotone-is-prop : (f : ℕ → Maybe A) → Is-proposition (is-monotone f) 
   is-monotone-is-prop f =
     Π-closure {A = ℕ} ext 1 (λ n → _⇔_.from propositional⇔irrelevant (λ {
@@ -95,8 +93,6 @@ module monotone-sequences {a} {Aset : SET a} where
   unshift (f , m) = (λ n → f (suc n)) , (λ n → m (suc n))
 
 
---  open _≤_
-
   seq-stable-step : (fp : Seq) (m : ℕ) → (a : A) → (proj₁ fp m ≡ just a) → proj₁ fp (suc m) ≡ just a
   seq-stable-step (f , p) m a fm≡justₐ with p m
   seq-stable-step (f , p) m a fm≡justₐ | inj₁ fm≡fSm = trans (sym fm≡fSm) fm≡justₐ
@@ -127,9 +123,6 @@ module monotone-sequences {a} {Aset : SET a} where
 
     fmin≡justa : f min ≡ just a
     fmin≡justa = subst (λ c → f min ≡ just c) (seq-unique-element (f , p) min (suc n) b a (fmin≡justb , fSn≡justₐ)) fmin≡justb 
-
---    a≡b : a ≡ b
---    a≡b = ?
 
 
 
@@ -165,10 +158,7 @@ module monotone-and-QIIT {a} {Aset : SET a} where
 
 --  canonical : Seq → 
 
-  open import Partiality-monad.Inductive -- renaming (now to pnow ; never to pnever)
--- Specialised eliminators.
--- open import Partiality-monad.Inductive.Eliminators
--- Some definitions and properties.
+  open import Partiality-monad.Inductive 
   open import Partiality-monad.Inductive.Properties
 
   aux : Maybe A → _⊥ A 
@@ -191,15 +181,6 @@ module monotone-and-QIIT {a} {Aset : SET a} where
                       (canonical gq)
                       cgq-is-ub
                where
-
-               -- The 'with ...' construct seems to forget the witness of the equality.
-               -- I wished this equality was judgmental, which it does not seem to be.
-               -- Hence, I use the following way. I am sure there must be some Agda standard
-               -- way to do this. How do you usually do this?
-               -- destruct-f : (n : ℕ) → f n ≡ nothing ⊎ Σ A λ a → f n ≡ just a
-               -- destruct-f n with f n
-               -- destruct-f n | nothing = inj₁ refl
-               -- destruct-f n | just a  = inj₂ (a , refl)
 
                cgq-is-ub : (n : ℕ) → Seq→Increasing (f , p) [ n ] ⊑ canonical gq
                cgq-is-ub n with inspect (f n)
@@ -252,15 +233,18 @@ module canonical-surjective {a} {Aset : SET a} where
                 pl = λ {(f⊥ , f⊥-inc) pointwise → {!cc _ pointwise!}} ;
                 pp = λ x → truncation-has-correct-h-level 1 ext })
 
+-- canonical' is injective
 module canonical'-injective {a} {Aset : SET a} where
 
 
+-- canonical' is an equivalence: needs a library lemma which (I think) is not there yet.
 module canonical'-equivalence {a} {Aset : SET a} where
 
 
 
 
 -- coinductive Delay and monotone sequences
+-- this part is a desaster at the moment. Please stop reading.
 module delay-and-monotone {a} {Aset : SET a} where
 
   open import Delay-monad
