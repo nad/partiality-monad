@@ -227,7 +227,7 @@ module canonical-surjective {a} {Aset : SET a} where
 
   canonical-surjective : (countchoice {a} {a}) → Surjective a canonical
   canonical-surjective cc =
-    ⊥-rec-Prop {P = λ x → ∥ (Σ Seq λ fp → canonical fp ≡ x) ∥ 1 a}
+    ⊥-rec-⊥ {P = λ x → ∥ (Σ Seq λ fp → canonical fp ≡ x) ∥ 1 a}
       (record { pe = ∣ {!'always nothing sequence' , need eq-constructor to show that LUB of constant never is never... but better make lemma!!} ∣ ;
                 po = λ a → ∣ {!'always just a sequence'!} ∣ ;
                 pl = λ {(f⊥ , f⊥-inc) pointwise → {!cc _ pointwise!}} ;
