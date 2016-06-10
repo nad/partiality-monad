@@ -1,6 +1,7 @@
 
 -- Goal of this module: establish an equivalence between
--- the QIIT partiality monad and the quotiented delay monad.
+-- the QIIT partiality monad and the quotiented delay monad
+-- (assuming countable choice, and funext).
 
 {-# OPTIONS --without-K #-}
 
@@ -40,10 +41,9 @@ module more-library where
 open library-stuff
 open more-library
 
-
+-- my version of monotone sequences. 
+-- TODO: compare to the ones in the "Alternative" module
 module monotone-sequences {a} {Aset : SET a} where
-
-  open import Delay-monad
 
   A = proj₁ Aset
   A-is-set = proj₂ Aset
@@ -62,6 +62,7 @@ module monotone-sequences {a} {Aset : SET a} where
      but it's probably not worth it to emphasize this anyway: As soon as we go to
      A ⊥, we can only work with sets (otherwise, we would have to change the QIIT to a
      HIIT with infinite coherences). -}
+  -- surely, there is a more elegant way to do this?!
   is-monotone-is-prop : (f : ℕ → Maybe A) → Is-proposition (is-monotone f) 
   is-monotone-is-prop f =
     Π-closure {A = ℕ} ext 1 (λ n → _⇔_.from propositional⇔irrelevant (λ {
@@ -80,6 +81,7 @@ module monotone-sequences {a} {Aset : SET a} where
   Seq≡ : (s₁ s₂ : Seq) → ((n : ℕ) → proj₁ s₁ n ≡ proj₁ s₂ n) → s₁ ≡ s₂
   Seq≡ (f , _) (g , _) p = Σ-≡,≡→≡ (ext p) (_⇔_.to propositional⇔irrelevant (is-monotone-is-prop _) _ _) 
 
+  -- shift and unshift: operations of sequences that add or remove an element in the beginning.
   shift : Seq → Seq
   shift (f , m) = (λ { zero → nothing ; (suc n) → f n })
                   ,
@@ -108,9 +110,10 @@ module monotone-sequences {a} {Aset : SET a} where
   seq-unique-element (f , p) m n a b (fm≡a , fn≡b) | inj₁ m≤n = just-injective (trans (sym (seq-stable (f , p) m n m≤n a fm≡a)) fn≡b) 
   seq-unique-element (f , p) m n a b (fm≡a , fn≡b) | inj₂ n≤m = just-injective (trans (sym fm≡a) (seq-stable (f , p) n m n≤m b fn≡b))
 
-
+  -- I define the ↓ relation in such a way that it is propositional even without truncation.
+  -- I expect this to be useful later.
   _↓_ : Seq → A → Set _
-  (f , m) ↓ a = Σ ℕ (λ n → f n ≡ just a × ((n' : ℕ) → (f n' ≢ nothing) → n ≤ n')) -- CAVEAT: this could possibly be nicer with <
+  (f , m) ↓ a = Σ ℕ (λ n → f n ≡ just a × ((n' : ℕ) → (f n' ≢ nothing) → n ≤ n')) -- CAVEAT: this could possibly be nicer with <; but it's fine as it is here, I guess.
 
 
   -- if *any* element in a sequence is a, then the sequence 'evaluates' to a
@@ -125,7 +128,6 @@ module monotone-sequences {a} {Aset : SET a} where
     fmin≡justa = subst (λ c → f min ≡ just c) (seq-unique-element (f , p) min (suc n) b a (fmin≡justb , fSn≡justₐ)) fmin≡justb 
 
 
-
   ↓-is-prop : (fp : Seq) → (a : A) → Is-proposition (fp ↓ a)
   ↓-is-prop (f , p) a =
     _⇔_.from propositional⇔irrelevant
@@ -136,6 +138,8 @@ module monotone-sequences {a} {Aset : SET a} where
         number-unique (m , p₁ , p₂) (n , q₁ , q₂) = lib-lemma (p₂ n (λ e → disj-constructors (trans (sym e) q₁)))
                                                               (q₂ m (λ e → disj-constructors (trans (sym e) p₁)))
 
+  -- auxiliary relations that we will use to define the equivalence relation on sequences
+  
   _≲_ : Seq → Seq → Set _
   f ≲ g = (a : A) → (f ↓ a) → (g ↓ a)
 
@@ -148,6 +152,7 @@ module monotone-sequences {a} {Aset : SET a} where
   ~-is-prop : (f g : Seq) → Is-proposition (f ~ g)
   ~-is-prop f g = ×-closure 1 (≲-is-prop f g) (≲-is-prop g f)
 
+  -- quotiented sequences
   Seq/~ : Set _
   Seq/~ = Seq / (λ f g → (f ~ g , ~-is-prop f g))
 
@@ -156,10 +161,10 @@ module monotone-and-QIIT {a} {Aset : SET a} where
 
   open monotone-sequences {a} {Aset}
 
---  canonical : Seq → 
-
   open import Partiality-monad.Inductive 
   open import Partiality-monad.Inductive.Properties
+
+  -- the first goal is to define the canonical function from Sequences to the QIIT-partiality monad
 
   aux : Maybe A → _⊥ A 
   aux nothing  = never
@@ -203,6 +208,7 @@ module monotone-and-QIIT {a} {Aset : SET a} where
   canonical-respects-~ : {fp gq : Seq} → fp ~ gq → canonical fp ≡ canonical gq
   canonical-respects-~ (fp≲gq , gq≲fp) = antisymmetry (canonical-≲-⊑ fp≲gq) (canonical-≲-⊑ gq≲fp)
 
+  -- Finally, we can extend the canonical function to the quotient.
   canonical' : Seq/~ → (_⊥ A)
   canonical' = rec {P = _⊥ A} canonical canonical-respects-~ ⊥-is-set 
 
@@ -215,8 +221,12 @@ surjective : ∀ {a} {b} {A : Set a} {B : Set b} → (f : A → B) → Set _
 surjective f = {!Surjective!}
 -}
 
+-- This is "countable choice".
 countchoice : ∀ {α} {β} → Set _
 countchoice {α} {β} = (B : ℕ → Set α) → ((n : ℕ) → ∥ (B n) ∥ 1 β) → ∥ ((n : ℕ) → B n) ∥ 1 β 
+
+-- The goal of the following module is to show that the canonical function
+-- (and thus the extended version of it) is surjective.
 
 module canonical-surjective {a} {Aset : SET a} where
 
@@ -232,6 +242,8 @@ module canonical-surjective {a} {Aset : SET a} where
                 po = λ a → ∣ {!'always just a sequence'!} ∣ ;
                 pl = λ {(f⊥ , f⊥-inc) pointwise → {!cc _ pointwise!}} ;
                 pp = λ x → truncation-has-correct-h-level 1 ext })
+
+  -- now: canonical'-surjective
 
 -- canonical' is injective
 module canonical'-injective {a} {Aset : SET a} where
@@ -328,13 +340,13 @@ module delay-and-monotone {a} {Aset : SET a} where
     Seq→D (D→Seq (later y))
       ≡⟨ cong Seq→D (D→Seq-lem _) ⟩
     Seq→D (shift (D→Seq (force y)))
-      ≡⟨ {!!} ⟩
+{-      ≡⟨ {!!} ⟩
     {!  ( (Seq→D (unshift (shift (D→Seq (force y))))))!}
       ≡⟨ {!!} ⟩ 
 
     {!later (force (Seq→D (unshift (shift (D→Seq (force y))))))!}
       ≡⟨ {!!} ⟩
-    {!!}
+    {!!}  -}
       ≡⟨ {!!} ⟩ 
     later y ∎ 
 
