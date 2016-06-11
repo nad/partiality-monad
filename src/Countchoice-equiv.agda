@@ -20,7 +20,7 @@ open import Quotient.HIT hiding ([_])
 
 -- open import H-level.Truncation equality-with-J hiding (rec)
 
-open import H-level.Truncation.Propositional hiding (rec)
+open import H-level.Truncation.Propositional renaming (rec to ∥∥-rec)
 
 
 -- We assume function extensionality without restriction.
@@ -61,6 +61,8 @@ module library-stuff where
 
   
 open library-stuff
+
+
 
 -- my version of monotone sequences. 
 module monotone-sequences {a} {Aset : SET a} where
@@ -157,79 +159,107 @@ module monotone-sequences {a} {Aset : SET a} where
       n≤m = suc≤suc→≤ Sn≤Sm
 
 
-  -- I define two variants of the ↓ relation; f ↓ a says that the sequence f "evaluates" to a.
-  -- The two variants are both propositional, and they are equivalent.
-  -- One is defined with truncation and one without.
-  -- The point is that:
-  -- (*) with truncation, it is easier to *show* that a sequence 'evaluates' to a
-  -- (*) without truncation, it is easier to *use* the fact that a sequence 'evaluates' to a.
+-- the ↓ relation: "f ↓ a" should mean that the sequence f "evaluates" to (just a)
+module evaluating-sequences {a} {Aset : SET a} where
+
+  open monotone-sequences {a} {Aset} 
+
+  {-
+  I define *three* variants of the ↓ relation; f ↓ a says that the sequence f "evaluates" to a.
+  The three variants are called _↓_ , _↓'_ , and _∥↓∥_.
+  The point is the following:
+
+  (*) _↓_ is the "obvious" definition. It is easy to *use* an element of (f ↓ a).
+  (*) _∥↓∥_ is the same, but truncated. It is easier to *construct* an element of (f ∥↓∥ a) because (f ∥↓∥ a) is propositional.
+  (*) _↓'_ is an auxiliary definition. It does not use truncation, but is still propositional. It is used to show that _↓_ and _∥↓∥_ are logically equivalent.
+
+  The logical equivalence between the first two definitions justifies that we have more than one:
+  We can easily switch between them and use the one which is most convenient in any given situation.
+  -}
 
   _↓_ : Seq → A → Set _
-  (f , m) ↓ a = Σ ℕ (λ n → f n ≡ just a × ((n' : ℕ) → (f n' ≢ nothing) → n ≤ n')) -- CAVEAT: this could possibly be nicer with <; but it's fine as it is here, I guess.
+  (f , p) ↓ a = Σ ℕ λ n → f n ≡ just a
 
-  ↓-is-prop : (fp : Seq) → (a : A) → Is-proposition (fp ↓ a)
-  ↓-is-prop (f , p) a = Σ-property _ _ (λ _ → ×-closure 1 (MA-is-set _ _)
-                                   (Π-closure ext 1 (λ _ → Π-closure ext 1 (λ _ → ≤-is-prop)))) number-unique
-    where
-      number-unique : (x y : (f , p) ↓ a) → proj₁ x ≡ proj₁ y
-      number-unique (m , p₁ , p₂) (n , q₁ , q₂) = lib-lemma (p₂ n (λ e → disj-constructors (trans (sym e) q₁)))
-                                                            (q₂ m (λ e → disj-constructors (trans (sym e) p₁)))
-
+  -- ↓ is not propositional, of course. This is not good, and we therefore truncate:
   _∥↓∥_ : Seq → A → Set _
   (f , m) ∥↓∥ a = ∥ (Σ ℕ λ n → f n ≡ just a) ∥ 
 
+  -- Of course, ∥↓∥ is propositional.
   ∥↓∥-is-prop : (fp : Seq) → (a : A) → Is-proposition (fp ∥↓∥ a)
   ∥↓∥-is-prop fp a = truncation-is-proposition
 
-  -- now: the equivalence of ↓ and ∥↓∥
-  ↓→∥↓∥ : ∀ {fp} {a} → (fp ↓ a) → (fp ∥↓∥ a)
-  ↓→∥↓∥ = ?
+  _↓'_ : Seq → A → Set _
+  (f , p) ↓' a = Σ ℕ (λ n → f n ≡ just a × ((n' : ℕ) → (f n' ≢ nothing) → n ≤ n')) -- CAVEAT: this could possibly be nicer with <; but it's fine as it is here, I guess.
+
+  -- The point of ↓' is that it is propositional without making use of explicit truncation.
+  ↓'-is-prop : (fp : Seq) → (a : A) → Is-proposition (fp ↓' a)
+  ↓'-is-prop (f , p) a = Σ-property _ _ (λ _ → ×-closure 1 (MA-is-set _ _)
+                                   (Π-closure ext 1 (λ _ → Π-closure ext 1 (λ _ → ≤-is-prop)))) number-unique
+    where
+      number-unique : (x y : (f , p) ↓' a) → proj₁ x ≡ proj₁ y
+      number-unique (m , p₁ , p₂) (n , q₁ , q₂) = lib-lemma (p₂ n (λ e → disj-constructors (trans (sym e) q₁)))
+                                                            (q₂ m (λ e → disj-constructors (trans (sym e) p₁)))
+
+  -- now: the equivalences
+  -- the easy directions are ↓' ⇒ ↓ ⇒ ∥↓∥. The hard implication is ∥↓∥ ⇒ ↓', which we do first: 
+  ∥↓∥→↓' : ∀ {fp} {a} → (fp ∥↓∥ a) → (fp ↓' a)
+  ∥↓∥→↓' {fp} {a} = ∥∥-rec {B = fp ↓' a} (↓'-is-prop fp a) (λ {(n , fn≡justₐ) → find-min n a fn≡justₐ}) where
+
+    f = proj₁ fp
+    p = proj₂ fp
+    find-min : (n : ℕ) → (a : A) → (f n ≡ just a) → fp ↓' a 
+    find-min zero    a fn≡justₐ = zero , fn≡justₐ , (λ _ _ → zero≤ _)
+    find-min (suc n) a fSn≡justₐ with inspect (f n)
+    find-min (suc n) a fSn≡justₐ | nothing , fn≡nothing = suc n , fSn≡justₐ , Sn-is-min
+      where
+        Sn-is-min : (n' : ℕ) → (f n' ≢ nothing) → suc n ≤ n'
+        Sn-is-min n' fn'≢nothing with inspect (f n')
+        Sn-is-min n' fn'≢nothing | nothing , fn'≡nothing = ⊥-elim (fn'≢nothing fn'≡nothing)
+        Sn-is-min n' fn'≢nothing | just b , fn'≡justb    = nothing-just-compare (f , p) b n n' fn≡nothing fn'≡justb
+
+    find-min (suc n) a fSn≡justₐ | just b , fn≡justb with find-min n b fn≡justb
+    find-min (suc n) a fSn≡justₐ | just b , fn≡justb | min , fmin≡justb , min-is-min = min , fmin≡justa , min-is-min
+      where
+        fmin≡justa : f min ≡ just a
+        fmin≡justa = subst (λ c → f min ≡ just c) (seq-unique-element (f , p) min (suc n) b a (fmin≡justb , fSn≡justₐ)) fmin≡justb 
 
 
-  -- however, we can also define it with truncation. The point is that:
-  -- (*) with truncation, it is easier to *show* that a sequence 'evaluates' to a
-  -- (*) without truncation, it is easier to *use* the fact that a sequence 'evaluates' to a.
-  -- Fortunately, they are equivalent.
+  -- Now, the logical equivalence that we want is easy:
+  ↓⇔∥↓∥ : ∀ {fp} {a} → (fp ↓ a) ⇔ (fp ∥↓∥ a)
+  ↓⇔∥↓∥ {fp} {a} = record { to = ∣_∣ ;
+                           from = ∥↓∥→↓
+                         }
+    where
+      ∥↓∥→↓ : fp ∥↓∥ a → fp ↓ a
+      ∥↓∥→↓ fp∥↓∥a with ∥↓∥→↓' {fp} {a} fp∥↓∥a
+      ∥↓∥→↓ fp∥↓∥a | n , fn≡justₐ , _ = n , fn≡justₐ
+
 
   -- TODO: do this. then, delete the work done later which I had to do without this abstraction.
 
 
+module relation-on-Seq {a} {Aset : SET a} where
+
+  open monotone-sequences {a} {Aset}
+  open evaluating-sequences {a} {Aset}
 
 
+
+{- THIS IS TRIVIAL NOW.
   -- if *any* element in a sequence is a, then the sequence 'evaluates' to a
   any≡a→↓a : (fp : Seq) → (a : A) → (n : ℕ) → (proj₁ fp n ≡ just a) → fp ↓ a
-  any≡a→↓a (f , p) a zero    fn≡justₐ = zero , fn≡justₐ , (λ _ _ → zero≤ _)
-  any≡a→↓a (f , p) a (suc n) fSn≡justₐ with inspect (f n)
-  any≡a→↓a (f , p) a (suc n) fSn≡justₐ | nothing , fn≡nothing = suc n , fSn≡justₐ , Sn-is-min 
-    where
-      Sn-is-min : (n' : ℕ) → (f n' ≢ nothing) → suc n ≤ n'
-      Sn-is-min n' fn'≢nothing with inspect (f n')
-      Sn-is-min n' fn'≢nothing | nothing , fn'≡nothing = ⊥-elim (fn'≢nothing fn'≡nothing)
-      Sn-is-min n' fn'≢nothing | just b , fn'≡justb    = nothing-just-compare (f , p) b n n' fn≡nothing fn'≡justb
-  any≡a→↓a (f , p) a (suc n) fSn≡justₐ | just b , fn≡justb with any≡a→↓a (f , p) b n fn≡justb
-  any≡a→↓a (f , p) a (suc n) fSn≡justₐ | just b , fn≡justb | min , (fmin≡justb , min-is-min) = min , fmin≡justa , min-is-min  where
-
-    fmin≡justa : f min ≡ just a
-    fmin≡justa = subst (λ c → f min ≡ just c) (seq-unique-element (f , p) min (suc n) b a (fmin≡justb , fSn≡justₐ)) fmin≡justb 
-
-
-
-  {-
-    _⇔_.from propositional⇔irrelevant
-      (λ { x y → Σ-≡,≡→≡ (number-unique x y) {!_⇔_.to propositional⇔irrelevant ?!} }) where
-
-        number-unique : (x y : (f , p) ↓ a) → proj₁ x ≡ proj₁ y
-        number-unique (m , p₁ , p₂) (n , q₁ , q₂) = lib-lemma (p₂ n (λ e → disj-constructors (trans (sym e) q₁)))
-                                                              (q₂ m (λ e → disj-constructors (trans (sym e) p₁)))
 -}
+
+
+
 
   -- auxiliary relations that we will use to define the equivalence relation on sequences
   
   _≲_ : Seq → Seq → Set _
-  f ≲ g = (a : A) → (f ↓ a) → (g ↓ a)
+  f ≲ g = (a : A) → (f ∥↓∥ a) → (g ∥↓∥ a)
 
   ≲-is-prop : (f g : Seq) → Is-proposition (f ≲ g)
-  ≲-is-prop f g = Π-closure ext 1 (λ a → Π-closure ext 1 (λ _ → ↓-is-prop g a))
+  ≲-is-prop f g = Π-closure ext 1 (λ a → Π-closure ext 1 (λ _ → ∥↓∥-is-prop g a))
 
   _~_ : Seq → Seq → Set _
   f ~ g = (f ≲ g) × (g ≲ f)
@@ -242,14 +272,18 @@ module monotone-sequences {a} {Aset : SET a} where
   Seq/~ = Seq / (λ f g → (f ~ g , ~-is-prop f g))
 
 
-module monotone-and-QIIT {a} {Aset : SET a} where
 
-  open monotone-sequences {a} {Aset}
+module monotone-to-QIIT {a} {Aset : SET a} where
 
   open import Partiality-monad.Inductive 
   open import Partiality-monad.Inductive.Properties
 
-  -- the first goal is to define the canonical function from Sequences to the QIIT-partiality monad
+  open monotone-sequences {a} {Aset}
+  open evaluating-sequences {a} {Aset}
+  open relation-on-Seq {a} {Aset}
+
+
+  -- Our goal is to define the canonical function from Sequences to the QIIT-partiality monad
 
   aux : Maybe A → _⊥ A 
   aux nothing  = never
@@ -266,13 +300,14 @@ module monotone-and-QIIT {a} {Aset : SET a} where
   canonical = ⨆ ∘ Seq→Increasing
 
   canonical-≲-⊑ : {fp gq : Seq} → fp ≲ gq → canonical fp ⊑ canonical gq
-  canonical-≲-⊑ {f , p} {gq} fp≲gq =
-    least-upper-bound (Seq→Increasing (f , p))
+  canonical-≲-⊑ {fp} {gq} fp≲gq =
+    least-upper-bound (Seq→Increasing fp)
                       (canonical gq)
                       cgq-is-ub
                where
 
-               cgq-is-ub : (n : ℕ) → Seq→Increasing (f , p) [ n ] ⊑ canonical gq
+               f = proj₁ fp
+               cgq-is-ub : (n : ℕ) → Seq→Increasing fp [ n ] ⊑ canonical gq
                cgq-is-ub n with inspect (f n)
                cgq-is-ub n | nothing , fn≡nothing = subst (λ x → x ⊑ _) (cong aux (sym fn≡nothing)) (never⊑ _)
                cgq-is-ub n | inj₂ a , fn≡justₐ =  aux (f n)  ⊑⟨ subst (λ maybe → aux (f n) ⊑ aux maybe) (trans fn≡justₐ (sym gkₙ≡justₐ)) (⊑-refl _) ⟩
@@ -280,14 +315,16 @@ module monotone-and-QIIT {a} {Aset : SET a} where
                                                   ⨆ (Seq→Increasing gq) ■
                  where
                  g = proj₁ gq
-                 fp↓a : (f , p) ↓ a
-                 fp↓a = any≡a→↓a (f , p) a n fn≡justₐ
+                 fp∥↓∥a : fp ∥↓∥ a
+                 fp∥↓∥a = ∣ n , fn≡justₐ ∣
+                 gq∥↓∥a : gq ∥↓∥ a 
+                 gq∥↓∥a = fp≲gq a fp∥↓∥a
                  gq↓a : gq ↓ a
-                 gq↓a = fp≲gq a fp↓a
+                 gq↓a = _⇔_.from (↓⇔∥↓∥ {gq}) gq∥↓∥a
                  kₙ : ℕ 
-                 kₙ = proj₁ gq↓a
+                 kₙ = proj₁ gq↓a 
                  gkₙ≡justₐ : g kₙ ≡ just a
-                 gkₙ≡justₐ = proj₁ (proj₂ gq↓a)
+                 gkₙ≡justₐ = proj₂ gq↓a 
 
 
   canonical-respects-~ : {fp gq : Seq} → fp ~ gq → canonical fp ≡ canonical gq
@@ -301,12 +338,14 @@ module monotone-and-QIIT {a} {Aset : SET a} where
   canonical'-is-extension : (fp : Seq) → canonical' (Quotient.HIT.[_] fp) ≡ canonical fp
   canonical'-is-extension fp = {!refl!}
 
+
+
 module canonical-simple-properties {a} {Aset : SET a} where
 
   open import Partiality-monad.Inductive 
   open import Partiality-monad.Inductive.Properties
   open monotone-sequences {a} {Aset}
-  open monotone-and-QIIT {a} {Aset}
+  open monotone-to-QIIT {a} {Aset}
 
   -- sequence constantly nothing
   const-nothing : Seq
@@ -329,25 +368,8 @@ module canonical-simple-properties {a} {Aset : SET a} where
                                        (upper-bound′ (Seq→Increasing (const-seq a)) (canonical (const-seq a)) (⊑-refl _) zero)
 
 
-
-{-
-surjective : ∀ {a} {b} {A : Set a} {B : Set b} → (f : A → B) → Set _
-surjective {A = A} {B = B} f = (b : B) → {!!}
-
-surjective : ∀ {a} {b} {A : Set a} {B : Set b} → (f : A → B) → Set _
-surjective f = {!Surjective!}
--}
-
--- This is "countable choice".
-{-
-countchoice : ∀ {α} {β} → Set _
-countchoice {α} {β} = (B : ℕ → Set α) → ((n : ℕ) → ∥ (B n) ∥ 1 β) → ∥ ((n : ℕ) → B n) ∥ 1 β 
--}
--- I had overlooked that this is already defined in Propositional.agda.
-
--- The goal of the following module is to show that the canonical function
+-- The goal of this module is to show that the canonical function
 -- (and thus the extended version of it) is surjective.
-
 module canonical-surjective {a} {Aset : SET a} where
 
   open import Partiality-monad.Inductive.Eliminators
@@ -355,7 +377,7 @@ module canonical-surjective {a} {Aset : SET a} where
   -- contains axiom of countable choice 
 --  open import H-level.Truncation.Propositional
 
-  open monotone-and-QIIT {a} {Aset} 
+  open monotone-to-QIIT {a} {Aset} 
   open monotone-sequences {a} {Aset}
   open canonical-simple-properties {a} {Aset}
 
@@ -369,6 +391,7 @@ module canonical-surjective {a} {Aset : SET a} where
 
   -- now: canonical'-surjective
 
+
 -- canonical' is injective
 module canonical'-injective {a} {Aset : SET a} where
 
@@ -378,7 +401,7 @@ module canonical'-equivalence {a} {Aset : SET a} where
 
 
 
-
+{-
 -- coinductive Delay and monotone sequences
 -- this part is a desaster at the moment. Please stop reading.
 module delay-and-monotone {a} {Aset : SET a} where
@@ -478,3 +501,7 @@ module delay-and-monotone {a} {Aset : SET a} where
 
   Delay≃Seq : Delay A ∞ ≃ Seq -- (Delay A) ≃  Seq
   Delay≃Seq = ↔⇒≃ (record { surjection = record { logical-equivalence = record { to = {!!} ; from = {!!} } ; right-inverse-of = λ x → {!!} } ; left-inverse-of = λ x → {!!} })
+
+
+
+-}
