@@ -175,6 +175,10 @@ module evaluating-sequences {a} {Aset : SET a} where
 
   The logical equivalence between the first two definitions justifies that we have more than one:
   We can easily switch between them and use the one which is most convenient in any given situation.
+
+  We could as well have used the theorem that ∥ A ∥ → B is equivalent to weakly constant functions A → B
+  (what we do here is basically the unfolded version).
+  This would be constant-function≃∥inhabited∥⇒inhabited from the module Truncation.Propositional.
   -}
 
   _↓_ : Seq → A → Set _
