@@ -565,7 +565,7 @@ module canonical-surjective {a} {Aset : SET a} where
           construct : ((m : ℕ) → Σ Seq (λ fp → canonical fp ≡ s [ m ])) → (Σ Seq λ fp → canonical fp ≡ ⨆ s)
           construct pw = construct-seq , constructed-seq-correct
             where
-
+-- TODO: continue here. Adapt to make use of the lemma canonical↓⇓ 
               seq-at : (m : ℕ) → Seq
               seq-at m = proj₁ (pw m)
 
