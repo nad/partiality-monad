@@ -53,6 +53,12 @@ module library-stuff where
   ≤-is-prop : {m n : ℕ} → Is-proposition (m ≤ n)
   ≤-is-prop = {!!}
 
+
+  ℕ-automorphism : ℕ ≃ ℕ × ℕ
+  ℕ-automorphism = {!!}
+
+
+
   -- if P is a property of A (i.e. a family of propositions over A),
   -- then it is enough to show that any two elements of a which satisfy P
   -- in order to conclude that Σ A P is propositional.
@@ -159,6 +165,78 @@ module monotone-sequences {a} {Aset : SET a} where
       n≤m = suc≤suc→≤ Sn≤Sm
 
 
+  -- If we have *any* function f : ℕ → Maybe such that 
+  --    (f m ≡ just a) and (f n ≡ just b) imply a ≡ b
+  -- then there is a canonical way to complete it to a sequence seq.
+  -- We have that f m ≡ just a implies seq m ≡ just a (i.e. "seq is at least f").
+  complete-function : (f : ℕ → Maybe A)
+                    → ((m n : ℕ) → (a b : A) → (f m ≡ just a) → (f n ≡ just b) → a ≡ b)
+                    → Σ Seq λ seq → (a : A) → (k : ℕ) → f k ≡ just a → proj₁ seq k ≡ just a
+  complete-function f q = (take-max , max-is-mon) , take-max-greater-f
+    where
+      take-max : ℕ → Maybe A
+      take-max zero    = f zero
+      take-max (suc n) = [ (λ _ → take-max n) , (λ a → f (suc n)) ] (f (suc n))
+
+      take-max-greater-f : (a : A) → (k : ℕ) → f k ≡ just a → take-max k ≡ just a
+      take-max-greater-f a₁ zero f0≡justₐ = f0≡justₐ
+      -- Remark: this "if f (suc n) ≡ just a then take-max n ≡ just a" - thing should probably be abstracted. It appears about three times below.
+      take-max-greater-f a₁ (suc k) fSk≡justₐ = trans (cong (λ x → [ (λ _ → take-max k) , (λ _ → f (suc k)) ] x) fSk≡justₐ) fSk≡justₐ
+
+      -- remark: do we need the m ≤ n part?
+      find-preimage : (n : ℕ) → (a : A) → (take-max n ≡ just a) → Σ ℕ λ m → (f m ≡ just a × m ≤ n)
+      find-preimage zero a take-maxₙ≡justₐ = zero , take-maxₙ≡justₐ , zero≤ _
+      find-preimage (suc n) a take-maxSₙ≡justₐ with inspect (f (suc n))
+      find-preimage (suc n) a take-maxSₙ≡justₐ | nothing , fSn≡nothing = preim , fpreim≡justₐ , preim≤Sn
+        where
+          take-maxₙ≡justₐ : take-max n ≡ just a
+          take-maxₙ≡justₐ = trans (sym (subst (λ x → take-max (suc n) ≡ [ (λ _ → take-max n) , (λ _ → f (suc n)) ] x) fSn≡nothing refl)) take-maxSₙ≡justₐ
+          IH = find-preimage n a take-maxₙ≡justₐ
+          preim = proj₁ IH
+          fpreim≡justₐ = proj₁ (proj₂ IH)
+          preim≤Sn : preim ≤ suc n
+          preim≤Sn = ≤-step′ (proj₂ (proj₂ IH)) refl
+          
+      find-preimage (suc n) a  take-maxSₙ≡justₐ | just b , fSn≡justb = suc n , trans fSn≡justb (sym justₐ≡justb) , ≤-refl  
+        where
+          justₐ≡justb : just a ≡ just b
+          justₐ≡justb = 
+            just a           ≡⟨ sym take-maxSₙ≡justₐ ⟩
+            take-max (suc n) ≡⟨ subst (λ x → take-max (suc n) ≡ [ (λ _ → take-max n) , (λ _ → f (suc n)) ] x) fSn≡justb refl ⟩
+            f (suc n)        ≡⟨ fSn≡justb ⟩∎ 
+            just b           ∎
+
+      max-is-mon : is-monotone take-max
+      max-is-mon n with inspect (take-max n) | inspect (f (suc n))
+
+      max-is-mon n | _ | nothing , fSn≡nothing =
+        inj₁ (subst (λ x → take-max n ≡ [ (λ _ → take-max n) , (λ a₁ → f (suc n)) ] x) (sym fSn≡nothing) refl)
+
+      max-is-mon n | nothing , take-maxₙ≡nothing | just b , fSn≡justb =
+        inj₂ (take-maxₙ≡nothing ,
+        (λ exp≡nothing → disj-constructors(
+          trans (trans
+            (sym exp≡nothing)
+            (cong (λ x → [ (λ _ → take-max n) , (λ a₁ → f (suc n)) ] x) fSn≡justb))
+            fSn≡justb
+          )))
+          
+      max-is-mon n | just a , take-maxₙ≡justₐ | just b , fSn≡justb = inj₁ take-maxₙ≡take-maxSₙ
+        where
+          preim = find-preimage n a take-maxₙ≡justₐ
+          k = proj₁ preim
+          fk≡justₐ = proj₁ (proj₂ preim)
+          a≡b : a ≡ b
+          a≡b = q k (suc n) a b fk≡justₐ fSn≡justb
+          take-maxₙ≡take-maxSₙ =
+            take-max n ≡⟨ take-maxₙ≡justₐ ⟩
+            just a     ≡⟨ cong just a≡b ⟩
+            just b     ≡⟨ sym fSn≡justb ⟩
+            f (suc n)  ≡⟨ sym (cong (λ x → [ (λ _ → take-max n) , (λ a₁ → f (suc n)) ] x) fSn≡justb) ⟩∎
+            take-max (suc n) ∎ 
+
+
+
 -- the ↓ relation: "f ↓ a" should mean that the sequence f "evaluates" to (just a)
 module evaluating-sequences {a} {Aset : SET a} where
 
@@ -193,7 +271,7 @@ module evaluating-sequences {a} {Aset : SET a} where
   ∥↓∥-is-prop fp a = truncation-is-proposition
 
   _↓'_ : Seq → A → Set _
-  (f , p) ↓' a = Σ ℕ (λ n → f n ≡ just a × ((n' : ℕ) → (f n' ≢ nothing) → n ≤ n')) -- CAVEAT: this could possibly be nicer with <; but it's fine as it is here, I guess.
+  (f , p) ↓' a = Σ ℕ (λ n → f n ≡ just a × ((n' : ℕ) → (f n' ≢ nothing) → n ≤ n'))
 
   -- The point of ↓' is that it is propositional without making use of explicit truncation.
   ↓'-is-prop : (fp : Seq) → (a : A) → Is-proposition (fp ↓' a)
@@ -211,6 +289,7 @@ module evaluating-sequences {a} {Aset : SET a} where
 
     f = proj₁ fp
     p = proj₂ fp
+    
     find-min : (n : ℕ) → (a : A) → (f n ≡ just a) → fp ↓' a 
     find-min zero    a fn≡justₐ = zero , fn≡justₐ , (λ _ _ → zero≤ _)
     find-min (suc n) a fSn≡justₐ with inspect (f n)
@@ -239,23 +318,11 @@ module evaluating-sequences {a} {Aset : SET a} where
       ∥↓∥→↓ fp∥↓∥a | n , fn≡justₐ , _ = n , fn≡justₐ
 
 
-  -- TODO: do this. then, delete the work done later which I had to do without this abstraction.
-
 
 module relation-on-Seq {a} {Aset : SET a} where
 
   open monotone-sequences {a} {Aset}
   open evaluating-sequences {a} {Aset}
-
-
-
-{- THIS IS TRIVIAL NOW.
-  -- if *any* element in a sequence is a, then the sequence 'evaluates' to a
-  any≡a→↓a : (fp : Seq) → (a : A) → (n : ℕ) → (proj₁ fp n ≡ just a) → fp ↓ a
--}
-
-
-
 
   -- auxiliary relations that we will use to define the equivalence relation on sequences
   
@@ -376,7 +443,9 @@ module canonical-simple-properties {a} {Aset : SET a} where
 -- (and thus the extended version of it) is surjective.
 module canonical-surjective {a} {Aset : SET a} where
 
+  open import Partiality-monad.Inductive
   open import Partiality-monad.Inductive.Eliminators
+  open import Preimage
 
   -- contains axiom of countable choice 
 --  open import H-level.Truncation.Propositional
@@ -390,8 +459,43 @@ module canonical-surjective {a} {Aset : SET a} where
     ⊥-rec-⊥ {P = λ x → ∥ (Σ Seq λ fp → canonical fp ≡ x) ∥}
       (record { pe = ∣ const-nothing , canonical-nothing-never ∣ ;
                 po = λ a → ∣ const-seq a , canonical-const-now a ∣ ;
-                pl = λ {(f⊥ , f⊥-inc) pointwise → {!cc _ pointwise!}} ;
+                pl = use-choice ;
                 pp = λ _ → truncation-is-proposition })
+    where
+      use-choice : (s : Increasing-sequence A)
+                 → ((n : ℕ) → ∥ (Σ Seq λ fp → canonical fp ≡ s [ n ]) ∥)
+                 → ∥ (Σ Seq λ fp → canonical fp ≡ ⨆ s) ∥
+      use-choice s pointwise = ∥∥-map construct (cc pointwise)
+        where
+          construct : ((m : ℕ) → Σ Seq (λ fp → canonical fp ≡ s [ m ])) → (Σ Seq λ fp → canonical fp ≡ ⨆ s)
+          construct pw = construct-seq , constructed-seq-correct
+            where
+
+              pw-fun : (m : ℕ) → (k : ℕ) → Maybe A
+              pw-fun m k = proj₁ (proj₁ (pw m)) k
+
+              pw-unique-A : (a b : A) → (m k m' k' : ℕ) → pw-fun m k ≡ just a → pw-fun m' k' ≡ just b → a ≡ b
+              pw-unique-A a b m k m' k' pwmk≡justa pwm'k'≡justb = a≡b
+                where
+                  x≡⨆s : (x : A) → (l o : ℕ) → pw-fun l o ≡ just x → now x ≡ ⨆ s
+                  x≡⨆s x l o pwlo≡justx = {!!}
+                    where
+                      x⊑⨆s : now x ⊑ ⨆ s
+                      x⊑⨆s = {!aux!} -- strategy: now x = aux (pw l o) < ⨆ aux pw l = canonical (pw l) = s[m] < ⨆s
+                      -- this already implies now x ≡ ⨆ s -- there should be a lemma which says now x ⊑ ... → now x ≡ ... !
+                  nowa≡⨆s : now a ≡ ⨆ s
+                  nowa≡⨆s = x≡⨆s a m k pwmk≡justa
+                  nowb≡⨆s : now b ≡ ⨆ s
+                  nowb≡⨆s = x≡⨆s b m' k' pwm'k'≡justb
+                  a≡b : a ≡ b
+                  a≡b = {!!} -- use lemma that characterises now a ⊏ now b as a ≡ b!
+
+              construct-seq : Seq
+              construct-seq = {!!}
+
+              constructed-seq-correct : canonical construct-seq ≡ ⨆ s
+              constructed-seq-correct = {!!}
+
 
   -- now: canonical'-surjective
 
