@@ -17,9 +17,6 @@ open import Nat equality-with-J
 open import Equivalence equality-with-J hiding (_∘_)
 
 open import Quotient.HIT hiding ([_])
-
--- open import H-level.Truncation equality-with-J hiding (rec)
-
 open import H-level.Truncation.Propositional renaming (rec to ∥∥-rec)
 open import Univalence-axiom equality-with-J
 
@@ -68,6 +65,22 @@ module library-stuff where
   Σ-property : ∀ {α} {β} (A : Set α) (P : A → Set β) → ((a : A) → Is-proposition (P a)) → ((x y : Σ A P) → proj₁ x ≡ proj₁ y) → Is-proposition (Σ A P)
   Σ-property = {!!}
 
+
+  module _ {α} {Aset : SET α} where
+  
+    open import Partiality-monad.Inductive
+    open import Partiality-monad.Inductive.Alternative-order
+
+    -- a slightly more convenient form (for A set) of the library lemma
+    now⊑now→≡ : {x y : proj₁ Aset} → (now x ⊑ now y) → x ≡ y
+    now⊑now→≡ nn = ∥∥-rec (proj₂ Aset _ _) Prelude.id (_≃_.to (now⊑now≃∥≡∥ ua) nn)
+    
+    now-injective : {x y : proj₁ Aset} → now x ≡ now y → x ≡ y
+    now-injective {x} {y} nowx≡nowy = now⊑now→≡ (subst (λ z → now x ⊑ z) nowx≡nowy (⊑-refl _))
+
+    -- TODO: the two above should be used a couple of times below instead of the unfolded versions
+
+
   module _ {α} {A : Set α} where
 
     open import Partiality-monad.Inductive
@@ -75,6 +88,9 @@ module library-stuff where
     open import Partiality-monad.Inductive.Eliminators
     open import Partiality-monad.Inductive.Properties
 
+
+
+{- THIS IS ALREADY IN THE "ALTERNATIVE" MODULE !
     -- if "now _" is smaller than x, then x is really just "now _".
     now-max : (a : A) → (x : _⊥ A) → (now a ⊑ x) → now a ≡ x -- why can A ⊥ not be parsed?
     now-max a x TODO-fix-stuff = sym (_≃_.from (⇓≃now⊑ ua) TODO-fix-stuff)
@@ -95,6 +111,7 @@ module library-stuff where
               find-index : ∥ (Σ ℕ λ m → s [ m ] ≡ now a) ∥
               find-index = {!⨆⇓≃∥∃⇓∥!}
 -}
+-}
 
 open library-stuff
 
@@ -113,7 +130,7 @@ module monotone-sequences {a} {Aset : SET a} where
   MA-is-set : Is-set (Maybe A)
   MA-is-set = ⊎-closure 0 (mono₁ 1 (mono₁ 0 ⊤-contractible)) A-is-set
 
-  -- a predicate stating that a function ℕ → Maybe A is monotone
+  -- a predicate stating that a function ℕ → Maybe A is monotone (in a propositional way)
   is-monotone : (f : ℕ → Maybe A) → Set a
   is-monotone f = (n : ℕ) → (f n ≡ f (suc n)) ⊎ f n ≡ nothing × f (suc n) ≢ nothing
 
@@ -448,8 +465,12 @@ module canonical-simple-properties {a} {Aset : SET a} where
 
   open import Partiality-monad.Inductive 
   open import Partiality-monad.Inductive.Properties
+  open import Partiality-monad.Inductive.Alternative-order
+
   open monotone-sequences {a} {Aset}
   open monotone-to-QIIT {a} {Aset}
+  open evaluating-sequences {a} {Aset}
+
 
   -- sequence constantly nothing
   const-nothing : Seq
@@ -471,6 +492,48 @@ module canonical-simple-properties {a} {Aset : SET a} where
                                        (least-upper-bound _ (now a) (λ _ → ⊑-refl _))
                                        (upper-bound′ (Seq→Increasing (const-seq a)) (canonical (const-seq a)) (⊑-refl _) zero)
 
+  -- An important lemma: ↓ and ⇓ are equivalent (logically; the first is not propositional).
+  canonical⇓↓ : (a : A) → (seq : Seq) → canonical seq ⇓ a ⇔ (seq ↓ a)
+  canonical⇓↓ a seq =
+    record { to = ⇓→↓ ;
+             from = ↓→⇓
+           }
+      where
+        f = proj₁ seq
+        f-mon = proj₂ seq
+
+        ⇓→↓ : canonical seq ⇓ a → seq ↓ a
+        ⇓→↓ cs⇓a = _⇔_.from (↓⇔∥↓∥ {seq} {a}) (∥∥-map Σn,csₙ⇓a→seq↓a ∥Σn,csₙ⇓a∥ ) 
+          where
+            ∥Σn,csₙ⇓a∥ : ∥ (Σ ℕ λ n → (Seq→Increasing seq) [ n ] ⇓ a) ∥
+            ∥Σn,csₙ⇓a∥ = _≃_.to (⨆⇓≃∥∃⇓∥ ua (Seq→Increasing seq) {a}) cs⇓a 
+            Σn,csₙ⇓a→seq↓a : (Σ ℕ λ n → (Seq→Increasing seq [ n ]) ⇓ a) → seq ↓ a
+            Σn,csₙ⇓a→seq↓a (n , seqₙ≡nowₐ) with inspect (f n)
+            Σn,csₙ⇓a→seq↓a (n , seqₙ≡nowₐ) | nothing , fₙ≡nothing =
+              ⊥-elim (now≢never ua a
+                                (now a                     ≡⟨ sym seqₙ≡nowₐ ⟩
+                                (Seq→Increasing seq) [ n ] ≡⟨ refl ⟩
+                                aux (f n)                  ≡⟨ cong aux fₙ≡nothing ⟩∎ 
+                                never ∎))
+            Σn,csₙ⇓a→seq↓a (n , seqₙ≡nowₐ) | just b , fₙ≡justb = n , subst (λ c → f n ≡ just c) (sym a≡b) fₙ≡justb
+              where
+                nowa≡nowb : now a ≡ now b
+                nowa≡nowb = now a                      ≡⟨ sym seqₙ≡nowₐ ⟩
+                            (Seq→Increasing seq) [ n ] ≡⟨ refl ⟩
+                            aux (f n)                  ≡⟨ cong aux fₙ≡justb ⟩∎ 
+                            now b ∎
+                a≡b : a ≡ b
+                a≡b = now-injective {_} {Aset} nowa≡nowb
+
+        ↓→⇓ : seq ↓ a → canonical seq ⇓ a
+        ↓→⇓ (n , fₙ≡justₐ) = _≃_.from (⇓≃now⊑ ua {x = canonical seq} {y = a}) nowₐ⊑can-seq
+          where
+            fₙ⊑can-seq : aux (f n) ⊑ canonical seq
+            fₙ⊑can-seq = upper-bound′ (Seq→Increasing seq) (canonical seq) (⊑-refl _) n
+
+            nowₐ⊑can-seq : now a ⊑ canonical seq
+            nowₐ⊑can-seq = subst (λ z → z ⊑ canonical seq) (cong aux fₙ≡justₐ) fₙ⊑can-seq
+
 
 -- The goal of this module is to show that the canonical function
 -- (and thus the extended version of it) is surjective.
@@ -479,17 +542,9 @@ module canonical-surjective {a} {Aset : SET a} where
   open import Partiality-monad.Inductive
   open import Partiality-monad.Inductive.Eliminators
   open import Preimage
-
   open import Univalence-axiom equality-with-J
-
-
   open import Partiality-monad.Inductive.Alternative-order 
   open import Partiality-monad.Inductive.Properties
-
-
-  -- contains axiom of countable choice 
---  open import H-level.Truncation.Propositional
-
   open monotone-to-QIIT {a} {Aset} 
   open monotone-sequences {a} {Aset}
   open canonical-simple-properties {a} {Aset}
@@ -528,17 +583,17 @@ module canonical-surjective {a} {Aset : SET a} where
                              aux (pw-fun l o)          ⊑⟨ upper-bound′ (Seq→Increasing (seq-at l)) (canonical (seq-at l)) (⊑-refl _) o ⟩
                              canonical (seq-at l)      ⊑⟨ subst (λ y → canonical (seq-at l) ⊑ y) (proj₂ (pw l)) (⊑-refl _) ⟩
                              s [ l ]                   ⊑⟨ upper-bound′ s (⨆ s) (⊑-refl _) l ⟩■ 
-                             ⨆ s ■  
+                             ⨆ s ■  -- TODO rework many things here, using canonical↓⇓ !!!
                       -- this already implies now x ≡ ⨆ s -- there should be a lemma which says now x ⊑ ... → now x ≡ ... !
                   nowa≡⨆s : now a ≡ ⨆ s
                   nowa≡⨆s = x≡⨆s a m k pwmk≡justa
                   nowb≡⨆s : now b ≡ ⨆ s
                   nowb≡⨆s = x≡⨆s b m' k' pwm'k'≡justb
                   a≡b : a ≡ b
-                  a≡b = ∥∥-rec {B = a ≡ b}
+                  a≡b = ∥∥-rec {B = a ≡ b} -- remark: this application of ∥∥-rec could be abstracted away. now⊑now≃∥≡∥ should maybe be formulated as now⊑now≃≡
                               (A-is-set _ _)
                               Prelude.id
-                              (_≃_.to (now⊑now≃∥≡∥ ua) (subst (λ x → now a ⊑ x) (trans nowa≡⨆s (sym nowb≡⨆s)) (⊑-refl (now a))) ) 
+                              (_≃_.to (now⊑now≃∥≡∥ ua) (subst (λ x → now a ⊑ x) (trans nowa≡⨆s (sym nowb≡⨆s)) (⊑-refl (now a)))) 
 
               construct-seq : Seq
               construct-seq = {!!}
