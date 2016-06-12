@@ -21,12 +21,15 @@ open import Quotient.HIT hiding ([_])
 -- open import H-level.Truncation equality-with-J hiding (rec)
 
 open import H-level.Truncation.Propositional renaming (rec to ∥∥-rec)
-
+open import Univalence-axiom equality-with-J
 
 -- We assume function extensionality without restriction.
--- I don't think we would be able to do much without.
+-- I (Nicolai) don't think we would be able to do much without.
+-- We could do lots of stuff with the univalence axiom;
+-- but, to be honest, I don't think it is worth to emphasize that.
 postulate
   ext : ∀ {a b} → Extensionality a b
+  ua : ∀ {β} → Univalence β
 
 
 -- Here are some library lemmas. I include them here in ad-hoc style (should be sorted out later).
@@ -65,8 +68,38 @@ module library-stuff where
   Σ-property : ∀ {α} {β} (A : Set α) (P : A → Set β) → ((a : A) → Is-proposition (P a)) → ((x y : Σ A P) → proj₁ x ≡ proj₁ y) → Is-proposition (Σ A P)
   Σ-property = {!!}
 
-  
+  module _ {α} {A : Set α} where
+
+    open import Partiality-monad.Inductive
+    open import Partiality-monad.Inductive.Alternative-order
+    open import Partiality-monad.Inductive.Eliminators
+    open import Partiality-monad.Inductive.Properties
+
+    -- if "now _" is smaller than x, then x is really just "now _".
+    now-max : (a : A) → (x : _⊥ A) → (now a ⊑ x) → now a ≡ x -- why can A ⊥ not be parsed?
+    now-max a x TODO-fix-stuff = sym (_≃_.from (⇓≃now⊑ ua) TODO-fix-stuff)
+
+{- I accidentally duplicated work :(
+      ⊥-rec-⊥ {P = λ y → now a ⊑ y → now a ≡ y}
+              (record { pe = λ nowₐ⊑never → ⊥-elim (now⋢never ua a nowₐ⊑never) ;
+                        po = λ b nowa⊑nowb → ∥∥-rec {B = now a ≡ now b}
+                                                   (⊥-is-set _ _)
+                                                   (cong now)
+                                                   (_≃_.to (now⊑now≃∥≡∥ ua) nowa⊑nowb) ; 
+                        pl = ⨆-case ;
+                        pp = λ _ → Π-closure ext 1 (λ _ → ⊥-is-set _ _)})
+        where
+          ⨆-case : (s : Increasing-sequence A) → ((n : ℕ) → now a ⊑ s [ n ] → now a ≡ s [ n ]) → now a ⊑ ⨆ s → now a ≡ ⨆ s
+          ⨆-case s pw nowₐ⊏⨆s = {!!}
+            where
+              find-index : ∥ (Σ ℕ λ m → s [ m ] ≡ now a) ∥
+              find-index = {!⨆⇓≃∥∃⇓∥!}
+-}
+
 open library-stuff
+
+
+-- TODO: should have used the ⇓-relation
 
 
 
@@ -447,6 +480,13 @@ module canonical-surjective {a} {Aset : SET a} where
   open import Partiality-monad.Inductive.Eliminators
   open import Preimage
 
+  open import Univalence-axiom equality-with-J
+
+
+  open import Partiality-monad.Inductive.Alternative-order 
+  open import Partiality-monad.Inductive.Properties
+
+
   -- contains axiom of countable choice 
 --  open import H-level.Truncation.Propositional
 
@@ -471,8 +511,11 @@ module canonical-surjective {a} {Aset : SET a} where
           construct pw = construct-seq , constructed-seq-correct
             where
 
+              seq-at : (m : ℕ) → Seq
+              seq-at m = proj₁ (pw m)
+
               pw-fun : (m : ℕ) → (k : ℕ) → Maybe A
-              pw-fun m k = proj₁ (proj₁ (pw m)) k
+              pw-fun m k = proj₁ (seq-at m) k
 
               pw-unique-A : (a b : A) → (m k m' k' : ℕ) → pw-fun m k ≡ just a → pw-fun m' k' ≡ just b → a ≡ b
               pw-unique-A a b m k m' k' pwmk≡justa pwm'k'≡justb = a≡b
@@ -481,14 +524,21 @@ module canonical-surjective {a} {Aset : SET a} where
                   x≡⨆s x l o pwlo≡justx = {!!}
                     where
                       x⊑⨆s : now x ⊑ ⨆ s
-                      x⊑⨆s = {!aux!} -- strategy: now x = aux (pw l o) < ⨆ aux pw l = canonical (pw l) = s[m] < ⨆s
+                      x⊑⨆s = now x                     ⊑⟨ subst (λ y → now x ⊑ y) (cong aux (sym pwlo≡justx)) (⊑-refl (now x)) ⟩
+                             aux (pw-fun l o)          ⊑⟨ upper-bound′ (Seq→Increasing (seq-at l)) (canonical (seq-at l)) (⊑-refl _) o ⟩
+                             canonical (seq-at l)      ⊑⟨ subst (λ y → canonical (seq-at l) ⊑ y) (proj₂ (pw l)) (⊑-refl _) ⟩
+                             s [ l ]                   ⊑⟨ upper-bound′ s (⨆ s) (⊑-refl _) l ⟩■ 
+                             ⨆ s ■  
                       -- this already implies now x ≡ ⨆ s -- there should be a lemma which says now x ⊑ ... → now x ≡ ... !
                   nowa≡⨆s : now a ≡ ⨆ s
                   nowa≡⨆s = x≡⨆s a m k pwmk≡justa
                   nowb≡⨆s : now b ≡ ⨆ s
                   nowb≡⨆s = x≡⨆s b m' k' pwm'k'≡justb
                   a≡b : a ≡ b
-                  a≡b = {!!} -- use lemma that characterises now a ⊏ now b as a ≡ b!
+                  a≡b = ∥∥-rec {B = a ≡ b}
+                              (A-is-set _ _)
+                              Prelude.id
+                              (_≃_.to (now⊑now≃∥≡∥ ua) (subst (λ x → now a ⊑ x) (trans nowa≡⨆s (sym nowb≡⨆s)) (⊑-refl (now a))) ) 
 
               construct-seq : Seq
               construct-seq = {!!}
