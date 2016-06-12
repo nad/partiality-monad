@@ -590,7 +590,7 @@ module canonical-surjective {a} {Aset : SET a} where
                   nowb≡⨆s : now b ≡ ⨆ s
                   nowb≡⨆s = x≡⨆s b m' k' pwm'k'≡justb
                   a≡b : a ≡ b
-                  a≡b = ∥∥-rec {B = a ≡ b} -- remark: this application of ∥∥-rec could be abstracted away. now⊑now≃∥≡∥ should maybe be formulated as now⊑now≃≡
+                  a≡b = ∥∥-rec {B = a ≡ b} -- TODO TODO TODO remark: this application of ∥∥-rec could be abstracted away. now⊑now≃∥≡∥ should maybe be formulated as now⊑now≃≡
                               (A-is-set _ _)
                               Prelude.id
                               (_≃_.to (now⊑now≃∥≡∥ ua) (subst (λ x → now a ⊑ x) (trans nowa≡⨆s (sym nowb≡⨆s)) (⊑-refl (now a)))) 
