@@ -118,6 +118,34 @@ import Delay-monad.Least-upper-bound
 import Delay-monad.Monad
 
 ------------------------------------------------------------------------
+-- A variant of the delay monad with a sized type parameter
+
+-- The delay monad, defined coinductively, with a sized type
+-- parameter.
+
+import Delay-monad.Sized
+
+-- Strong bisimilarity.
+
+import Delay-monad.Sized.Strong-bisimilarity
+
+-- Weak bisimilarity.
+
+import Delay-monad.Sized.Weak-bisimilarity
+
+-- A partial order.
+
+import Delay-monad.Sized.Partial-order
+
+-- Least upper bounds.
+
+import Delay-monad.Sized.Least-upper-bound
+
+-- A monad-like structure.
+
+import Delay-monad.Sized.Monad
+
+------------------------------------------------------------------------
 -- The delay monad quotiented by weak bisimilarity
 
 -- The delay monad quotiented by weak bisimilarity.
