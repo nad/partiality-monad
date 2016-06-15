@@ -225,8 +225,10 @@ module monotone-sequences {a} {Aset : SET a} where
   -- We have that f m ≡ just a implies seq m ≡ just a (i.e. "seq is at least f").
   complete-function : (f : ℕ → Maybe A)
                     → ((m n : ℕ) → (a b : A) → (f m ≡ just a) → (f n ≡ just b) → a ≡ b)
-                    → Σ Seq λ seq → (a : A) → (k : ℕ) → f k ≡ just a → proj₁ seq k ≡ just a
-  complete-function f q = (take-max , max-is-mon) , take-max-greater-f
+                    → Σ Seq
+                        λ seq → ((a : A) → (k : ℕ) → f k ≡ just a → proj₁ seq k ≡ just a)
+                              × {!(a : A) → k : ℕ) → proj₁ seq k ≡ just a!} ---------------TODO: maybe what we want is seq↓a ⇔ (Σ n , f n ≡ just a) !!
+  complete-function f q = (take-max , max-is-mon) , (take-max-greater-f , {!!})
     where
       take-max : ℕ → Maybe A
       take-max zero    = f zero
@@ -598,18 +600,18 @@ module canonical-surjective {a} {Aset : SET a} where
                   n₁ = proj₁ (_↠_.to ℕ↠ℕ×ℕ n)
                   n₂ = proj₂ (_↠_.to ℕ↠ℕ×ℕ n)
 
-               -- why not use ↓ ? AH, because it's only defined for sequences, not for just ℕ → Maybe A...
-              construct-seq : Seq -- nah, it's bad that we forget the proof immediately (I mean the proj₁).
-              construct-seq = proj₁ (complete-function merge-double-seq (λ n n' a b n↓1 n'↓b → {!!}))
+              merged-unique : (n n' : ℕ) → (a b : A) → merge-double-seq n ≡ just a → merge-double-seq n' ≡ just b → a ≡ b
+              merged-unique n n' a b n↓a n'↓b = double-seq-unique-A a b m k m' k' n↓a n'↓b
                 where
-                  unique : (n n' : ℕ) → (a b : A) → merge-double-seq n ≡ just a → merge-double-seq n' ≡ just b → a ≡ b
-                  unique n n' a b n↓a n'↓b = {!!}
-                    where
-                      m  = proj₁ (_↠_.to ℕ↠ℕ×ℕ n )
-                      k  = proj₂ (_↠_.to ℕ↠ℕ×ℕ n )
-                      m' = proj₁ (_↠_.to ℕ↠ℕ×ℕ n')
-                      k' = proj₂ (_↠_.to ℕ↠ℕ×ℕ n')
+                  m  = proj₁ (_↠_.to ℕ↠ℕ×ℕ n )
+                  k  = proj₂ (_↠_.to ℕ↠ℕ×ℕ n )
+                  m' = proj₁ (_↠_.to ℕ↠ℕ×ℕ n')
+                  k' = proj₂ (_↠_.to ℕ↠ℕ×ℕ n')
+                  
 
+              construct-seq : Seq
+              construct-seq = {!!} -- proj₁ (complete-function merge-double-seq merged-unique)
+              
               constructed-seq-correct : canonical construct-seq ≡ ⨆ s
               constructed-seq-correct = {!!}
 
