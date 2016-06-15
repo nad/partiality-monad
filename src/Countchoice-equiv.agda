@@ -219,79 +219,6 @@ module monotone-sequences {a} {Aset : SET a} where
       n≤m = suc≤suc→≤ Sn≤Sm
 
 
-  -- If we have *any* function f : ℕ → Maybe such that 
-  --    (f m ≡ just a) and (f n ≡ just b) imply a ≡ b
-  -- then there is a canonical way to complete it to a sequence seq.
-  -- We have that f m ≡ just a implies seq m ≡ just a (i.e. "seq is at least f").
-  complete-function : (f : ℕ → Maybe A)
-                    → ((m n : ℕ) → (a b : A) → (f m ≡ just a) → (f n ≡ just b) → a ≡ b)
-                    → Σ Seq
-                        λ seq → ((a : A) → (k : ℕ) → f k ≡ just a → proj₁ seq k ≡ just a)
-                              × {!(a : A) → k : ℕ) → proj₁ seq k ≡ just a!} ---------------TODO: maybe what we want is seq↓a ⇔ (Σ n , f n ≡ just a) !!
-  complete-function f q = (take-max , max-is-mon) , (take-max-greater-f , {!!})
-    where
-      take-max : ℕ → Maybe A
-      take-max zero    = f zero
-      take-max (suc n) = [ (λ _ → take-max n) , (λ a → f (suc n)) ] (f (suc n))
-
-      take-max-greater-f : (a : A) → (k : ℕ) → f k ≡ just a → take-max k ≡ just a
-      take-max-greater-f a₁ zero f0≡justₐ = f0≡justₐ
-      -- Remark: this "if f (suc n) ≡ just a then take-max n ≡ just a" - thing should probably be abstracted. It appears about three times below.
-      take-max-greater-f a₁ (suc k) fSk≡justₐ = trans (cong (λ x → [ (λ _ → take-max k) , (λ _ → f (suc k)) ] x) fSk≡justₐ) fSk≡justₐ
-
-      -- remark: do we need the m ≤ n part?
-      find-preimage : (n : ℕ) → (a : A) → (take-max n ≡ just a) → Σ ℕ λ m → (f m ≡ just a × m ≤ n)
-      find-preimage zero a take-maxₙ≡justₐ = zero , take-maxₙ≡justₐ , zero≤ _
-      find-preimage (suc n) a take-maxSₙ≡justₐ with inspect (f (suc n))
-      find-preimage (suc n) a take-maxSₙ≡justₐ | nothing , fSn≡nothing = preim , fpreim≡justₐ , preim≤Sn
-        where
-          take-maxₙ≡justₐ : take-max n ≡ just a
-          take-maxₙ≡justₐ = trans (sym (subst (λ x → take-max (suc n) ≡ [ (λ _ → take-max n) , (λ _ → f (suc n)) ] x) fSn≡nothing refl)) take-maxSₙ≡justₐ
-          IH = find-preimage n a take-maxₙ≡justₐ
-          preim = proj₁ IH
-          fpreim≡justₐ = proj₁ (proj₂ IH)
-          preim≤Sn : preim ≤ suc n
-          preim≤Sn = ≤-step′ (proj₂ (proj₂ IH)) refl
-          
-      find-preimage (suc n) a  take-maxSₙ≡justₐ | just b , fSn≡justb = suc n , trans fSn≡justb (sym justₐ≡justb) , ≤-refl  
-        where
-          justₐ≡justb : just a ≡ just b
-          justₐ≡justb = 
-            just a           ≡⟨ sym take-maxSₙ≡justₐ ⟩
-            take-max (suc n) ≡⟨ subst (λ x → take-max (suc n) ≡ [ (λ _ → take-max n) , (λ _ → f (suc n)) ] x) fSn≡justb refl ⟩
-            f (suc n)        ≡⟨ fSn≡justb ⟩∎ 
-            just b           ∎
-
-      max-is-mon : is-monotone take-max
-      max-is-mon n with inspect (take-max n) | inspect (f (suc n))
-
-      max-is-mon n | _ | nothing , fSn≡nothing =
-        inj₁ (subst (λ x → take-max n ≡ [ (λ _ → take-max n) , (λ a₁ → f (suc n)) ] x) (sym fSn≡nothing) refl)
-
-      max-is-mon n | nothing , take-maxₙ≡nothing | just b , fSn≡justb =
-        inj₂ (take-maxₙ≡nothing ,
-        (λ exp≡nothing → disj-constructors(
-          trans (trans
-            (sym exp≡nothing)
-            (cong (λ x → [ (λ _ → take-max n) , (λ a₁ → f (suc n)) ] x) fSn≡justb))
-            fSn≡justb
-          )))
-          
-      max-is-mon n | just a , take-maxₙ≡justₐ | just b , fSn≡justb = inj₁ take-maxₙ≡take-maxSₙ
-        where
-          preim = find-preimage n a take-maxₙ≡justₐ
-          k = proj₁ preim
-          fk≡justₐ = proj₁ (proj₂ preim)
-          a≡b : a ≡ b
-          a≡b = q k (suc n) a b fk≡justₐ fSn≡justb
-          take-maxₙ≡take-maxSₙ =
-            take-max n ≡⟨ take-maxₙ≡justₐ ⟩
-            just a     ≡⟨ cong just a≡b ⟩
-            just b     ≡⟨ sym fSn≡justb ⟩
-            f (suc n)  ≡⟨ sym (cong (λ x → [ (λ _ → take-max n) , (λ a₁ → f (suc n)) ] x) fSn≡justb) ⟩∎
-            take-max (suc n) ∎ 
-
-
 
 -- the ↓ relation: "f ↓ a" should mean that the sequence f "evaluates" to (just a)
 module evaluating-sequences {a} {Aset : SET a} where
@@ -314,6 +241,7 @@ module evaluating-sequences {a} {Aset : SET a} where
   (what we do here is basically the unfolded version).
   This would be constant-function≃∥inhabited∥⇒inhabited from the module Truncation.Propositional.
   -}
+
 
   _↓_ : Seq → A → Set _
   (f , p) ↓ a = Σ ℕ λ n → f n ≡ just a
@@ -373,6 +301,85 @@ module evaluating-sequences {a} {Aset : SET a} where
       ∥↓∥→↓ fp∥↓∥a with ∥↓∥→↓' {fp} {a} fp∥↓∥a
       ∥↓∥→↓ fp∥↓∥a | n , fn≡justₐ , _ = n , fn≡justₐ
 
+
+-- A boring, straightforward construction.
+module completion-to-seq {a} {Aset : SET a} where
+
+  open monotone-sequences {a} {Aset}
+  open evaluating-sequences {a} {Aset} 
+
+
+  -- If we have *any* function f : ℕ → Maybe such that 
+  --    (f m ≡ just a) and (f n ≡ just b) imply a ≡ b
+  -- then there is a canonical way to complete it to a sequence seq.
+  -- We have that f m ≡ just a implies seq m ≡ just a (i.e. "seq is at least f").
+  complete-function : (f : ℕ → Maybe A)
+                    → ((m n : ℕ) → (a b : A) → (f m ≡ just a) → (f n ≡ just b) → a ≡ b)
+                    → Σ Seq
+                        λ seq → (a : A) → ((seq ↓ a) ⇔ (Σ ℕ λ j → f j ≡ just a))
+  complete-function f q = (take-max , max-is-mon) ,
+                          (λ a → record { to = λ {(n , take-maxₙ≡justₐ) → find-preimage n a take-maxₙ≡justₐ} ;
+                                          from = λ {(n , fₙ≡justₐ) → n , take-max-greater-f a n fₙ≡justₐ}
+                                        })
+    where
+      take-max : ℕ → Maybe A
+      take-max zero    = f zero
+      take-max (suc n) = [ (λ _ → take-max n) , (λ a → f (suc n)) ] (f (suc n))
+
+      take-max-greater-f : (a : A) → (k : ℕ) → f k ≡ just a → take-max k ≡ just a
+      take-max-greater-f a zero f0≡justₐ = f0≡justₐ
+      -- Remark: this "if f (suc n) ≡ just a then take-max n ≡ just a" - thing should probably be abstracted. It appears about three times below.
+      take-max-greater-f a (suc k) fSk≡justₐ = trans (cong (λ x → [ (λ _ → take-max k) , (λ _ → f (suc k)) ] x) fSk≡justₐ) fSk≡justₐ
+
+      -- remark: I have removed the m ≤ n part
+      find-preimage : (n : ℕ) → (a : A) → (take-max n ≡ just a) → Σ ℕ λ m → f m ≡ just a -- × m ≤ n
+      find-preimage zero a take-maxₙ≡justₐ = zero , take-maxₙ≡justₐ -- ,  zero≤ _
+      find-preimage (suc n) a take-maxSₙ≡justₐ with inspect (f (suc n))
+      find-preimage (suc n) a take-maxSₙ≡justₐ | nothing , fSn≡nothing = preim , fpreim≡justₐ -- , preim≤Sn
+        where
+          take-maxₙ≡justₐ : take-max n ≡ just a
+          take-maxₙ≡justₐ = trans (sym (subst (λ x → take-max (suc n) ≡ [ (λ _ → take-max n) , (λ _ → f (suc n)) ] x) fSn≡nothing refl)) take-maxSₙ≡justₐ
+          IH = find-preimage n a take-maxₙ≡justₐ
+          preim = proj₁ IH
+          fpreim≡justₐ = proj₂ IH
+          
+      find-preimage (suc n) a  take-maxSₙ≡justₐ | just b , fSn≡justb = suc n , trans fSn≡justb (sym justₐ≡justb) -- , ≤-refl  
+        where
+          justₐ≡justb : just a ≡ just b
+          justₐ≡justb = 
+            just a           ≡⟨ sym take-maxSₙ≡justₐ ⟩
+            take-max (suc n) ≡⟨ subst (λ x → take-max (suc n) ≡ [ (λ _ → take-max n) , (λ _ → f (suc n)) ] x) fSn≡justb refl ⟩
+            f (suc n)        ≡⟨ fSn≡justb ⟩∎ 
+            just b           ∎
+
+      max-is-mon : is-monotone take-max
+      max-is-mon n with inspect (take-max n) | inspect (f (suc n))
+
+      max-is-mon n | _ | nothing , fSn≡nothing =
+        inj₁ (subst (λ x → take-max n ≡ [ (λ _ → take-max n) , (λ a₁ → f (suc n)) ] x) (sym fSn≡nothing) refl)
+
+      max-is-mon n | nothing , take-maxₙ≡nothing | just b , fSn≡justb =
+        inj₂ (take-maxₙ≡nothing ,
+        (λ exp≡nothing → disj-constructors(
+          trans (trans
+            (sym exp≡nothing)
+            (cong (λ x → [ (λ _ → take-max n) , (λ a₁ → f (suc n)) ] x) fSn≡justb))
+            fSn≡justb
+          )))
+          
+      max-is-mon n | just a , take-maxₙ≡justₐ | just b , fSn≡justb = inj₁ take-maxₙ≡take-maxSₙ
+        where
+          preim = find-preimage n a take-maxₙ≡justₐ
+          k = proj₁ preim
+          fk≡justₐ = proj₂ preim
+          a≡b : a ≡ b
+          a≡b = q k (suc n) a b fk≡justₐ fSn≡justb
+          take-maxₙ≡take-maxSₙ =
+            take-max n ≡⟨ take-maxₙ≡justₐ ⟩
+            just a     ≡⟨ cong just a≡b ⟩
+            just b     ≡⟨ sym fSn≡justb ⟩
+            f (suc n)  ≡⟨ sym (cong (λ x → [ (λ _ → take-max n) , (λ a₁ → f (suc n)) ] x) fSn≡justb) ⟩∎
+            take-max (suc n) ∎ 
 
 
 module relation-on-Seq {a} {Aset : SET a} where
