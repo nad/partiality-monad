@@ -53,10 +53,10 @@ module library-stuff where
   ≤-is-prop : {m n : ℕ} → Is-proposition (m ≤ n)
   ≤-is-prop = {!!}
 
-
+{- maybe let's not put this here
   ℕ-automorphism : ℕ ≃ ℕ × ℕ
   ℕ-automorphism = {!!}
-
+-}
 
 
   -- if P is a property of A (i.e. a family of propositions over A),
@@ -526,13 +526,8 @@ module canonical-simple-properties {a} {Aset : SET a} where
                 a≡b = now-injective {_} {Aset} nowa≡nowb
 
         ↓→⇓ : seq ↓ a → canonical seq ⇓ a
-        ↓→⇓ (n , fₙ≡justₐ) = _≃_.from (⇓≃now⊑ ua {x = canonical seq} {y = a}) nowₐ⊑can-seq
-          where
-            fₙ⊑can-seq : aux (f n) ⊑ canonical seq
-            fₙ⊑can-seq = upper-bound′ (Seq→Increasing seq) (canonical seq) (⊑-refl _) n
+        ↓→⇓ (n , fₙ≡justₐ) = terminating-element-is-⨆ ua (Seq→Increasing seq) {n = n} {x = a} (cong aux fₙ≡justₐ) 
 
-            nowₐ⊑can-seq : now a ⊑ canonical seq
-            nowₐ⊑can-seq = subst (λ z → z ⊑ canonical seq) (cong aux fₙ≡justₐ) fₙ⊑can-seq
 
 
 -- The goal of this module is to show that the canonical function
