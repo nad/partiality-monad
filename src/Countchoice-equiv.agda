@@ -70,6 +70,7 @@ module library-stuff where
   
     open import Partiality-monad.Inductive
     open import Partiality-monad.Inductive.Alternative-order
+    open import Partiality-monad.Inductive.Properties
 
     -- a slightly more convenient form (for A set) of the library lemma
     now⊑now→≡ : {x y : proj₁ Aset} → (now x ⊑ now y) → x ≡ y
@@ -79,6 +80,9 @@ module library-stuff where
     now-injective {x} {y} nowx≡nowy = now⊑now→≡ (subst (λ z → now x ⊑ z) nowx≡nowy (⊑-refl _))
 
     -- TODO: the two above should be used a couple of times below instead of the unfolded versions
+
+    termination-value-unique : (x : _⊥ (proj₁ Aset)) → (a b : (proj₁ Aset)) → x ⇓ a → x ⇓ b → a ≡ b
+    termination-value-unique x a b x⇓a x⇓b = ∥∥-rec {B = a ≡ b} (proj₂ Aset _ _) Prelude.id (termination-value-merely-unique ua x⇓a x⇓b) 
 
 
   module _ {α} {A : Set α} where
@@ -538,11 +542,21 @@ module canonical-surjective {a} {Aset : SET a} where
   open import Partiality-monad.Inductive.Eliminators
   open import Preimage
   open import Univalence-axiom equality-with-J
+  open import Surjection equality-with-J
+
   open import Partiality-monad.Inductive.Alternative-order 
   open import Partiality-monad.Inductive.Properties
+
+
   open monotone-to-QIIT {a} {Aset} 
   open monotone-sequences {a} {Aset}
   open canonical-simple-properties {a} {Aset}
+
+
+  -- in order to show that the canonical function is surjective, we first need a split surjection
+  -- ℕ → ℕ × ℕ !
+  ℕ↠ℕ×ℕ : ℕ ↠ ℕ × ℕ
+  ℕ↠ℕ×ℕ = {!!}
 
   canonical-surjective : (Axiom-of-countable-choice a) → Surjective canonical
   canonical-surjective cc =
@@ -560,38 +574,41 @@ module canonical-surjective {a} {Aset : SET a} where
           construct : ((m : ℕ) → Σ Seq (λ fp → canonical fp ≡ s [ m ])) → (Σ Seq λ fp → canonical fp ≡ ⨆ s)
           construct pw = construct-seq , constructed-seq-correct
             where
--- TODO: continue here. Adapt to make use of the lemma canonical↓⇓ 
+
               seq-at : (m : ℕ) → Seq
               seq-at m = proj₁ (pw m)
 
-              pw-fun : (m : ℕ) → (k : ℕ) → Maybe A
-              pw-fun m k = proj₁ (seq-at m) k
+              double-seq : ℕ → ℕ → Maybe A
+              double-seq m k = proj₁ (seq-at m) k
 
-              pw-unique-A : (a b : A) → (m k m' k' : ℕ) → pw-fun m k ≡ just a → pw-fun m' k' ≡ just b → a ≡ b
-              pw-unique-A a b m k m' k' pwmk≡justa pwm'k'≡justb = a≡b
+              double-seq-unique-A : (a b : A) → (m k m' k' : ℕ) → double-seq m k ≡ just a → double-seq  m' k' ≡ just b → a ≡ b
+              double-seq-unique-A a b m k m' k' mk↓a m'k'↓b = termination-value-unique {Aset = Aset}
+                                                                                       (⨆ s) a b
+                                                                                       (⨆s⇓c a m k mk↓a)
+                                                                                       (⨆s⇓c b m' k' m'k'↓b)
                 where
-                  x≡⨆s : (x : A) → (l o : ℕ) → pw-fun l o ≡ just x → now x ≡ ⨆ s
-                  x≡⨆s x l o pwlo≡justx = {!!}
-                    where
-                      x⊑⨆s : now x ⊑ ⨆ s
-                      x⊑⨆s = now x                     ⊑⟨ subst (λ y → now x ⊑ y) (cong aux (sym pwlo≡justx)) (⊑-refl (now x)) ⟩
-                             aux (pw-fun l o)          ⊑⟨ upper-bound′ (Seq→Increasing (seq-at l)) (canonical (seq-at l)) (⊑-refl _) o ⟩
-                             canonical (seq-at l)      ⊑⟨ subst (λ y → canonical (seq-at l) ⊑ y) (proj₂ (pw l)) (⊑-refl _) ⟩
-                             s [ l ]                   ⊑⟨ upper-bound′ s (⨆ s) (⊑-refl _) l ⟩■ 
-                             ⨆ s ■  -- TODO rework many things here, using canonical↓⇓ !!!
-                      -- this already implies now x ≡ ⨆ s -- there should be a lemma which says now x ⊑ ... → now x ≡ ... !
-                  nowa≡⨆s : now a ≡ ⨆ s
-                  nowa≡⨆s = x≡⨆s a m k pwmk≡justa
-                  nowb≡⨆s : now b ≡ ⨆ s
-                  nowb≡⨆s = x≡⨆s b m' k' pwm'k'≡justb
-                  a≡b : a ≡ b
-                  a≡b = ∥∥-rec {B = a ≡ b} -- TODO TODO TODO remark: this application of ∥∥-rec could be abstracted away. now⊑now≃∥≡∥ should maybe be formulated as now⊑now≃≡
-                              (A-is-set _ _)
-                              Prelude.id
-                              (_≃_.to (now⊑now≃∥≡∥ ua) (subst (λ x → now a ⊑ x) (trans nowa≡⨆s (sym nowb≡⨆s)) (⊑-refl (now a)))) 
+                  ⨆s⇓c : (c : A) → (l o : ℕ) → double-seq l o ≡ just c → ⨆ s ⇓ c
+                  ⨆s⇓c c l o lo↓c =
+                    terminating-element-is-⨆ ua s {n = l} {x = c}
+                                             (subst (λ z → z ⇓ c) (proj₂ (pw l)) (_⇔_.from (canonical⇓↓ c (seq-at l)) (o , lo↓c)))
 
-              construct-seq : Seq
-              construct-seq = {!!}
+              merge-double-seq : ℕ → Maybe A
+              merge-double-seq n = double-seq n₁ n₂
+                where
+                  n₁ = proj₁ (_↠_.to ℕ↠ℕ×ℕ n)
+                  n₂ = proj₂ (_↠_.to ℕ↠ℕ×ℕ n)
+
+               -- why not use ↓ ? AH, because it's only defined for sequences, not for just ℕ → Maybe A...
+              construct-seq : Seq -- nah, it's bad that we forget the proof immediately (I mean the proj₁).
+              construct-seq = proj₁ (complete-function merge-double-seq (λ n n' a b n↓1 n'↓b → {!!}))
+                where
+                  unique : (n n' : ℕ) → (a b : A) → merge-double-seq n ≡ just a → merge-double-seq n' ≡ just b → a ≡ b
+                  unique n n' a b n↓a n'↓b = {!!}
+                    where
+                      m  = proj₁ (_↠_.to ℕ↠ℕ×ℕ n )
+                      k  = proj₂ (_↠_.to ℕ↠ℕ×ℕ n )
+                      m' = proj₁ (_↠_.to ℕ↠ℕ×ℕ n')
+                      k' = proj₂ (_↠_.to ℕ↠ℕ×ℕ n')
 
               constructed-seq-correct : canonical construct-seq ≡ ⨆ s
               constructed-seq-correct = {!!}
