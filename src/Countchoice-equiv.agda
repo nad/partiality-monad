@@ -223,54 +223,55 @@ module evaluating-sequences {a} {Aset : SET a} where
   ∥↓∥-is-prop : (fp : Seq) → (a : A) → Is-proposition (fp ∥↓∥ a)
   ∥↓∥-is-prop fp a = truncation-is-proposition
 
-  abstract
   
-    _↓'_ : Seq → A → Set _
-    (f , p) ↓' a = Σ ℕ (λ n → f n ≡ just a × ((n' : ℕ) → (f n' ≢ nothing) → n ≤ n'))
-  
-    -- The point of ↓' is that it is propositional without making use of explicit truncation.
-    ↓'-is-prop : (fp : Seq) → (a : A) → Is-proposition (fp ↓' a)
-    ↓'-is-prop (f , p) a = Σ-property _ _ (λ _ → ×-closure 1 (MA-is-set _ _)
+  _↓'_ : Seq → A → Set _
+  (f , p) ↓' a = Σ ℕ (λ n → f n ≡ just a × ((n' : ℕ) → (f n' ≢ nothing) → n ≤ n'))
+
+  -- The point of ↓' is that it is propositional without making use of explicit truncation.
+  ↓'-is-prop : (fp : Seq) → (a : A) → Is-proposition (fp ↓' a)
+  ↓'-is-prop (f , p) a = Σ-property _ _ (λ _ → ×-closure 1 (MA-is-set _ _)
                                      (Π-closure ext 1 (λ _ → Π-closure ext 1 (λ _ → ≤-is-prop)))) number-unique
-      where
-        number-unique : (x y : (f , p) ↓' a) → proj₁ x ≡ proj₁ y
-        number-unique (m , p₁ , p₂) (n , q₁ , q₂) = lib-lemma (p₂ n (λ e → disj-constructors (trans (sym e) q₁)))
+    where
+      number-unique : (x y : (f , p) ↓' a) → proj₁ x ≡ proj₁ y
+      number-unique (m , p₁ , p₂) (n , q₁ , q₂) = lib-lemma (p₂ n (λ e → disj-constructors (trans (sym e) q₁)))
                                                               (q₂ m (λ e → disj-constructors (trans (sym e) p₁)))
   
-    -- now: the equivalences
-    -- the easy directions are ↓' ⇒ ↓ ⇒ ∥↓∥. The hard implication is ∥↓∥ ⇒ ↓', which we do first: 
-    ∥↓∥→↓' : ∀ {fp} {a} → (fp ∥↓∥ a) → (fp ↓' a)
-    ∥↓∥→↓' {fp} {a} = ∥∥-rec {B = fp ↓' a} (↓'-is-prop fp a) (λ {(n , fn≡justₐ) → find-min n a fn≡justₐ}) where
-  
-      f = proj₁ fp
-      p = proj₂ fp
+  -- now: the equivalences
+  -- the easy directions are ↓' ⇒ ↓ ⇒ ∥↓∥. The hard implication is ∥↓∥ ⇒ ↓', which we do first: 
+  ∥↓∥→↓' : {fp : Seq} → {a : A} → (fp ∥↓∥ a) → (fp ↓' a)
+  ∥↓∥→↓' {fp} {a} = ∥∥-rec {B = fp ↓' a} (↓'-is-prop fp a) (λ {(n , fn≡justₐ) → find-min n a fn≡justₐ}) where
+
+    f : ℕ → Maybe A
+    f = proj₁ fp
+    p : is-monotone f
+    p = proj₂ fp
       
-      find-min : (n : ℕ) → (a : A) → (f n ≡ just a) → fp ↓' a 
-      find-min zero    a fn≡justₐ = zero , fn≡justₐ , (λ _ _ → zero≤ _)
-      find-min (suc n) a fSn≡justₐ with inspect (f n)
-      find-min (suc n) a fSn≡justₐ | nothing , fn≡nothing = suc n , fSn≡justₐ , Sn-is-min
-        where
-          Sn-is-min : (n' : ℕ) → (f n' ≢ nothing) → suc n ≤ n'
-          Sn-is-min n' fn'≢nothing with inspect (f n')
-          Sn-is-min n' fn'≢nothing | nothing , fn'≡nothing = ⊥-elim (fn'≢nothing fn'≡nothing)
-          Sn-is-min n' fn'≢nothing | just b , fn'≡justb    = nothing-just-compare (f , p) b n n' fn≡nothing fn'≡justb
-  
-      find-min (suc n) a fSn≡justₐ | just b , fn≡justb with find-min n b fn≡justb
-      find-min (suc n) a fSn≡justₐ | just b , fn≡justb | min , fmin≡justb , min-is-min = min , fmin≡justa , min-is-min
-        where
-          fmin≡justa : f min ≡ just a
-          fmin≡justa = subst (λ c → f min ≡ just c) (seq-unique-element (f , p) min (suc n) b a (fmin≡justb , fSn≡justₐ)) fmin≡justb 
-  
-  
-    -- Now, the logical equivalence that we want is easy:
-    ↓⇔∥↓∥ : ∀ {fp} {a} → (fp ↓ a) ⇔ (fp ∥↓∥ a)
-    ↓⇔∥↓∥ {fp} {a} = record { to = ∣_∣ ;
-                             from = ∥↓∥→↓
-                           }
+    find-min : (n : ℕ) → (a : A) → (f n ≡ just a) → fp ↓' a 
+    find-min zero    a fn≡justₐ = zero , fn≡justₐ , (λ _ _ → zero≤ _)
+    find-min (suc n) a fSn≡justₐ with inspect (f n)
+    find-min (suc n) a fSn≡justₐ | nothing , fn≡nothing = suc n , fSn≡justₐ , Sn-is-min
       where
-        ∥↓∥→↓ : fp ∥↓∥ a → fp ↓ a
-        ∥↓∥→↓ fp∥↓∥a with ∥↓∥→↓' {fp} {a} fp∥↓∥a
-        ∥↓∥→↓ fp∥↓∥a | n , fn≡justₐ , _ = n , fn≡justₐ
+        Sn-is-min : (n' : ℕ) → (f n' ≢ nothing) → suc n ≤ n'
+        Sn-is-min n' fn'≢nothing with inspect (f n')
+        Sn-is-min n' fn'≢nothing | nothing , fn'≡nothing = ⊥-elim (fn'≢nothing fn'≡nothing)
+        Sn-is-min n' fn'≢nothing | just b , fn'≡justb    = nothing-just-compare (f , p) b n n' fn≡nothing fn'≡justb
+  
+    find-min (suc n) a fSn≡justₐ | just b , fn≡justb with find-min n b fn≡justb
+    find-min (suc n) a fSn≡justₐ | just b , fn≡justb | min , fmin≡justb , min-is-min = min , fmin≡justa , min-is-min
+      where
+        fmin≡justa : f min ≡ just a
+        fmin≡justa = subst (λ c → f min ≡ just c) (seq-unique-element (f , p) min (suc n) b a (fmin≡justb , fSn≡justₐ)) fmin≡justb 
+  
+  
+  -- Now, the logical equivalence that we want is easy:
+  ↓⇔∥↓∥ : ∀ {fp} {a} → (fp ↓ a) ⇔ (fp ∥↓∥ a)
+  ↓⇔∥↓∥ {fp} {a} = record { to = ∣_∣ ;
+                           from = ∥↓∥→↓
+                         }
+    where
+      ∥↓∥→↓ : fp ∥↓∥ a → fp ↓ a
+      ∥↓∥→↓ fp∥↓∥a with ∥↓∥→↓' {fp} {a} fp∥↓∥a
+      ∥↓∥→↓ fp∥↓∥a | n , fn≡justₐ , _ = n , fn≡justₐ
 
 
 -- A boring, straightforward construction.
@@ -279,7 +280,7 @@ module completion-to-seq {a} {Aset : SET a} where
   open monotone-sequences {a} {Aset}
   open evaluating-sequences {a} {Aset} 
 
-
+  
   -- If we have *any* function f : ℕ → Maybe such that 
   --    (f m ≡ just a) and (f n ≡ just b) imply a ≡ b
   -- then there is a canonical way to complete it to a sequence seq.
@@ -595,11 +596,13 @@ module canonical-surjective {a} {Aset : SET a} where
               seq-faithful = proj₂ (complete-function merge-double-seq merged-unique)
 
 
+              -- for some reason, this makes Agda run out of memory.
+              {-
               seqₙ⊑some-s : (n : ℕ) → Σ ℕ λ m → ? -- aux (proj₁ seq n) ⊑ s [ m ]
               seqₙ⊑some-s n with inspect (proj₁ seq n)
               seqₙ⊑some-s n | nothing seqₙ≡nothing = ? 
               seqₙ⊑some-s n | just a , seqₙ≡justₐ = ?
-
+              -}
 
               cseq⊑⨆s : canonical seq ⊑ ⨆ s
               cseq⊑⨆s = least-upper-bound (Seq→Increasing seq) (⨆ s) (λ n → {!!})
