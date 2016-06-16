@@ -446,7 +446,7 @@ module monotone-to-QIIT {a} {Aset : SET a} where
 
   -- ... and this is really an extension.
   canonical'-is-extension : (fp : Seq) → canonical' (Quotient.HIT.[_] fp) ≡ canonical fp
-  canonical'-is-extension fp = {!refl!}
+  canonical'-is-extension fp = {!elim-[]-respects-relation ? !}
 
 
 
@@ -567,16 +567,22 @@ module canonical-surjective {a} {Aset : SET a} where
               double-seq : ℕ → ℕ → Maybe A
               double-seq m k = proj₁ (seq-at m) k
 
-              double-seq-unique-A : (a b : A) → (m k m' k' : ℕ) → double-seq m k ≡ just a → double-seq  m' k' ≡ just b → a ≡ b
-              double-seq-unique-A a b m k m' k' mk↓a m'k'↓b = termination-value-unique {Aset = Aset}
-                                                                                       (⨆ s) a b
-                                                                                       (⨆s⇓c a m k mk↓a)
-                                                                                       (⨆s⇓c b m' k' m'k'↓b)
+              double-seq-unique-A : (a b : A) → (m k m' k' : ℕ)
+                                    → double-seq m k ≡ just a
+                                    → double-seq  m' k' ≡ just b
+                                    → a ≡ b
+              double-seq-unique-A a b m k m' k' mk↓a m'k'↓b =
+                termination-value-unique {Aset = Aset}
+                                         (⨆ s) a b
+                                         (⨆s⇓c a m k mk↓a)
+                                         (⨆s⇓c b m' k' m'k'↓b)
                 where
                   ⨆s⇓c : (c : A) → (l o : ℕ) → double-seq l o ≡ just c → ⨆ s ⇓ c
                   ⨆s⇓c c l o lo↓c =
                     terminating-element-is-⨆ ua s {n = l} {x = c}
-                                             (subst (λ z → z ⇓ c) (proj₂ (pw l)) (_⇔_.from (canonical⇓↓ c (seq-at l)) (o , lo↓c)))
+                                             (subst (λ z → z ⇓ c)
+                                                    (proj₂ (pw l))
+                                                    (_⇔_.from (canonical⇓↓ c (seq-at l)) (o , lo↓c)))
 
               merge-double-seq : ℕ → Maybe A
               merge-double-seq n = double-seq n₁ n₂
@@ -584,8 +590,12 @@ module canonical-surjective {a} {Aset : SET a} where
                   n₁ = proj₁ (_↠_.to ℕ↠ℕ×ℕ n)
                   n₂ = proj₂ (_↠_.to ℕ↠ℕ×ℕ n)
 
-              merged-unique : (n n' : ℕ) → (a b : A) → merge-double-seq n ≡ just a → merge-double-seq n' ≡ just b → a ≡ b
-              merged-unique n n' a b n↓a n'↓b = double-seq-unique-A a b m k m' k' n↓a n'↓b
+              merged-unique : (n n' : ℕ) → (a b : A)
+                              → merge-double-seq n ≡ just a
+                              → merge-double-seq n' ≡ just b
+                              → a ≡ b
+              merged-unique n n' a b n↓a n'↓b =
+                double-seq-unique-A a b m k m' k' n↓a n'↓b
                 where
                   m  = proj₁ (_↠_.to ℕ↠ℕ×ℕ n )
                   k  = proj₂ (_↠_.to ℕ↠ℕ×ℕ n )
@@ -603,10 +613,13 @@ module canonical-surjective {a} {Aset : SET a} where
 
               seqₙ⊑some-s : (n : ℕ) → Σ ℕ λ m → aux (proj₁ seq n) ⊑ s [ m ]
               seqₙ⊑some-s n with inspect (proj₁ seq n)
-              seqₙ⊑some-s n | nothing , seqₙ≡nothing = zero , subst (λ x → aux x ⊑ s [ zero ]) (sym seqₙ≡nothing) (never⊑ (s [ zero ]))  
-              seqₙ⊑some-s n | just a , seqₙ≡justₐ = k₁ , (aux (proj₁ seq n) ⊑⟨ subst (λ z → aux z ⊑ now a) (sym seqₙ≡justₐ) (⊑-refl _) ⟩
-                                                          now a ⊑⟨ subst (λ z → now a ⊑ z) (sym s[k₁]⇓a) (⊑-refl _) ⟩■
-                                                          s [ k₁ ] ■)
+              seqₙ⊑some-s n | nothing , seqₙ≡nothing =
+                zero , subst (λ x → aux x ⊑ s [ zero ]) (sym seqₙ≡nothing) (never⊑ (s [ zero ]))  
+              seqₙ⊑some-s n | just a , seqₙ≡justₐ =
+                k₁ ,
+                (aux (proj₁ seq n) ⊑⟨ subst (λ z → aux z ⊑ now a) (sym seqₙ≡justₐ) (⊑-refl _) ⟩
+                 now a             ⊑⟨ subst (λ z → now a ⊑ z) (sym s[k₁]⇓a) (⊑-refl _) ⟩■
+                 s [ k₁ ] ■)
                 where
                   k : ℕ
                   k = proj₁ (_⇔_.to (seq-faithful a) (n , seqₙ≡justₐ))
@@ -624,14 +637,52 @@ module canonical-surjective {a} {Aset : SET a} where
 
               cseq⊑⨆s : canonical seq ⊑ ⨆ s
               cseq⊑⨆s = least-upper-bound (Seq→Increasing seq) (⨆ s) (λ n →
-                          Seq→Increasing seq [ n ] ⊑⟨ proj₂ (seqₙ⊑some-s n) ⟩ s [ proj₁ (seqₙ⊑some-s n) ] ⊑⟨ upper-bound′ s (⨆ s) (⊑-refl _) _ ⟩■ ⨆ s ■)
+                          Seq→Increasing seq [ n ]    ⊑⟨ proj₂ (seqₙ⊑some-s n) ⟩
+                          s [ proj₁ (seqₙ⊑some-s n) ] ⊑⟨ upper-bound′ s (⨆ s) (⊑-refl _) _ ⟩■
+                          ⨆ s ■)
 
 
 
               -- the sequence that we have now produced is at least seq-at m (if we apply canonical to both).
               seq-at⊑seq : (m : ℕ) → canonical (seq-at m) ⊑ canonical seq
-              seq-at⊑seq m = least-upper-bound (Seq→Increasing (seq-at m)) (canonical seq) (λ k → {!!})
+              seq-at⊑seq m =
+                least-upper-bound (Seq→Increasing (seq-at m))
+                                  (canonical seq)
+                                  seq-at-m-k⊑seq
+                  where
+                    seq-at-m-k⊑seq : (k : ℕ) → Seq→Increasing (seq-at m) [ k ] ⊑ canonical seq
+                    seq-at-m-k⊑seq k with inspect (proj₁ (seq-at m) k)
+                    seq-at-m-k⊑seq k | nothing , seq-at-m-k≡nothing =
+                      subst (λ z → aux z ⊑ canonical seq) (sym seq-at-m-k≡nothing) (never⊑ _)
+                    seq-at-m-k⊑seq k | just a , seq-at-m-k≡justₐ    = 
+                      ≡→⊑ {Aset = Aset}
+                          {x = Seq→Increasing (seq-at m) [ k ]}
+                          {y = canonical seq}
+                            (Seq→Increasing (seq-at m) [ k ] ≡⟨ cong aux seq-at-m-k≡justₐ ⟩
+                            now a ≡⟨ sym (_⇔_.from (canonical⇓↓ a seq) seq↓a) ⟩∎
+                            canonical seq ∎) 
+                      where
+                        n : ℕ 
+                        n = _↠_.from ℕ↠ℕ×ℕ (m , k)
+                        n₁,n₂ = _↠_.to ℕ↠ℕ×ℕ n
+                        n₁ = proj₁ n₁,n₂
+                        n₂ = proj₂ n₁,n₂
+                        n₁,n₂≡m,k : n₁,n₂ ≡ (m , k)
+                        n₁,n₂≡m,k =  _↠_.right-inverse-of ℕ↠ℕ×ℕ (m , k)
+                        -- remark: the above with (n₁ , n₂) instead of n₁,n₂ does not work (becomes yellow).
+                        n₁≡m = cong proj₁ n₁,n₂≡m,k
+                        n₂≡k = cong proj₂ n₁,n₂≡m,k
 
+                        merge-double-seqₙ≡justₐ : merge-double-seq n ≡ just a
+                        merge-double-seqₙ≡justₐ = 
+                          merge-double-seq n ≡⟨ refl ⟩
+                          double-seq n₁ n₂   ≡⟨ cong (λ j → double-seq n₁ j) n₂≡k ⟩ 
+                          double-seq n₁ k    ≡⟨ cong (λ j → double-seq j k) n₁≡m ⟩ 
+                          double-seq m k     ≡⟨ seq-at-m-k≡justₐ ⟩∎ 
+                          just a ∎  
+
+                        seq↓a : seq ↓ a
+                        seq↓a = _⇔_.from (seq-faithful a) (n , merge-double-seqₙ≡justₐ)
 
               ⨆s⊑csq : ⨆ s ⊑ canonical seq
               ⨆s⊑csq = least-upper-bound s (canonical seq) (λ n → 
@@ -642,8 +693,10 @@ module canonical-surjective {a} {Aset : SET a} where
               seq-correct : canonical seq ≡ ⨆ s
               seq-correct = antisymmetry {x = canonical seq} {y = ⨆ s} cseq⊑⨆s ⨆s⊑csq
 
-
-  -- now: canonical'-surjective
+  canonical'-surjective : (Axiom-of-countable-choice a) → Surjective canonical'
+  canonical'-surjective cc z =
+    ∥∥-map (λ { (pre , can-pre≡z) → Quotient.HIT.[_] pre , trans (canonical'-is-extension pre) can-pre≡z })
+          (canonical-surjective cc z)
 
 
 -- canonical' is injective
