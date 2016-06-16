@@ -53,11 +53,6 @@ module library-stuff where
   ≤-is-prop : {m n : ℕ} → Is-proposition (m ≤ n)
   ≤-is-prop = {!!}
 
-{- maybe let's not put this here
-  ℕ-automorphism : ℕ ≃ ℕ × ℕ
-  ℕ-automorphism = {!!}
--}
-
 
   -- if P is a property of A (i.e. a family of propositions over A),
   -- then it is enough to show that any two elements of a which satisfy P
@@ -82,7 +77,10 @@ module library-stuff where
     -- TODO: the two above should be used a couple of times below instead of the unfolded versions
 
     termination-value-unique : (x : _⊥ (proj₁ Aset)) → (a b : (proj₁ Aset)) → x ⇓ a → x ⇓ b → a ≡ b
-    termination-value-unique x a b x⇓a x⇓b = ∥∥-rec {B = a ≡ b} (proj₂ Aset _ _) Prelude.id (termination-value-merely-unique ua x⇓a x⇓b) 
+    termination-value-unique x a b x⇓a x⇓b =
+      ∥∥-rec {B = a ≡ b}
+            (proj₂ Aset _ _)
+            Prelude.id (termination-value-merely-unique ua x⇓a x⇓b) 
 
     -- TODO: the following should be used to replace some code below a couple of times
     ≡→⊑ : {x y : _⊥ (proj₁ Aset)} → x ≡ y → x ⊑ y
