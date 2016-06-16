@@ -588,21 +588,22 @@ module canonical-surjective {a} {Aset : SET a} where
                   m' = proj₁ (_↠_.to ℕ↠ℕ×ℕ n')
                   k' = proj₂ (_↠_.to ℕ↠ℕ×ℕ n')
                   
+              abstract
+              
+                seq : Seq
+                seq = proj₁ (complete-function merge-double-seq merged-unique) 
 
-              seq : Seq
-              seq = proj₁ (complete-function merge-double-seq merged-unique) 
-
-              seq-faithful : (a : A) → ((seq ↓ a) ⇔ (Σ ℕ λ j → merge-double-seq j ≡ just a))
-              seq-faithful = proj₂ (complete-function merge-double-seq merged-unique)
+                seq-faithful : (a : A) → ((seq ↓ a) ⇔ (Σ ℕ λ j → merge-double-seq j ≡ just a))
+                seq-faithful = proj₂ (complete-function merge-double-seq merged-unique)
 
 
               -- for some reason, this makes Agda run out of memory.
-              {-
-              seqₙ⊑some-s : (n : ℕ) → Σ ℕ λ m → ? -- aux (proj₁ seq n) ⊑ s [ m ]
+              
+              seqₙ⊑some-s : (n : ℕ) → Σ ℕ λ m → aux (proj₁ seq n) ⊑ s [ m ]
               seqₙ⊑some-s n with inspect (proj₁ seq n)
-              seqₙ⊑some-s n | nothing seqₙ≡nothing = ? 
-              seqₙ⊑some-s n | just a , seqₙ≡justₐ = ?
-              -}
+              seqₙ⊑some-s n | nothing , seqₙ≡nothing = {!!} 
+              seqₙ⊑some-s n | just a , seqₙ≡justₐ = {!!}
+              
 
               cseq⊑⨆s : canonical seq ⊑ ⨆ s
               cseq⊑⨆s = least-upper-bound (Seq→Increasing seq) (⨆ s) (λ n → {!!})
