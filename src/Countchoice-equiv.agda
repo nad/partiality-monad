@@ -701,6 +701,52 @@ module canonical-surjective {a} {Aset : SET a} where
 -- canonical' is injective
 module canonical'-injective {a} {Aset : SET a} where
 
+  open import Partiality-monad.Inductive
+  open import Partiality-monad.Inductive.Eliminators
+  open import Preimage
+  open import Univalence-axiom equality-with-J
+  open import Surjection equality-with-J
+
+  open import Partiality-monad.Inductive.Alternative-order hiding (_≲_)
+  open import Partiality-monad.Inductive.Properties
+
+
+  open monotone-to-QIIT {a} {Aset} 
+  open monotone-sequences {a} {Aset}
+  open canonical-simple-properties {a} {Aset}
+  open completion-to-seq {a} {Aset}
+  open evaluating-sequences {a} {Aset}
+  open relation-on-Seq {a} {Aset}
+
+  canonical-semi : {f g : Seq} → canonical f ⊑ canonical g → f ≲ g
+  canonical-semi {f} {g} cf⊑cg a ∥f↓a∥ = _⇔_.to (↓⇔∥↓∥ {fp = g}) (_⇔_.to (canonical⇓↓ a g) canonicalg⇓a)
+    where
+      canonicalf⇓a : canonical f ⇓ a
+      canonicalf⇓a = _⇔_.from (canonical⇓↓ a f) (_⇔_.from (↓⇔∥↓∥ {fp = f}) ∥f↓a∥)
+      canonicalg⇓a : canonical g ⇓ a
+      canonicalg⇓a = _≃_.from (⇓≃now⊑ ua {x = canonical g} {y = a}) (
+                              now a ⊑⟨ ≡→⊑ {Aset = Aset} (sym canonicalf⇓a) ⟩
+                              canonical f ⊑⟨ cf⊑cg ⟩■
+                              canonical g ■)
+
+  ~←canonical≡ : {f g : Seq} → canonical f ≡ canonical g → f ~ g
+  ~←canonical≡ {f} {g} cf≡cg = (canonical-semi {f} {g} (≡→⊑ {Aset = Aset} cf≡cg ))
+                               ,
+                               (canonical-semi {g} {f} (≡→⊑ {Aset = Aset} (sym cf≡cg)))
+
+  -- here, we should first define a simplified eliminator of quotients that can be used when the goal is a proposition.
+
+  can-inj-elim₁ : {f : Seq} → {g' : Seq/~} → canonical f ≡ canonical' g' → Quotient.HIT.[_] f ≡ g'
+  can-inj-elim₁ = {!!}
+
+  canonical'-injective : {f' g' : Seq/~} → canonical' f' ≡ canonical' g' → f' ≡ g'
+  canonical'-injective {f'} {g'} c'f'≡c'g' =
+    {!elim-[] {A = Seq}
+             {R = λ f g → (f ~ g , ?)}
+             !}
+
+      
+
 
 -- canonical' is an equivalence: needs a library lemma which (I think) is not there yet.
 module canonical'-equivalence {a} {Aset : SET a} where
