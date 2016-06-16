@@ -419,7 +419,7 @@ module monotone-to-QIIT {a} {Aset : SET a} where
                cgq-is-ub n with inspect (f n)
                cgq-is-ub n | nothing , fn≡nothing = subst (λ x → x ⊑ _) (cong aux (sym fn≡nothing)) (never⊑ _)
                cgq-is-ub n | inj₂ a , fn≡justₐ =
-                 aux (f n)  ⊑⟨ ≡→⊑ (cong aux {!sym (trans fn≡justₐ)!}) ⟩ -- subst (λ maybe → aux (f n) ⊑ aux maybe) (trans fn≡justₐ (sym gkₙ≡justₐ)) (⊑-refl _) ⟩
+                 aux (f n)  ⊑⟨ ≡→⊑ {Aset = Aset} (cong aux (trans fn≡justₐ (sym gkₙ≡justₐ))) ⟩ 
                  aux (g kₙ) ⊑⟨ upper-bound′ (Seq→Increasing gq) (⨆ (Seq→Increasing gq)) (⊑-refl _) kₙ ⟩■
                  ⨆ (Seq→Increasing gq) ■
                  where
