@@ -84,6 +84,10 @@ module library-stuff where
     termination-value-unique : (x : _⊥ (proj₁ Aset)) → (a b : (proj₁ Aset)) → x ⇓ a → x ⇓ b → a ≡ b
     termination-value-unique x a b x⇓a x⇓b = ∥∥-rec {B = a ≡ b} (proj₂ Aset _ _) Prelude.id (termination-value-merely-unique ua x⇓a x⇓b) 
 
+    -- TODO: the following should be used to replace some code below a couple of times
+    ≡→⊑ : {x y : _⊥ (proj₁ Aset)} → x ≡ y → x ⊑ y
+    ≡→⊑ refl = ⊑-refl _
+
 
 open library-stuff
 
@@ -597,7 +601,6 @@ module canonical-surjective {a} {Aset : SET a} where
                 seq-faithful = proj₂ (complete-function merge-double-seq merged-unique)
 
 
-
               seqₙ⊑some-s : (n : ℕ) → Σ ℕ λ m → aux (proj₁ seq n) ⊑ s [ m ]
               seqₙ⊑some-s n with inspect (proj₁ seq n)
               seqₙ⊑some-s n | nothing , seqₙ≡nothing = zero , subst (λ x → aux x ⊑ s [ zero ]) (sym seqₙ≡nothing) (never⊑ (s [ zero ]))  
@@ -625,14 +628,16 @@ module canonical-surjective {a} {Aset : SET a} where
 
 
 
-              -- maybe we need this for the very last step!
               -- the sequence that we have now produced is at least seq-at m (if we apply canonical to both).
-              -- seq-at[m]⊑seq : (m : ℕ) → 
+              seq-at⊑seq : (m : ℕ) → canonical (seq-at m) ⊑ canonical seq
+              seq-at⊑seq m = least-upper-bound (Seq→Increasing (seq-at m)) (canonical seq) (λ k → {!!})
 
 
               ⨆s⊑csq : ⨆ s ⊑ canonical seq
-              ⨆s⊑csq = least-upper-bound s (canonical seq)
-                         (λ n → {!!})
+              ⨆s⊑csq = least-upper-bound s (canonical seq) (λ n → 
+                s [ n ]              ⊑⟨ ≡→⊑ {Aset = Aset} (sym (proj₂ (pw n))) ⟩
+                canonical (seq-at n) ⊑⟨ seq-at⊑seq n ⟩■
+                canonical seq        ■)
 
               seq-correct : canonical seq ≡ ⨆ s
               seq-correct = antisymmetry {x = canonical seq} {y = ⨆ s} cseq⊑⨆s ⨆s⊑csq
