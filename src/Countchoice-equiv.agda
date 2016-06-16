@@ -85,38 +85,6 @@ module library-stuff where
     termination-value-unique x a b x⇓a x⇓b = ∥∥-rec {B = a ≡ b} (proj₂ Aset _ _) Prelude.id (termination-value-merely-unique ua x⇓a x⇓b) 
 
 
-  module _ {α} {A : Set α} where
-
-    open import Partiality-monad.Inductive
-    open import Partiality-monad.Inductive.Alternative-order
-    open import Partiality-monad.Inductive.Eliminators
-    open import Partiality-monad.Inductive.Properties
-
-
-
-{- THIS IS ALREADY IN THE "ALTERNATIVE" MODULE !
-    -- if "now _" is smaller than x, then x is really just "now _".
-    now-max : (a : A) → (x : _⊥ A) → (now a ⊑ x) → now a ≡ x -- why can A ⊥ not be parsed?
-    now-max a x TODO-fix-stuff = sym (_≃_.from (⇓≃now⊑ ua) TODO-fix-stuff)
-
-{- I accidentally duplicated work :(
-      ⊥-rec-⊥ {P = λ y → now a ⊑ y → now a ≡ y}
-              (record { pe = λ nowₐ⊑never → ⊥-elim (now⋢never ua a nowₐ⊑never) ;
-                        po = λ b nowa⊑nowb → ∥∥-rec {B = now a ≡ now b}
-                                                   (⊥-is-set _ _)
-                                                   (cong now)
-                                                   (_≃_.to (now⊑now≃∥≡∥ ua) nowa⊑nowb) ; 
-                        pl = ⨆-case ;
-                        pp = λ _ → Π-closure ext 1 (λ _ → ⊥-is-set _ _)})
-        where
-          ⨆-case : (s : Increasing-sequence A) → ((n : ℕ) → now a ⊑ s [ n ] → now a ≡ s [ n ]) → now a ⊑ ⨆ s → now a ≡ ⨆ s
-          ⨆-case s pw nowₐ⊏⨆s = {!!}
-            where
-              find-index : ∥ (Σ ℕ λ m → s [ m ] ≡ now a) ∥
-              find-index = {!⨆⇓≃∥∃⇓∥!}
--}
--}
-
 open library-stuff
 
 
@@ -178,45 +146,46 @@ module monotone-sequences {a} {Aset : SET a} where
 
 
   -- What now follows is a bunch of straightforward boring lemmas.
+  abstract
+  
+    seq-stable-step : (fp : Seq) (m : ℕ) → (a : A) → (proj₁ fp m ≡ just a) → proj₁ fp (suc m) ≡ just a
+    seq-stable-step (f , p) m a fm≡justₐ with p m
+    seq-stable-step (f , p) m a fm≡justₐ | inj₁ fm≡fSm = trans (sym fm≡fSm) fm≡justₐ
+    seq-stable-step (f , p) m a fm≡justₐ | inj₂ (fm≡nothing , _) = ⊥-elim (disj-constructors (trans (sym fm≡nothing) fm≡justₐ))
 
-  seq-stable-step : (fp : Seq) (m : ℕ) → (a : A) → (proj₁ fp m ≡ just a) → proj₁ fp (suc m) ≡ just a
-  seq-stable-step (f , p) m a fm≡justₐ with p m
-  seq-stable-step (f , p) m a fm≡justₐ | inj₁ fm≡fSm = trans (sym fm≡fSm) fm≡justₐ
-  seq-stable-step (f , p) m a fm≡justₐ | inj₂ (fm≡nothing , _) = ⊥-elim (disj-constructors (trans (sym fm≡nothing) fm≡justₐ))
+    seq-stable : (fp : Seq) (m n : ℕ) → (m ≤ n) → (a : A) → (proj₁ fp m ≡ just a) → proj₁ fp n ≡ just a
+    seq-stable (f , p) m n (_≤_.≤-refl′ m≡n) a q = subst (λ k → f k ≡ just a) m≡n q
+    seq-stable (f , p) m n (_≤_.≤-step′ {k} m≤k Sk≡n) a q = subst (λ o → f o ≡ just a) Sk≡n (seq-stable-step (f , p) k a (seq-stable (f , p) m k m≤k a q))  
 
-  seq-stable : (fp : Seq) (m n : ℕ) → (m ≤ n) → (a : A) → (proj₁ fp m ≡ just a) → proj₁ fp n ≡ just a
-  seq-stable (f , p) m n (_≤_.≤-refl′ m≡n) a q = subst (λ k → f k ≡ just a) m≡n q
-  seq-stable (f , p) m n (_≤_.≤-step′ {k} m≤k Sk≡n) a q = subst (λ o → f o ≡ just a) Sk≡n (seq-stable-step (f , p) k a (seq-stable (f , p) m k m≤k a q))  
+    -- if fn ≡ a and fm ≡ b, then a ≡ b. 
+    seq-unique-element : (fp : Seq) (m n : ℕ) (a b : A) → (proj₁ fp m ≡ just a) × (proj₁ fp n ≡ just b) → a ≡ b
+    seq-unique-element (f , p) m n a b (fm≡a , fn≡b) with total m n
+    seq-unique-element (f , p) m n a b (fm≡a , fn≡b) | inj₁ m≤n = just-injective (trans (sym (seq-stable (f , p) m n m≤n a fm≡a)) fn≡b) 
+    seq-unique-element (f , p) m n a b (fm≡a , fn≡b) | inj₂ n≤m = just-injective (trans (sym fm≡a) (seq-stable (f , p) n m n≤m b fn≡b))
 
-  -- if fn ≡ a and fm ≡ b, then a ≡ b. 
-  seq-unique-element : (fp : Seq) (m n : ℕ) (a b : A) → (proj₁ fp m ≡ just a) × (proj₁ fp n ≡ just b) → a ≡ b
-  seq-unique-element (f , p) m n a b (fm≡a , fn≡b) with total m n
-  seq-unique-element (f , p) m n a b (fm≡a , fn≡b) | inj₁ m≤n = just-injective (trans (sym (seq-stable (f , p) m n m≤n a fm≡a)) fn≡b) 
-  seq-unique-element (f , p) m n a b (fm≡a , fn≡b) | inj₂ n≤m = just-injective (trans (sym fm≡a) (seq-stable (f , p) n m n≤m b fn≡b))
-
-  -- if fSn ≡ nothing, then fn ≡ nothing
-  smaller-nothing-step : (fp : Seq) (n : ℕ) → proj₁ fp (suc n) ≡ nothing → proj₁ fp n ≡ nothing
-  smaller-nothing-step (f , p) n fSn≡nothing with p n
-  smaller-nothing-step (f , p) n fSn≡nothing | inj₁ fn≡fSn = trans fn≡fSn fSn≡nothing
-  smaller-nothing-step (f , p) n fSn≡nothing | inj₂ (fn≡nothing , _) = fn≡nothing
-
-  -- if fn ≡ nothing, then fm ≡ nothing for m ≤ n
-  smaller-nothing : (fp : Seq) (m n : ℕ) → (m ≤ n) → proj₁ fp n ≡ nothing → proj₁ fp m ≡ nothing
-  smaller-nothing (f , p) m n (_≤_.≤-refl′ m≡n) fn≡nothing = subst (λ k → f k ≡ nothing) (sym m≡n) fn≡nothing
-  smaller-nothing (f , p) m n (_≤_.≤-step′ {k} m≤k Sk≡n) fn≡nothing =
-    smaller-nothing (f , p) m k m≤k
-                    (smaller-nothing-step (f , p) k (subst (λ j → f j ≡ nothing) (sym Sk≡n) fn≡nothing))
-
-  -- if fm ≡ nothing and fn ≡ just a, then Sm ≤ n.
-  nothing-just-compare : (fp : Seq) (a : A) (m n : ℕ) → (proj₁ fp m ≡ nothing) → (proj₁ fp n ≡ just a) → suc m ≤ n
-  nothing-just-compare (f , p) a m n fm≡nothing fn≡justₐ with suc m ≤? n
-  nothing-just-compare (f , p) a m n fm≡nothing fn≡justₐ | inj₁  Sm≤n = Sm≤n
-  nothing-just-compare (f , p) a m n fm≡nothing fn≡justₐ | inj₂ ¬Sm≤n = ⊥-elim (disj-constructors (trans (sym (smaller-nothing (f , p) n m n≤m fm≡nothing)) fn≡justₐ))
-    where
-      Sn≤Sm : suc n ≤ suc m
-      Sn≤Sm = m≰n→Sn≤m ¬Sm≤n
-      n≤m : n ≤ m
-      n≤m = suc≤suc→≤ Sn≤Sm
+    -- if fSn ≡ nothing, then fn ≡ nothing
+    smaller-nothing-step : (fp : Seq) (n : ℕ) → proj₁ fp (suc n) ≡ nothing → proj₁ fp n ≡ nothing
+    smaller-nothing-step (f , p) n fSn≡nothing with p n
+    smaller-nothing-step (f , p) n fSn≡nothing | inj₁ fn≡fSn = trans fn≡fSn fSn≡nothing
+    smaller-nothing-step (f , p) n fSn≡nothing | inj₂ (fn≡nothing , _) = fn≡nothing
+  
+    -- if fn ≡ nothing, then fm ≡ nothing for m ≤ n
+    smaller-nothing : (fp : Seq) (m n : ℕ) → (m ≤ n) → proj₁ fp n ≡ nothing → proj₁ fp m ≡ nothing
+    smaller-nothing (f , p) m n (_≤_.≤-refl′ m≡n) fn≡nothing = subst (λ k → f k ≡ nothing) (sym m≡n) fn≡nothing
+    smaller-nothing (f , p) m n (_≤_.≤-step′ {k} m≤k Sk≡n) fn≡nothing =
+      smaller-nothing (f , p) m k m≤k
+                      (smaller-nothing-step (f , p) k (subst (λ j → f j ≡ nothing) (sym Sk≡n) fn≡nothing))
+  
+    -- if fm ≡ nothing and fn ≡ just a, then Sm ≤ n.
+    nothing-just-compare : (fp : Seq) (a : A) (m n : ℕ) → (proj₁ fp m ≡ nothing) → (proj₁ fp n ≡ just a) → suc m ≤ n
+    nothing-just-compare (f , p) a m n fm≡nothing fn≡justₐ with suc m ≤? n
+    nothing-just-compare (f , p) a m n fm≡nothing fn≡justₐ | inj₁  Sm≤n = Sm≤n
+    nothing-just-compare (f , p) a m n fm≡nothing fn≡justₐ | inj₂ ¬Sm≤n = ⊥-elim (disj-constructors (trans (sym (smaller-nothing (f , p) n m n≤m fm≡nothing)) fn≡justₐ))
+      where
+        Sn≤Sm : suc n ≤ suc m
+        Sn≤Sm = m≰n→Sn≤m ¬Sm≤n
+        n≤m : n ≤ m
+        n≤m = suc≤suc→≤ Sn≤Sm
 
 
 
@@ -254,52 +223,54 @@ module evaluating-sequences {a} {Aset : SET a} where
   ∥↓∥-is-prop : (fp : Seq) → (a : A) → Is-proposition (fp ∥↓∥ a)
   ∥↓∥-is-prop fp a = truncation-is-proposition
 
-  _↓'_ : Seq → A → Set _
-  (f , p) ↓' a = Σ ℕ (λ n → f n ≡ just a × ((n' : ℕ) → (f n' ≢ nothing) → n ≤ n'))
-
-  -- The point of ↓' is that it is propositional without making use of explicit truncation.
-  ↓'-is-prop : (fp : Seq) → (a : A) → Is-proposition (fp ↓' a)
-  ↓'-is-prop (f , p) a = Σ-property _ _ (λ _ → ×-closure 1 (MA-is-set _ _)
-                                   (Π-closure ext 1 (λ _ → Π-closure ext 1 (λ _ → ≤-is-prop)))) number-unique
-    where
-      number-unique : (x y : (f , p) ↓' a) → proj₁ x ≡ proj₁ y
-      number-unique (m , p₁ , p₂) (n , q₁ , q₂) = lib-lemma (p₂ n (λ e → disj-constructors (trans (sym e) q₁)))
-                                                            (q₂ m (λ e → disj-constructors (trans (sym e) p₁)))
-
-  -- now: the equivalences
-  -- the easy directions are ↓' ⇒ ↓ ⇒ ∥↓∥. The hard implication is ∥↓∥ ⇒ ↓', which we do first: 
-  ∥↓∥→↓' : ∀ {fp} {a} → (fp ∥↓∥ a) → (fp ↓' a)
-  ∥↓∥→↓' {fp} {a} = ∥∥-rec {B = fp ↓' a} (↓'-is-prop fp a) (λ {(n , fn≡justₐ) → find-min n a fn≡justₐ}) where
-
-    f = proj₁ fp
-    p = proj₂ fp
-    
-    find-min : (n : ℕ) → (a : A) → (f n ≡ just a) → fp ↓' a 
-    find-min zero    a fn≡justₐ = zero , fn≡justₐ , (λ _ _ → zero≤ _)
-    find-min (suc n) a fSn≡justₐ with inspect (f n)
-    find-min (suc n) a fSn≡justₐ | nothing , fn≡nothing = suc n , fSn≡justₐ , Sn-is-min
+  abstract
+  
+    _↓'_ : Seq → A → Set _
+    (f , p) ↓' a = Σ ℕ (λ n → f n ≡ just a × ((n' : ℕ) → (f n' ≢ nothing) → n ≤ n'))
+  
+    -- The point of ↓' is that it is propositional without making use of explicit truncation.
+    ↓'-is-prop : (fp : Seq) → (a : A) → Is-proposition (fp ↓' a)
+    ↓'-is-prop (f , p) a = Σ-property _ _ (λ _ → ×-closure 1 (MA-is-set _ _)
+                                     (Π-closure ext 1 (λ _ → Π-closure ext 1 (λ _ → ≤-is-prop)))) number-unique
       where
-        Sn-is-min : (n' : ℕ) → (f n' ≢ nothing) → suc n ≤ n'
-        Sn-is-min n' fn'≢nothing with inspect (f n')
-        Sn-is-min n' fn'≢nothing | nothing , fn'≡nothing = ⊥-elim (fn'≢nothing fn'≡nothing)
-        Sn-is-min n' fn'≢nothing | just b , fn'≡justb    = nothing-just-compare (f , p) b n n' fn≡nothing fn'≡justb
-
-    find-min (suc n) a fSn≡justₐ | just b , fn≡justb with find-min n b fn≡justb
-    find-min (suc n) a fSn≡justₐ | just b , fn≡justb | min , fmin≡justb , min-is-min = min , fmin≡justa , min-is-min
+        number-unique : (x y : (f , p) ↓' a) → proj₁ x ≡ proj₁ y
+        number-unique (m , p₁ , p₂) (n , q₁ , q₂) = lib-lemma (p₂ n (λ e → disj-constructors (trans (sym e) q₁)))
+                                                              (q₂ m (λ e → disj-constructors (trans (sym e) p₁)))
+  
+    -- now: the equivalences
+    -- the easy directions are ↓' ⇒ ↓ ⇒ ∥↓∥. The hard implication is ∥↓∥ ⇒ ↓', which we do first: 
+    ∥↓∥→↓' : ∀ {fp} {a} → (fp ∥↓∥ a) → (fp ↓' a)
+    ∥↓∥→↓' {fp} {a} = ∥∥-rec {B = fp ↓' a} (↓'-is-prop fp a) (λ {(n , fn≡justₐ) → find-min n a fn≡justₐ}) where
+  
+      f = proj₁ fp
+      p = proj₂ fp
+      
+      find-min : (n : ℕ) → (a : A) → (f n ≡ just a) → fp ↓' a 
+      find-min zero    a fn≡justₐ = zero , fn≡justₐ , (λ _ _ → zero≤ _)
+      find-min (suc n) a fSn≡justₐ with inspect (f n)
+      find-min (suc n) a fSn≡justₐ | nothing , fn≡nothing = suc n , fSn≡justₐ , Sn-is-min
+        where
+          Sn-is-min : (n' : ℕ) → (f n' ≢ nothing) → suc n ≤ n'
+          Sn-is-min n' fn'≢nothing with inspect (f n')
+          Sn-is-min n' fn'≢nothing | nothing , fn'≡nothing = ⊥-elim (fn'≢nothing fn'≡nothing)
+          Sn-is-min n' fn'≢nothing | just b , fn'≡justb    = nothing-just-compare (f , p) b n n' fn≡nothing fn'≡justb
+  
+      find-min (suc n) a fSn≡justₐ | just b , fn≡justb with find-min n b fn≡justb
+      find-min (suc n) a fSn≡justₐ | just b , fn≡justb | min , fmin≡justb , min-is-min = min , fmin≡justa , min-is-min
+        where
+          fmin≡justa : f min ≡ just a
+          fmin≡justa = subst (λ c → f min ≡ just c) (seq-unique-element (f , p) min (suc n) b a (fmin≡justb , fSn≡justₐ)) fmin≡justb 
+  
+  
+    -- Now, the logical equivalence that we want is easy:
+    ↓⇔∥↓∥ : ∀ {fp} {a} → (fp ↓ a) ⇔ (fp ∥↓∥ a)
+    ↓⇔∥↓∥ {fp} {a} = record { to = ∣_∣ ;
+                             from = ∥↓∥→↓
+                           }
       where
-        fmin≡justa : f min ≡ just a
-        fmin≡justa = subst (λ c → f min ≡ just c) (seq-unique-element (f , p) min (suc n) b a (fmin≡justb , fSn≡justₐ)) fmin≡justb 
-
-
-  -- Now, the logical equivalence that we want is easy:
-  ↓⇔∥↓∥ : ∀ {fp} {a} → (fp ↓ a) ⇔ (fp ∥↓∥ a)
-  ↓⇔∥↓∥ {fp} {a} = record { to = ∣_∣ ;
-                           from = ∥↓∥→↓
-                         }
-    where
-      ∥↓∥→↓ : fp ∥↓∥ a → fp ↓ a
-      ∥↓∥→↓ fp∥↓∥a with ∥↓∥→↓' {fp} {a} fp∥↓∥a
-      ∥↓∥→↓ fp∥↓∥a | n , fn≡justₐ , _ = n , fn≡justₐ
+        ∥↓∥→↓ : fp ∥↓∥ a → fp ↓ a
+        ∥↓∥→↓ fp∥↓∥a with ∥↓∥→↓' {fp} {a} fp∥↓∥a
+        ∥↓∥→↓ fp∥↓∥a | n , fn≡justₐ , _ = n , fn≡justₐ
 
 
 -- A boring, straightforward construction.
@@ -560,7 +531,8 @@ module canonical-surjective {a} {Aset : SET a} where
   open monotone-to-QIIT {a} {Aset} 
   open monotone-sequences {a} {Aset}
   open canonical-simple-properties {a} {Aset}
-
+  open completion-to-seq {a} {Aset}
+  open evaluating-sequences {a} {Aset}
 
   -- in order to show that the canonical function is surjective, we first need a split surjection
   -- ℕ → ℕ × ℕ !
@@ -581,7 +553,7 @@ module canonical-surjective {a} {Aset : SET a} where
       use-choice s pointwise = ∥∥-map construct (cc pointwise)
         where
           construct : ((m : ℕ) → Σ Seq (λ fp → canonical fp ≡ s [ m ])) → (Σ Seq λ fp → canonical fp ≡ ⨆ s)
-          construct pw = construct-seq , constructed-seq-correct
+          construct pw = seq , seq-correct
             where
 
               seq-at : (m : ℕ) → Seq
@@ -616,11 +588,27 @@ module canonical-surjective {a} {Aset : SET a} where
                   k' = proj₂ (_↠_.to ℕ↠ℕ×ℕ n')
                   
 
-              construct-seq : Seq
-              construct-seq = {!!} -- proj₁ (complete-function merge-double-seq merged-unique)
+              seq : Seq
+              seq = proj₁ (complete-function merge-double-seq merged-unique) 
+
+              seq-faithful : (a : A) → ((seq ↓ a) ⇔ (Σ ℕ λ j → merge-double-seq j ≡ just a))
+              seq-faithful = proj₂ (complete-function merge-double-seq merged-unique)
+
+
+              seqₙ⊑some-s : (n : ℕ) → Σ ℕ λ m → ? -- aux (proj₁ seq n) ⊑ s [ m ]
+              seqₙ⊑some-s n with inspect (proj₁ seq n)
+              seqₙ⊑some-s n | nothing seqₙ≡nothing = ? 
+              seqₙ⊑some-s n | just a , seqₙ≡justₐ = ?
+
+
+              cseq⊑⨆s : canonical seq ⊑ ⨆ s
+              cseq⊑⨆s = least-upper-bound (Seq→Increasing seq) (⨆ s) (λ n → {!!})
               
-              constructed-seq-correct : canonical construct-seq ≡ ⨆ s
-              constructed-seq-correct = {!!}
+              ⨆s⊑csq : ⨆ s ⊑ canonical seq
+              ⨆s⊑csq = {!!}
+
+              seq-correct : canonical seq ≡ ⨆ s
+              seq-correct = antisymmetry {x = canonical seq} {y = ⨆ s} cseq⊑⨆s ⨆s⊑csq
 
 
   -- now: canonical'-surjective
