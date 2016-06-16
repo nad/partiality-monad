@@ -588,7 +588,7 @@ module canonical-surjective {a} {Aset : SET a} where
                   m' = proj₁ (_↠_.to ℕ↠ℕ×ℕ n')
                   k' = proj₂ (_↠_.to ℕ↠ℕ×ℕ n')
                   
-              abstract
+              abstract -- if this is not made abstract Agda will run out of memory very quickly.
               
                 seq : Seq
                 seq = proj₁ (complete-function merge-double-seq merged-unique) 
@@ -597,19 +597,42 @@ module canonical-surjective {a} {Aset : SET a} where
                 seq-faithful = proj₂ (complete-function merge-double-seq merged-unique)
 
 
-              -- for some reason, this makes Agda run out of memory.
-              
+
               seqₙ⊑some-s : (n : ℕ) → Σ ℕ λ m → aux (proj₁ seq n) ⊑ s [ m ]
               seqₙ⊑some-s n with inspect (proj₁ seq n)
-              seqₙ⊑some-s n | nothing , seqₙ≡nothing = {!!} 
-              seqₙ⊑some-s n | just a , seqₙ≡justₐ = {!!}
-              
+              seqₙ⊑some-s n | nothing , seqₙ≡nothing = zero , subst (λ x → aux x ⊑ s [ zero ]) (sym seqₙ≡nothing) (never⊑ (s [ zero ]))  
+              seqₙ⊑some-s n | just a , seqₙ≡justₐ = k₁ , (aux (proj₁ seq n) ⊑⟨ subst (λ z → aux z ⊑ now a) (sym seqₙ≡justₐ) (⊑-refl _) ⟩
+                                                          now a ⊑⟨ subst (λ z → now a ⊑ z) (sym s[k₁]⇓a) (⊑-refl _) ⟩■
+                                                          s [ k₁ ] ■)
+                where
+                  k : ℕ
+                  k = proj₁ (_⇔_.to (seq-faithful a) (n , seqₙ≡justₐ))
+                  merge-double-seqₖ≡justₐ : merge-double-seq k ≡ just a
+                  merge-double-seqₖ≡justₐ = proj₂ (_⇔_.to (seq-faithful a) (n , seqₙ≡justₐ))
+                  k₁ = proj₁ (_↠_.to ℕ↠ℕ×ℕ k)
+                  k₂ = proj₂ (_↠_.to ℕ↠ℕ×ℕ k)
+                  seq-at-k₁⇓a : canonical (seq-at k₁) ⇓ a
+                  seq-at-k₁⇓a = _≃_.from (⇓≃now⊑ ua {x = canonical (seq-at k₁)} {y = a})
+                                         (subst (λ z → z ⊑ canonical (seq-at k₁))
+                                                (cong aux merge-double-seqₖ≡justₐ)
+                                                (upper-bound′ (Seq→Increasing (seq-at k₁)) _ (⊑-refl _) k₂))
+                  s[k₁]⇓a : s [ k₁ ] ⇓ a
+                  s[k₁]⇓a = subst (λ z → z ⇓ a) (proj₂ (pw k₁)) seq-at-k₁⇓a 
 
               cseq⊑⨆s : canonical seq ⊑ ⨆ s
-              cseq⊑⨆s = least-upper-bound (Seq→Increasing seq) (⨆ s) (λ n → {!!})
-              
+              cseq⊑⨆s = least-upper-bound (Seq→Increasing seq) (⨆ s) (λ n →
+                          Seq→Increasing seq [ n ] ⊑⟨ proj₂ (seqₙ⊑some-s n) ⟩ s [ proj₁ (seqₙ⊑some-s n) ] ⊑⟨ upper-bound′ s (⨆ s) (⊑-refl _) _ ⟩■ ⨆ s ■)
+
+
+
+              -- maybe we need this for the very last step!
+              -- the sequence that we have now produced is at least seq-at m (if we apply canonical to both).
+              -- seq-at[m]⊑seq : (m : ℕ) → 
+
+
               ⨆s⊑csq : ⨆ s ⊑ canonical seq
-              ⨆s⊑csq = {!!}
+              ⨆s⊑csq = least-upper-bound s (canonical seq)
+                         (λ n → {!!})
 
               seq-correct : canonical seq ≡ ⨆ s
               seq-correct = antisymmetry {x = canonical seq} {y = ⨆ s} cseq⊑⨆s ⨆s⊑csq
