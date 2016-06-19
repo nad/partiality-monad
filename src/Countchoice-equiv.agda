@@ -61,6 +61,25 @@ module library-stuff where
   Σ-property = {!!}
 
 
+  module _ {α β} {S : Set α} {R : S → S → Proposition β} where
+
+    open import Quotient.HIT renaming (elim to /elim)
+
+    -- An eliminator for the quotient, if the goal is propositional.
+    -- This is just a simplification of the "full" eliminator.
+    -- (Note: We could weaken one assumption and say that only P [ x ]
+    -- is propositional.) 
+    quot-elim-prop :
+      ∀ {γ} → (P : S / R → Set γ) → 
+      (p-[] : ∀ x → P [ x ]) →
+      (∀ x → Is-proposition (P x)) →
+      ∀ x → P x
+    quot-elim-prop P p-[] prop
+      = /elim P p-[]
+              (λ _ → _⇔_.to propositional⇔irrelevant (prop [ _ ]) _ _)
+              (λ x → mono₁ 1 (prop x)) 
+
+
   module _ {α} {Aset : SET α} where
   
     open import Partiality-monad.Inductive
@@ -520,7 +539,7 @@ module canonical-simple-properties {a} {Aset : SET a} where
 
 -- The goal of this module is to show that the canonical function
 -- (and thus the extended version of it) is surjective.
-module canonical-surjective {a} {Aset : SET a} where
+module canonical'-surjective {a} {Aset : SET a} where
 
   open import Partiality-monad.Inductive
   open import Partiality-monad.Inductive.Eliminators
@@ -706,6 +725,7 @@ module canonical'-injective {a} {Aset : SET a} where
   open import Preimage
   open import Univalence-axiom equality-with-J
   open import Surjection equality-with-J
+  open import Injection equality-with-J
 
   open import Partiality-monad.Inductive.Alternative-order hiding (_≲_)
   open import Partiality-monad.Inductive.Properties
@@ -734,23 +754,35 @@ module canonical'-injective {a} {Aset : SET a} where
                                ,
                                (canonical-semi {g} {f} (≡→⊑ {Aset = Aset} (sym cf≡cg)))
 
-  -- here, we should first define a simplified eliminator of quotients that can be used when the goal is a proposition.
-
+  -- We do the "double-induction" in two steps.
+  -- First auxiliary step:
   can-inj-elim₁ : {f : Seq} → {g' : Seq/~} → canonical f ≡ canonical' g' → Quotient.HIT.[_] f ≡ g'
-  can-inj-elim₁ = {!!}
+  can-inj-elim₁ {f} {g'} =
+    quot-elim-prop
+      (λ g' → canonical f ≡ canonical' g' → Quotient.HIT.[_] f ≡ g')
+      (λ g → λ cfcg → []-respects-relation (~←canonical≡ (trans cfcg (canonical'-is-extension g)))) 
+      (λ _ → Π-closure ext 1 (λ _ → /-is-set _ _))
+      g'
 
-  canonical'-injective : {f' g' : Seq/~} → canonical' f' ≡ canonical' g' → f' ≡ g'
-  canonical'-injective {f'} {g'} c'f'≡c'g' =
-    {!elim-[] {A = Seq}
-             {R = λ f g → (f ~ g , ?)}
-             !}
-
-      
+  -- Second step - this is what we want:
+  canonical'-injective : Injective canonical' 
+  canonical'-injective {f'} {g'} =
+    quot-elim-prop
+      (λ f' → canonical' f' ≡ canonical' g' → f' ≡ g')
+      (λ f cfcg → can-inj-elim₁ (trans (sym (canonical'-is-extension f)) cfcg) )
+      (λ _ → Π-closure ext 1 (λ _ → /-is-set _ _))
+      f'
 
 
 -- canonical' is an equivalence: needs a library lemma which (I think) is not there yet.
 module canonical'-equivalence {a} {Aset : SET a} where
 
+  open monotone-to-QIIT {a} {Aset} 
+  open canonical'-surjective
+  open canonical'-injective
+
+  canonical'-equiv : Is-equivalence (canonical')
+  canonical'-equiv = {!!}
 
 
 {-
