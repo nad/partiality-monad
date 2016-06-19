@@ -40,6 +40,33 @@ module library-stuff where
     just-injective : {b c : A} → _≡_ {A = Maybe A} (just b) (just c) → b ≡ c
     just-injective refl = refl
 
+
+  -- If X -> Y is injective + surjective, and if Y is a set, then f is an equivalence.
+  module _ {α β} {X : Set α} {Yset : SET β} where
+
+    open import Bijection equality-with-J
+    open import Injection equality-with-J
+    open import Surjection equality-with-J
+    open import Preimage equality-with-J
+    open import H-level.Closure equality-with-J
+
+    Y = proj₁ Yset
+    
+    InjSurj→≃ : (f : X → Y) → (Injective f) → (Surjective f) → Is-equivalence f
+    InjSurj→≃ f inj surj y = propositional⇒inhabited⇒contractible
+                               (preim-is-prop y)
+                               (preim-is-inh y)
+      where
+        preim-irrelevant : (y : Y) → (xq₁ xq₂ : f ⁻¹ y) → xq₁ ≡ xq₂
+        preim-irrelevant y (x₁ , q₁) (x₂ , q₂) =
+          Σ-≡,≡→≡ (inj (trans q₁ (sym q₂)))
+                  (_⇔_.to propositional⇔irrelevant (proj₂ Yset _ _) _ _)
+        preim-is-prop : (y : Y) → Is-proposition (f ⁻¹ y) 
+        preim-is-prop y = _⇔_.from propositional⇔irrelevant (preim-irrelevant y)
+        preim-is-inh : (y : Y) → f ⁻¹ y
+        preim-is-inh y = _↔_.to (∥∥↔ (preim-is-prop y)) (surj y)
+        
+
   lib-lemma : {m n : ℕ} → (m ≤ n) → (n ≤ m) → m ≡ n
   lib-lemma = {!!}
 
@@ -777,12 +804,13 @@ module canonical'-injective {a} {Aset : SET a} where
 -- canonical' is an equivalence: needs a library lemma which (I think) is not there yet.
 module canonical'-equivalence {a} {Aset : SET a} where
 
+  open import Partiality-monad.Inductive.Properties {a} {proj₁ Aset}
   open monotone-to-QIIT {a} {Aset} 
   open canonical'-surjective
   open canonical'-injective
 
-  canonical'-equiv : Is-equivalence (canonical')
-  canonical'-equiv = {!!}
+  canonical'-equiv : (Axiom-of-countable-choice a) → Is-equivalence (canonical')
+  canonical'-equiv cc = InjSurj→≃ {Yset = _ , ⊥-is-set} canonical' canonical'-injective (canonical'-surjective cc)
 
 
 {-
