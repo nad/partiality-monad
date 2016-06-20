@@ -67,8 +67,11 @@ module library-stuff where
         preim-is-inh y = _↔_.to (∥∥↔ (preim-is-prop y)) (surj y)
         
 
+  -- Do suc-injective first. Etc.
+
   lib-lemma : {m n : ℕ} → (m ≤ n) → (n ≤ m) → m ≡ n
-  lib-lemma = {!!}
+  lib-lemma (≤-refl′ m≡n) _ = m≡n
+  lib-lemma (≤-step′ p x) q = {!...!}
 
   -- small improvement of ≰→≥
   m≰n→Sn≤m : {m n : ℕ} → ¬(m ≤ n) → suc n ≤ m
@@ -84,7 +87,10 @@ module library-stuff where
   -- if P is a property of A (i.e. a family of propositions over A),
   -- then it is enough to show that any two elements of a which satisfy P
   -- in order to conclude that Σ A P is propositional.
-  Σ-property : ∀ {α} {β} (A : Set α) (P : A → Set β) → ((a : A) → Is-proposition (P a)) → ((x y : Σ A P) → proj₁ x ≡ proj₁ y) → Is-proposition (Σ A P)
+  Σ-property : ∀ {α} {β} (A : Set α) (P : A → Set β)
+              → ((a : A) → Is-proposition (P a))
+              → ((x y : Σ A P) → proj₁ x ≡ proj₁ y)
+              → Is-proposition (Σ A P)
   Σ-property = {!!}
 
 
@@ -203,7 +209,10 @@ module monotone-sequences {a} {Aset : SET a} where
 
     seq-stable : (fp : Seq) (m n : ℕ) → (m ≤ n) → (a : A) → (proj₁ fp m ≡ just a) → proj₁ fp n ≡ just a
     seq-stable (f , p) m n (_≤_.≤-refl′ m≡n) a q = subst (λ k → f k ≡ just a) m≡n q
-    seq-stable (f , p) m n (_≤_.≤-step′ {k} m≤k Sk≡n) a q = subst (λ o → f o ≡ just a) Sk≡n (seq-stable-step (f , p) k a (seq-stable (f , p) m k m≤k a q))  
+    seq-stable (f , p) m n (_≤_.≤-step′ {k} m≤k Sk≡n) a q =
+      subst (λ o → f o ≡ just a)
+            Sk≡n
+            (seq-stable-step (f , p) k a (seq-stable (f , p) m k m≤k a q))  
 
     -- if fn ≡ a and fm ≡ b, then a ≡ b. 
     seq-unique-element : (fp : Seq) (m n : ℕ) (a b : A) → (proj₁ fp m ≡ just a) × (proj₁ fp n ≡ just b) → a ≡ b
@@ -228,12 +237,13 @@ module monotone-sequences {a} {Aset : SET a} where
     nothing-just-compare : (fp : Seq) (a : A) (m n : ℕ) → (proj₁ fp m ≡ nothing) → (proj₁ fp n ≡ just a) → suc m ≤ n
     nothing-just-compare (f , p) a m n fm≡nothing fn≡justₐ with suc m ≤? n
     nothing-just-compare (f , p) a m n fm≡nothing fn≡justₐ | inj₁  Sm≤n = Sm≤n
-    nothing-just-compare (f , p) a m n fm≡nothing fn≡justₐ | inj₂ ¬Sm≤n = ⊥-elim (disj-constructors (trans (sym (smaller-nothing (f , p) n m n≤m fm≡nothing)) fn≡justₐ))
-      where
-        Sn≤Sm : suc n ≤ suc m
-        Sn≤Sm = m≰n→Sn≤m ¬Sm≤n
-        n≤m : n ≤ m
-        n≤m = suc≤suc→≤ Sn≤Sm
+    nothing-just-compare (f , p) a m n fm≡nothing fn≡justₐ | inj₂ ¬Sm≤n =
+      ⊥-elim (disj-constructors (trans (sym (smaller-nothing (f , p) n m n≤m fm≡nothing)) fn≡justₐ))
+        where
+          Sn≤Sm : suc n ≤ suc m
+          Sn≤Sm = m≰n→Sn≤m ¬Sm≤n
+          n≤m : n ≤ m
+          n≤m = suc≤suc→≤ Sn≤Sm
 
 
 
