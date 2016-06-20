@@ -526,7 +526,7 @@ module canonical-simple-properties {a} {Aset : SET a} where
                                        (least-upper-bound _ (now a) (λ _ → ⊑-refl _))
                                        (upper-bound′ (Seq→Increasing (const-seq a)) (canonical (const-seq a)) (⊑-refl _) zero)
 
-  -- An important lemma: ↓ and ⇓ are equivalent (logically; the first is not propositional).
+  -- An important lemma: _↓_ and canonical_⇓_ are equivalent (logically; the first is not propositional).
   canonical⇓↓ : (a : A) → (seq : Seq) → canonical seq ⇓ a ⇔ (seq ↓ a)
   canonical⇓↓ a seq =
     record { to = ⇓→↓ ;
