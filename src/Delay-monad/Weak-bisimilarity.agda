@@ -78,22 +78,41 @@ now≉never (laterʳ p) = now≉never p
 
 -- Sometimes one can remove later constructors.
 
-laterʳ⁻¹ : ∀ {x y} → x ≈ later y → x ≈ force y
+laterʳ⁻¹ : ∀ {i} {j : Size< i} {x y} →
+           Weakly-bisimilar i x (later y) →
+           Weakly-bisimilar j x (force y)
 laterʳ⁻¹ (later-cong p) = laterˡ (force p)
 laterʳ⁻¹ (laterʳ p)     = p
 laterʳ⁻¹ (laterˡ p)     = laterˡ (laterʳ⁻¹ p)
 
-laterˡ⁻¹ : ∀ {x y} →
-           later x ≈ y → force x ≈ y
+∞laterʳ⁻¹ : ∀ {i x y} →
+            Weakly-bisimilar i x (later y) →
+            ∞Weakly-bisimilar i x (force y)
+force (∞laterʳ⁻¹ p) = laterʳ⁻¹ p
+
+laterˡ⁻¹ : ∀ {i} {j : Size< i} {x y} →
+           Weakly-bisimilar i (later x) y →
+           Weakly-bisimilar j (force x) y
 laterˡ⁻¹ (later-cong p) = laterʳ (force p)
 laterˡ⁻¹ (laterʳ p)     = laterʳ (laterˡ⁻¹ p)
 laterˡ⁻¹ (laterˡ p)     = p
 
-later⁻¹ : ∀ {x y} →
-          later x ≈ later y → force x ≈ force y
+∞laterˡ⁻¹ : ∀ {i x y} →
+            Weakly-bisimilar i (later x) y →
+            ∞Weakly-bisimilar i (force x) y
+force (∞laterˡ⁻¹ p) = laterˡ⁻¹ p
+
+later⁻¹ : ∀ {i} {j : Size< i} {x y} →
+          Weakly-bisimilar i (later x) (later y) →
+          Weakly-bisimilar j (force x) (force y)
 later⁻¹ (later-cong p) = force p
 later⁻¹ (laterʳ p)     = laterˡ⁻¹ p
 later⁻¹ (laterˡ p)     = laterʳ⁻¹ p
+
+∞later⁻¹ : ∀ {i x y} →
+           Weakly-bisimilar i (later x) (later y) →
+           ∞Weakly-bisimilar i (force x) (force y)
+force (∞later⁻¹ p) = later⁻¹ p
 
 mutual
 
