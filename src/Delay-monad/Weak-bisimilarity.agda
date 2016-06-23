@@ -71,6 +71,12 @@ Terminates i x y = Weakly-bisimilar i (now y) x
 _⇓_ : Delay A ∞ → A → Set a
 _⇓_ = Terminates ∞
 
+-- Terminates i is contained in Terminates ∞.
+
+terminates→⇓ : ∀ {i x y} → Terminates i x y → x ⇓ y
+terminates→⇓ now-cong   = now-cong
+terminates→⇓ (laterʳ p) = laterʳ (terminates→⇓ p)
+
 -- The computation never is not terminating.
 
 now≉never : ∀ {i x} → ¬ Terminates i never x
