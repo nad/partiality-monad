@@ -76,6 +76,21 @@ _⇓_ = Terminates ∞
 now≉never : ∀ {i x} → ¬ Terminates i never x
 now≉never (laterʳ p) = now≉never p
 
+mutual
+
+  -- If A is uninhabited, then weak bisimilarity is trivial.
+
+  uninhabited→trivial : ∀ {i} → ¬ A → ∀ x y → Weakly-bisimilar i x y
+  uninhabited→trivial ¬A (now x)   _         = ⊥-elim (¬A x)
+  uninhabited→trivial ¬A (later x) (now y)   = ⊥-elim (¬A y)
+  uninhabited→trivial ¬A (later x) (later y) =
+    later-cong (∞uninhabited→trivial ¬A x y)
+
+  ∞uninhabited→trivial :
+    ∀ {i} → ¬ A → ∀ x y → ∞Weakly-bisimilar i (force x) (force y)
+  force (∞uninhabited→trivial ¬A x y) =
+    uninhabited→trivial ¬A (force x) (force y)
+
 -- Sometimes one can remove later constructors.
 
 laterʳ⁻¹ : ∀ {i} {j : Size< i} {x y} →
@@ -150,6 +165,37 @@ mutual
 ⇓-respects-≈ (laterʳ p) q          = ⇓-respects-≈ p (laterˡ⁻¹ q)
 ⇓-respects-≈ p          (laterʳ q) = laterʳ (⇓-respects-≈ p q)
 
+-- The previous result can be made size-preserving in the second
+-- argument iff A is uninhabited.
+
+size-preserving-⇓-respects-≈⇔uninhabited :
+  (∀ {i} {x y : Delay A ∞} {z} →
+   x ⇓ z → Weakly-bisimilar i x y → Terminates i y z) ⇔
+  ¬ A
+size-preserving-⇓-respects-≈⇔uninhabited = record
+  { to   = Now-trans              ↝⟨ (λ trans → now≈never (λ {i} → trans {i})) ⟩
+           (∀ x → now x ≈ never)  ↝⟨ (λ hyp x → now≉never (hyp x)) ⟩
+           ¬ A                    □
+  ; from = ¬ A              ↝⟨ uninhabited→trivial ⟩
+           (∀ x y → x ≈ y)  ↝⟨ (λ trivial {_ _ _ _} _ _ → trivial _ _) ⟩□
+           Now-trans        □
+  }
+  where
+  Now-trans = ∀ {i} {x y : Delay A ∞} {z} →
+              x ⇓ z → Weakly-bisimilar i x y → Terminates i y z
+
+  mutual
+
+    now≈never : Now-trans → ∀ {i} x →
+                Weakly-bisimilar i (now x) never
+    now≈never trans x =
+      trans (laterʳ {y = record { force = now x }} (reflexive (now x)))
+            (later-cong (∞now≈never trans x))
+
+    ∞now≈never : Now-trans → ∀ {i} x →
+                 ∞Weakly-bisimilar i (now x) never
+    force (∞now≈never trans x) = now≈never trans x
+
 mutual
 
   -- Weak bisimilarity is transitive.
@@ -178,41 +224,18 @@ size-preserving-transitivityʳ⇔uninhabited :
    x ≈ y → Weakly-bisimilar i y z → Weakly-bisimilar i x z) ⇔
   ¬ A
 size-preserving-transitivityʳ⇔uninhabited = record
-  { to   = Trans                  ↝⟨ (λ trans x → ≈never (λ {i} → trans {i}) (record { force = now x })) ⟩
-           (∀ x → now x ≈ never)  ↝⟨ (λ hyp x → now≉never (hyp x)) ⟩
-           ¬ A                    □
+  { to   = Trans      ↝⟨ (λ trans {_ _ _ _} now-z≈x x≈y → trans now-z≈x x≈y) ⟩
+           Now-trans  ↝⟨ _⇔_.to size-preserving-⇓-respects-≈⇔uninhabited ⟩□
+           ¬ A        □
   ; from = ¬ A              ↝⟨ uninhabited→trivial ⟩
            (∀ x y → x ≈ y)  ↝⟨ (λ trivial {_ _ _ _} _ _ → trivial _ _) ⟩□
            Trans            □
   }
   where
-  Trans = ∀ {i} {x y z : Delay A ∞} →
-          x ≈ y → Weakly-bisimilar i y z → Weakly-bisimilar i x z
-
-  mutual
-
-    ≈never : Trans → ∀ {i} (x : ∞Delay _ _) →
-             Weakly-bisimilar i (force x) never
-    ≈never trans x =
-      trans (laterʳ {y = x} (reflexive (force x)))
-            (later-cong (∞≈never trans x))
-
-    ∞≈never : Trans → ∀ {i} (x : ∞Delay _ _) →
-              ∞Weakly-bisimilar i (force x) never
-    force (∞≈never trans x) = ≈never trans x
-
-  mutual
-
-    uninhabited→trivial : ∀ {i} → ¬ A → ∀ x y → Weakly-bisimilar i x y
-    uninhabited→trivial ¬A (now x)   _         = ⊥-elim (¬A x)
-    uninhabited→trivial ¬A (later x) (now y)   = ⊥-elim (¬A y)
-    uninhabited→trivial ¬A (later x) (later y) =
-      later-cong (∞uninhabited→trivial ¬A x y)
-
-    ∞uninhabited→trivial :
-      ∀ {i} → ¬ A → ∀ x y → ∞Weakly-bisimilar i (force x) (force y)
-    force (∞uninhabited→trivial ¬A x y) =
-      uninhabited→trivial ¬A (force x) (force y)
+  Trans     = ∀ {i} {x y z : Delay A ∞} →
+              x ≈ y → Weakly-bisimilar i y z → Weakly-bisimilar i x z
+  Now-trans = ∀ {i} {x y : Delay A ∞} {z} →
+              x ⇓ z → Weakly-bisimilar i x y → Terminates i y z
 
 -- There is a transitivity proof that preserves the size of the
 -- first argument iff A is uninhabited.
