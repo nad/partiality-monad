@@ -1,3 +1,11 @@
+{-
+  TODO:
+  1. fix the module structure
+  2. avoid nested 'where's
+  3. fill in the gaps, obviously
+  4. look at other TODOs below
+-}
+
 
 -- Goal of this module: establish an equivalence between
 -- the QIIT partiality monad and the quotiented delay monad
@@ -578,6 +586,11 @@ module canonical'-surjective {Aset : SET a} where
   open canonical-simple-properties {Aset}
   open completion-to-seq {Aset}
   open evaluating-sequences {Aset}
+
+
+  -- TODO: THIS NEEDS TO BE RE-ORGANISED!
+  -- by far too many nested 'where'.
+  -- The whole module structures of the whole file need to be fixed.
 
   canonical-surjective : (Axiom-of-countable-choice a) → Surjective canonical
   canonical-surjective cc =
