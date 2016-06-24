@@ -47,6 +47,8 @@ module library-stuff where
     open import Preimage equality-with-J
     open import H-level.Closure equality-with-J
 
+ --   open import Derived-definitions-and-properties equality-with-J
+
     Y = proj₁ Yset
     
     InjSurj→≃ : (f : X → Y) → (Injective f) → (Surjective f) → Is-equivalence f
@@ -63,6 +65,8 @@ module library-stuff where
         preim-is-inh : (y : Y) → f ⁻¹ y
         preim-is-inh y = _↔_.to (∥∥↔ (preim-is-prop y)) (surj y)
 
+
+
   -- if P is a property of A (i.e. a family of propositions over A),
   -- then it is enough to show that any two elements of a which satisfy P
   -- in order to conclude that Σ A P is propositional.
@@ -70,7 +74,11 @@ module library-stuff where
               → ((a : A) → Is-proposition (P a))
               → ((x y : Σ A P) → proj₁ x ≡ proj₁ y)
               → Is-proposition (Σ A P)
-  Σ-property = {!ignore-propositional-component!}
+  Σ-property A P prop proj≡ =
+    _⇔_.from propositional⇔irrelevant pairs-equal
+      where
+        pairs-equal : (ap₁ ap₂ : Σ A P) → ap₁ ≡ ap₂
+        pairs-equal ap₁ ap₂ = Σ-≡,≡→≡ {p₁ = ap₁} {p₂ = ap₂} (proj≡ ap₁ ap₂) (_⇔_.to propositional⇔irrelevant (prop _) _ _)
 
 
   module _ {α β} {S : Set α} {R : S → S → Proposition β} where
