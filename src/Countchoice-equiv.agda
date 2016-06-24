@@ -495,7 +495,7 @@ module monotone-to-QIIT {Aset : SET a} where
 
   -- ... and this is really an extension.
   canonical'-is-extension : (fp : Seq) → canonical' (Quotient.HIT.[_] fp) ≡ canonical fp
-  canonical'-is-extension fp = {!elim-[]-respects-relation ? !}
+  canonical'-is-extension = elim-[] 
 
 
 
