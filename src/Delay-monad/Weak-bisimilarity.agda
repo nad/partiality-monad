@@ -14,8 +14,8 @@ open import H-level equality-with-J
 open import Function-universe equality-with-J
 
 open import Delay-monad
-open import Delay-monad.Strong-bisimilarity
-  using (Strongly-bisimilar; ∞Strongly-bisimilar;
+open import Delay-monad.Strong-bisimilarity as Strong
+  using (Strongly-bisimilar; ∞Strongly-bisimilar; _∼_; _∞∼_;
          now-cong; later-cong; force)
 
 -- Weak bisimilarity, defined using mixed induction and coinduction.
@@ -261,6 +261,29 @@ size-preserving-transitivityˡ⇔uninhabited =
    x ≈ y → Weakly-bisimilar i y z → Weakly-bisimilar i x z)  ↝⟨ size-preserving-transitivityʳ⇔uninhabited ⟩□
 
   ¬ A                                                        □
+
+-- Some size-preserving variants of transitivity.
+
+mutual
+
+  transitivity-∼≈ :
+    ∀ {i} {x y z : Delay A ∞} →
+    x ∼ y → Weakly-bisimilar i y z → Weakly-bisimilar i x z
+  transitivity-∼≈ now-cong       q              = q
+  transitivity-∼≈ (later-cong p) (later-cong q) = later-cong (∞transitivity-∼≈ p q)
+  transitivity-∼≈ (later-cong p) (laterˡ q)     = laterˡ (transitivity-∼≈ (force p) q)
+  transitivity-∼≈ p              (laterʳ q)     = laterʳ (transitivity-∼≈ p q)
+
+  ∞transitivity-∼≈ :
+    ∀ {i} {x y z : Delay A ∞} →
+    x ∞∼ y → ∞Weakly-bisimilar i y z → ∞Weakly-bisimilar i x z
+  force (∞transitivity-∼≈ p q) = transitivity-∼≈ (force p) (force q)
+
+transitivity-≈∼ :
+  ∀ {i} {x y z : Delay A ∞} →
+  Weakly-bisimilar i x y → y ∼ z → Weakly-bisimilar i x z
+transitivity-≈∼ p q =
+  symmetric (transitivity-∼≈ (Strong.symmetric q) (symmetric p))
 
 -- The notion of weak bisimilarity defined here is not necessarily
 -- propositional.
