@@ -117,6 +117,10 @@ import Delay-monad.Least-upper-bound
 
 import Delay-monad.Monad
 
+-- The "always true" predicate, □.
+
+import Delay-monad.Always
+
 ------------------------------------------------------------------------
 -- A variant of the delay monad with a sized type parameter
 
