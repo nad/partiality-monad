@@ -266,24 +266,24 @@ size-preserving-transitivityˡ⇔uninhabited =
 
 mutual
 
-  transitivity-∼≈ :
+  transitive-∼≈ :
     ∀ {i} {x y z : Delay A ∞} →
     x ∼ y → Weakly-bisimilar i y z → Weakly-bisimilar i x z
-  transitivity-∼≈ now-cong       q              = q
-  transitivity-∼≈ (later-cong p) (later-cong q) = later-cong (∞transitivity-∼≈ p q)
-  transitivity-∼≈ (later-cong p) (laterˡ q)     = laterˡ (transitivity-∼≈ (force p) q)
-  transitivity-∼≈ p              (laterʳ q)     = laterʳ (transitivity-∼≈ p q)
+  transitive-∼≈ now-cong       q              = q
+  transitive-∼≈ (later-cong p) (later-cong q) = later-cong (∞transitive-∼≈ p q)
+  transitive-∼≈ (later-cong p) (laterˡ q)     = laterˡ (transitive-∼≈ (force p) q)
+  transitive-∼≈ p              (laterʳ q)     = laterʳ (transitive-∼≈ p q)
 
-  ∞transitivity-∼≈ :
+  ∞transitive-∼≈ :
     ∀ {i} {x y z : Delay A ∞} →
     x ∞∼ y → ∞Weakly-bisimilar i y z → ∞Weakly-bisimilar i x z
-  force (∞transitivity-∼≈ p q) = transitivity-∼≈ (force p) (force q)
+  force (∞transitive-∼≈ p q) = transitive-∼≈ (force p) (force q)
 
-transitivity-≈∼ :
+transitive-≈∼ :
   ∀ {i} {x y z : Delay A ∞} →
   Weakly-bisimilar i x y → y ∼ z → Weakly-bisimilar i x z
-transitivity-≈∼ p q =
-  symmetric (transitivity-∼≈ (Strong.symmetric q) (symmetric p))
+transitive-≈∼ p q =
+  symmetric (transitive-∼≈ (Strong.symmetric q) (symmetric p))
 
 -- The notion of weak bisimilarity defined here is not necessarily
 -- propositional.
