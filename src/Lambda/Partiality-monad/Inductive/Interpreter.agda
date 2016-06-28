@@ -4,7 +4,7 @@
 
 {-# OPTIONS --without-K --rewriting #-}
 
-module Lambda.Interpreter where
+module Lambda.Partiality-monad.Inductive.Interpreter where
 
 open import Equality.Propositional
 open import Interval using (ext)
@@ -220,9 +220,9 @@ open Interpreter₁ public
 
 -- The semantics of Ω is the non-terminating computation never.
 
-Ω-loops : ⟦ Ω ⟧ empty ≡ wrap never
+Ω-loops : run (⟦ Ω ⟧ empty) ≡ never
 Ω-loops =
-  cong wrap (antisymmetry (least-upper-bound _ _ lemma) (never⊑ _))
+  antisymmetry (least-upper-bound _ _ lemma) (never⊑ _)
   where
   lemma : ∀ n → run (⟦ Ω ⟧′ empty n) ⊑ never
   lemma zero    = never⊑ never

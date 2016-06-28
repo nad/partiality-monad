@@ -7,7 +7,10 @@
 
 module Lambda.Syntax where
 
+open import Equality.Propositional
 open import Prelude
+
+open import Maybe equality-with-J
 
 ------------------------------------------------------------------------
 -- Terms
@@ -100,6 +103,40 @@ data _⊢_∈_ {n} (Γ : Ctxt n) : Tm n → Ty → Set where
   _·_ : ∀ {t₁ t₂ σ τ} →
         Γ ⊢ t₁ ∈ σ ⇾ τ → Γ ⊢ t₂ ∈ force σ →
         Γ ⊢ t₁ · t₂ ∈ force τ
+
+------------------------------------------------------------------------
+-- Some definitions used in several type soundness proofs
+
+open Closure Tm
+
+-- WF-Value, WF-Env and WF-MV specify when a
+-- value/environment/potential value is well-formed with respect to a
+-- given context (and type).
+
+mutual
+
+  data WF-Value : Ty → Value → Set where
+    con : ∀ {i} → WF-Value nat (con i)
+    ƛ   : ∀ {n Γ σ τ} {t : Tm (1 + n)} {ρ} →
+          snoc Γ (force σ) ⊢ t ∈ force τ →
+          WF-Env Γ ρ →
+          WF-Value (σ ⇾ τ) (ƛ t ρ)
+
+  WF-Env : ∀ {n} → Ctxt n → Env n → Set
+  WF-Env Γ ρ = ∀ x → WF-Value (Γ x) (ρ x)
+
+WF-MV : Ty → Maybe Value → Set
+WF-MV σ v = maybe (WF-Value σ) Prelude.⊥ v
+
+-- Some "constructors" for WF-Env.
+
+empty-wf : WF-Env empty empty
+empty-wf ()
+
+snoc-wf : ∀ {n} {Γ : Ctxt n} {ρ σ v} →
+          WF-Env Γ ρ → WF-Value σ v → WF-Env (snoc Γ σ) (snoc ρ v)
+snoc-wf ρ-wf v-wf fzero    = v-wf
+snoc-wf ρ-wf v-wf (fsuc x) = ρ-wf x
 
 ------------------------------------------------------------------------
 -- Example

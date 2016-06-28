@@ -4,7 +4,7 @@
 
 {-# OPTIONS --without-K --rewriting #-}
 
-module Lambda.Type-soundness where
+module Lambda.Partiality-monad.Inductive.Type-soundness where
 
 open import Equality.Propositional
 open import H-level.Truncation.Propositional as Trunc
@@ -25,50 +25,24 @@ open import Partiality-monad.Inductive.Alternative-order
 open import Partiality-monad.Inductive.Monad
 open import Partiality-monad.Inductive.Properties
 
-open import Lambda.Interpreter
+open import Lambda.Partiality-monad.Inductive.Interpreter
 open import Lambda.Syntax
 
 open Closure Tm
 
--- WF-Value, WF-Env and WF-MV specify when a
--- value/environment/potential value is well-formed with respect to a
--- given context (and type).
+-- A propositionally truncated variant of WF-MV.
 
-mutual
+∥WF-MV∥ : Ty → Maybe Value → Set
+∥WF-MV∥ σ x = ∥ WF-MV σ x ∥
 
-  data WF-Value : Ty → Value → Set where
-    con : ∀ {i} → WF-Value nat (con i)
-    ƛ   : ∀ {n Γ σ τ} {t : Tm (1 + n)} {ρ} →
-          snoc Γ (force σ) ⊢ t ∈ force τ →
-          WF-Env Γ ρ →
-          WF-Value (σ ⇾ τ) (ƛ t ρ)
-
-  WF-Env : ∀ {n} → Ctxt n → Env n → Set
-  WF-Env Γ ρ = ∀ x → WF-Value (Γ x) (ρ x)
-
--- Note that WF-MV is forced to be propositional.
-
-WF-MV : Ty → Maybe Value → Set
-WF-MV σ v = ∥ maybe (WF-Value σ) Prelude.⊥ v ∥
-
--- Some "constructors" for WF-Env.
-
-empty-wf : WF-Env empty empty
-empty-wf ()
-
-snoc-wf : ∀ {n} {Γ : Ctxt n} {ρ σ v} →
-          WF-Env Γ ρ → WF-Value σ v → WF-Env (snoc Γ σ) (snoc ρ v)
-snoc-wf ρ-wf v-wf fzero    = v-wf
-snoc-wf ρ-wf v-wf (fsuc x) = ρ-wf x
-
--- If we can prove □ (WF-MV σ) (run x), then x does not "go wrong".
+-- If we can prove □ (∥WF-MV∥ σ) (run x), then x does not "go wrong".
 
 does-not-go-wrong : ∀ {σ} {x : M Value} →
-                    □ (WF-MV σ) (run x) → ¬ x ≡ fail
+                    □ (∥WF-MV∥ σ) (run x) → ¬ x ≡ fail
 does-not-go-wrong {σ} {x} always =
   x ≡ fail             ↝⟨ cong MaybeT.run ⟩
   run x ≡ now nothing  ↝⟨ always _ ⟩
-  WF-MV σ nothing      ↝⟨ id ⟩
+  ∥WF-MV∥ σ nothing    ↝⟨ id ⟩
   ∥ ⊥₀ ∥               ↝⟨ _↔_.to (not-inhabited⇒∥∥↔⊥ id) ⟩□
   ⊥₀                   □
 
@@ -76,26 +50,26 @@ does-not-go-wrong {σ} {x} always =
 
 module _ (univ : Univalence lzero) where
 
-  -- Some "constructors" for WF-MV.
+  -- Some "constructors" for □ ∘ ∥WF-MV∥.
 
   return-wf :
     ∀ {σ v} →
     WF-Value σ v →
-    □ (WF-MV σ) (MaybeT.run (return v))
+    □ (∥WF-MV∥ σ) (MaybeT.run (return v))
   return-wf v-wf = □-now univ truncation-is-proposition ∣ v-wf ∣
 
   _>>=-wf_ :
     ∀ {σ τ} {x : M Value} {f : Value → M Value} →
-    □ (WF-MV σ) (run x) →
-    (∀ {v} → WF-Value σ v → □ (WF-MV τ) (run (f v))) →
-    □ (WF-MV τ) (MaybeT.run (x >>= f))
+    □ (∥WF-MV∥ σ) (run x) →
+    (∀ {v} → WF-Value σ v → □ (∥WF-MV∥ τ) (run (f v))) →
+    □ (∥WF-MV∥ τ) (MaybeT.run (x >>= f))
   _>>=-wf_ {σ} {τ} {f = f} x-wf f-wf =
     □->>= univ univ (λ _ → truncation-is-proposition) x-wf
       λ { {nothing} → Trunc.rec prop ⊥-elim
         ; {just v}  → Trunc.rec prop f-wf
         }
     where
-    prop : ∀ {x} → Is-proposition (□ (WF-MV τ) x)
+    prop : ∀ {x} → Is-proposition (□ (∥WF-MV∥ τ) x)
     prop = □-closure 1 (λ _ → truncation-is-proposition)
 
   -- Type soundness.
@@ -104,7 +78,7 @@ module _ (univ : Univalence lzero) where
 
     ⟦⟧′-wf : ∀ {n Γ} (t : Tm n) {σ} → Γ ⊢ t ∈ σ →
              ∀ {ρ} → WF-Env Γ ρ →
-             ∀ n → □ (WF-MV σ) (run (⟦ t ⟧′ ρ n))
+             ∀ n → □ (∥WF-MV∥ σ) (run (⟦ t ⟧′ ρ n))
     ⟦⟧′-wf (con i)   con             ρ-wf n = return-wf con
     ⟦⟧′-wf (var x)   var             ρ-wf n = return-wf (ρ-wf x)
     ⟦⟧′-wf (ƛ t)     (ƛ t∈)          ρ-wf n = return-wf (ƛ t∈ ρ-wf)
@@ -115,14 +89,14 @@ module _ (univ : Univalence lzero) where
 
     ∙-wf : ∀ {σ τ f v} →
            WF-Value (σ ⇾ τ) f → WF-Value (force σ) v →
-           ∀ n → □ (WF-MV (force τ)) (run ((f ∙ v) n))
+           ∀ n → □ (∥WF-MV∥ (force τ)) (run ((f ∙ v) n))
     ∙-wf (ƛ t₁∈ ρ₁-wf) v₂-wf zero    = □-never univ
     ∙-wf (ƛ t₁∈ ρ₁-wf) v₂-wf (suc n) = ⟦⟧′-wf _ t₁∈ (snoc-wf ρ₁-wf v₂-wf) n
 
   type-soundness : ∀ {t : Tm 0} {σ} →
                    empty ⊢ t ∈ σ → ¬ ⟦ t ⟧ empty ≡ fail
   type-soundness {t} {σ} =
-    empty ⊢ t ∈ σ                               ↝⟨ (λ t∈ → ⟦⟧′-wf _ t∈ empty-wf) ⟩
-    (∀ n → □ (WF-MV σ) (run (⟦ t ⟧′ empty n)))  ↝⟨ □-⨆ univ (λ _ → truncation-is-proposition) ⟩
-    □ (WF-MV σ) (run (⟦ t ⟧ empty))             ↝⟨ does-not-go-wrong ⟩□
-    ¬ ⟦ t ⟧ empty ≡ fail                        □
+    empty ⊢ t ∈ σ                                 ↝⟨ (λ t∈ → ⟦⟧′-wf _ t∈ empty-wf) ⟩
+    (∀ n → □ (∥WF-MV∥ σ) (run (⟦ t ⟧′ empty n)))  ↝⟨ □-⨆ univ (λ _ → truncation-is-proposition) ⟩
+    □ (∥WF-MV∥ σ) (run (⟦ t ⟧ empty))             ↝⟨ does-not-go-wrong ⟩□
+    ¬ ⟦ t ⟧ empty ≡ fail                          □
