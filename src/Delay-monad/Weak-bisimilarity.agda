@@ -285,6 +285,53 @@ transitive-≈∼ :
 transitive-≈∼ p q =
   symmetric (transitive-∼≈ (Strong.symmetric q) (symmetric p))
 
+-- Some equational reasoning combinators.
+
+infix  -1 finally-≈ _∎≈
+infixr -2 _≈⟨_⟩_ _≈⟨_⟩∞_ _≈⟨⟩_ _∼⟨_⟩≈_ _≡⟨_⟩≈_ _≡⟨_⟩∞≈_ _≳⟨⟩_
+
+_∎≈ : ∀ {i} (x : Delay A ∞) → Weakly-bisimilar i x x
+_∎≈ = reflexive
+
+_≈⟨_⟩_ : ∀ {i} (x : Delay A ∞) {y z} →
+         Weakly-bisimilar i x y → y ∼ z → Weakly-bisimilar i x z
+_ ≈⟨ p ⟩ q = transitive-≈∼ p q
+
+_≈⟨_⟩∞_ : ∀ {i} (x : Delay A ∞) {y z} →
+          ∞Weakly-bisimilar i x y → y ∼ z → ∞Weakly-bisimilar i x z
+force (_ ≈⟨ p ⟩∞ q) = transitive-≈∼ (force p) q
+
+_≈⟨⟩_ : ∀ {i} (x : Delay A ∞) {y} →
+        Weakly-bisimilar i x y → Weakly-bisimilar i x y
+_ ≈⟨⟩ p = p
+
+_∼⟨_⟩≈_ : ∀ {i} (x : Delay A ∞) {y z} →
+          x ∼ y → Weakly-bisimilar i y z → Weakly-bisimilar i x z
+_ ∼⟨ p ⟩≈ q = transitive-∼≈ p q
+
+_≡⟨_⟩≈_ : ∀ {i} (x : Delay A ∞) {y z} →
+          x ≡ y → Weakly-bisimilar i y z → Weakly-bisimilar i x z
+_≡⟨_⟩≈_ {i} _ p q = subst (λ x → Weakly-bisimilar i x _) (sym p) q
+
+_≡⟨_⟩∞≈_ : ∀ {i} (x : Delay A ∞) {y z} →
+           x ≡ y → ∞Weakly-bisimilar i y z → ∞Weakly-bisimilar i x z
+force (_ ≡⟨ p ⟩∞≈ q) = _ ≡⟨ p ⟩≈ force q
+
+drop-later : Delay A ∞ → Delay A ∞
+drop-later (now x)   = now x
+drop-later (later x) = force x
+
+_≳⟨⟩_ : ∀ {i} (x : Delay A ∞) {y} →
+        Weakly-bisimilar i (drop-later x) y → Weakly-bisimilar i x y
+now x   ≳⟨⟩ p = p
+later x ≳⟨⟩ p = laterˡ p
+
+finally-≈ : ∀ {i} (x y : Delay A ∞) →
+            Weakly-bisimilar i x y → Weakly-bisimilar i x y
+finally-≈ _ _ p = p
+
+syntax finally-≈ x y p = x ≈⟨ p ⟩∎ y ∎
+
 -- The notion of weak bisimilarity defined here is not necessarily
 -- propositional.
 
