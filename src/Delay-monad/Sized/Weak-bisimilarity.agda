@@ -15,8 +15,8 @@ open import H-level equality-with-J
 open import Function-universe equality-with-J
 
 open import Delay-monad.Sized
-open import Delay-monad.Sized.Strong-bisimilarity
-  using (Strongly-bisimilar; ∞Strongly-bisimilar;
+open import Delay-monad.Sized.Strong-bisimilarity as Strong
+  using (Strongly-bisimilar; ∞Strongly-bisimilar; _∼_; _∞∼_;
          now-cong; later-cong; force)
 
 -- Weak bisimilarity, defined using mixed induction and coinduction.
@@ -72,29 +72,69 @@ Terminates i x y = Weakly-bisimilar i (now y) x
 _⇓_ : Delay A ∞ → A ∞ → Set a
 _⇓_ = Terminates ∞
 
+-- Terminates i is contained in Terminates ∞.
+
+terminates→⇓ : ∀ {i x y} → Terminates i x y → x ⇓ y
+terminates→⇓ now-cong   = now-cong
+terminates→⇓ (laterʳ p) = laterʳ (terminates→⇓ p)
+
 -- The computation never is not terminating.
 
 now≉never : ∀ {i x} → ¬ Terminates i never x
 now≉never (laterʳ p) = now≉never p
 
+mutual
+
+  -- If A ∞ is uninhabited, then weak bisimilarity is trivial.
+
+  uninhabited→trivial : ∀ {i} → ¬ A ∞ → ∀ x y → Weakly-bisimilar i x y
+  uninhabited→trivial ¬A (now x)   _         = ⊥-elim (¬A x)
+  uninhabited→trivial ¬A (later x) (now y)   = ⊥-elim (¬A y)
+  uninhabited→trivial ¬A (later x) (later y) =
+    later-cong (∞uninhabited→trivial ¬A x y)
+
+  ∞uninhabited→trivial :
+    ∀ {i} → ¬ A ∞ → ∀ x y → ∞Weakly-bisimilar i (force x) (force y)
+  force (∞uninhabited→trivial ¬A x y) =
+    uninhabited→trivial ¬A (force x) (force y)
+
 -- Sometimes one can remove later constructors.
 
-laterʳ⁻¹ : ∀ {x y} → x ≈ later y → x ≈ force y
+laterʳ⁻¹ : ∀ {i} {j : Size< i} {x y} →
+           Weakly-bisimilar i x (later y) →
+           Weakly-bisimilar j x (force y)
 laterʳ⁻¹ (later-cong p) = laterˡ (force p)
 laterʳ⁻¹ (laterʳ p)     = p
 laterʳ⁻¹ (laterˡ p)     = laterˡ (laterʳ⁻¹ p)
 
-laterˡ⁻¹ : ∀ {x y} →
-           later x ≈ y → force x ≈ y
+∞laterʳ⁻¹ : ∀ {i x y} →
+            Weakly-bisimilar i x (later y) →
+            ∞Weakly-bisimilar i x (force y)
+force (∞laterʳ⁻¹ p) = laterʳ⁻¹ p
+
+laterˡ⁻¹ : ∀ {i} {j : Size< i} {x y} →
+           Weakly-bisimilar i (later x) y →
+           Weakly-bisimilar j (force x) y
 laterˡ⁻¹ (later-cong p) = laterʳ (force p)
 laterˡ⁻¹ (laterʳ p)     = laterʳ (laterˡ⁻¹ p)
 laterˡ⁻¹ (laterˡ p)     = p
 
-later⁻¹ : ∀ {x y} →
-          later x ≈ later y → force x ≈ force y
+∞laterˡ⁻¹ : ∀ {i x y} →
+            Weakly-bisimilar i (later x) y →
+            ∞Weakly-bisimilar i (force x) y
+force (∞laterˡ⁻¹ p) = laterˡ⁻¹ p
+
+later⁻¹ : ∀ {i} {j : Size< i} {x y} →
+          Weakly-bisimilar i (later x) (later y) →
+          Weakly-bisimilar j (force x) (force y)
 later⁻¹ (later-cong p) = force p
 later⁻¹ (laterʳ p)     = laterˡ⁻¹ p
 later⁻¹ (laterˡ p)     = laterʳ⁻¹ p
+
+∞later⁻¹ : ∀ {i x y} →
+           Weakly-bisimilar i (later x) (later y) →
+           ∞Weakly-bisimilar i (force x) (force y)
+force (∞later⁻¹ p) = later⁻¹ p
 
 mutual
 
@@ -131,6 +171,40 @@ mutual
 ⇓-respects-≈ now-cong   now-cong   = now-cong
 ⇓-respects-≈ (laterʳ p) q          = ⇓-respects-≈ p (laterˡ⁻¹ q)
 ⇓-respects-≈ p          (laterʳ q) = laterʳ (⇓-respects-≈ p q)
+
+-- If the previous result can be made size-preserving in the second
+-- argument, then ∀ i → A i is uninhabited.
+
+Now-trans = ∀ {i} {x y : Delay A ∞} {z} →
+            x ⇓ z → Weakly-bisimilar i x y → Terminates i y z
+
+size-preserving-⇓-respects-≈→uninhabited : Now-trans → ¬ (∀ i → A i)
+size-preserving-⇓-respects-≈→uninhabited =
+  Now-trans                              ↝⟨ (λ trans → now≈never (λ {i} → trans {i})) ⟩
+  ((x : ∀ i → A i) → now (x ∞) ≈ never)  ↝⟨ (λ hyp x → now≉never (hyp x)) ⟩□
+  ¬ (∀ i → A i)                          □
+  where
+  mutual
+
+    now≈never : Now-trans → ∀ {i} (x : ∀ i → A i) →
+                Weakly-bisimilar i (now (x ∞)) never
+    now≈never trans x =
+      trans (laterʳ {y = record { force = now (x _) }}
+                    (reflexive (now (x ∞))))
+            (later-cong (∞now≈never trans x))
+
+    ∞now≈never : Now-trans → ∀ {i} (x : ∀ i → A i) →
+                 ∞Weakly-bisimilar i (now (x ∞)) never
+    force (∞now≈never trans x) = now≈never trans x
+
+-- If A ∞ is uninhabited, then there is a size-preserving transitivity
+-- proof of the kind mentioned above.
+
+uninhabited→size-preserving-⇓-respects-≈ : ¬ A ∞ → Now-trans
+uninhabited→size-preserving-⇓-respects-≈ =
+  ¬ A ∞            ↝⟨ uninhabited→trivial ⟩
+  (∀ x y → x ≈ y)  ↝⟨ (λ trivial {_ _ _ _} _ _ → trivial _ _) ⟩□
+  Now-trans        □
 
 mutual
 
@@ -199,19 +273,76 @@ uninhabited→size-preserving-transitivityʳ =
   ¬ A ∞            ↝⟨ uninhabited→trivial ⟩
   (∀ x y → x ≈ y)  ↝⟨ (λ trivial {_ _ _ _} _ _ → trivial _ _) ⟩□
   Transʳ           □
-  where
-  mutual
 
-    uninhabited→trivial : ∀ {i} → ¬ A ∞ → ∀ x y → Weakly-bisimilar i x y
-    uninhabited→trivial ¬A (now x)   _         = ⊥-elim (¬A x)
-    uninhabited→trivial ¬A (later x) (now y)   = ⊥-elim (¬A y)
-    uninhabited→trivial ¬A (later x) (later y) =
-      later-cong (∞uninhabited→trivial ¬A x y)
+-- Some size-preserving variants of transitivity.
 
-    ∞uninhabited→trivial :
-      ∀ {i} → ¬ A ∞ → ∀ x y → ∞Weakly-bisimilar i (force x) (force y)
-    force (∞uninhabited→trivial ¬A x y) =
-      uninhabited→trivial ¬A (force x) (force y)
+mutual
+
+  transitive-∼≈ :
+    ∀ {i} {x y z : Delay A ∞} →
+    x ∼ y → Weakly-bisimilar i y z → Weakly-bisimilar i x z
+  transitive-∼≈ now-cong       q              = q
+  transitive-∼≈ (later-cong p) (later-cong q) = later-cong (∞transitive-∼≈ p q)
+  transitive-∼≈ (later-cong p) (laterˡ q)     = laterˡ (transitive-∼≈ (force p) q)
+  transitive-∼≈ p              (laterʳ q)     = laterʳ (transitive-∼≈ p q)
+
+  ∞transitive-∼≈ :
+    ∀ {i} {x y z : Delay A ∞} →
+    x ∞∼ y → ∞Weakly-bisimilar i y z → ∞Weakly-bisimilar i x z
+  force (∞transitive-∼≈ p q) = transitive-∼≈ (force p) (force q)
+
+transitive-≈∼ :
+  ∀ {i} {x y z : Delay A ∞} →
+  Weakly-bisimilar i x y → y ∼ z → Weakly-bisimilar i x z
+transitive-≈∼ p q =
+  symmetric (transitive-∼≈ (Strong.symmetric q) (symmetric p))
+
+-- Some equational reasoning combinators.
+
+infix  -1 finally-≈ _∎≈
+infixr -2 _≈⟨_⟩_ _≈⟨_⟩∞_ _≈⟨⟩_ _∼⟨_⟩≈_ _≡⟨_⟩≈_ _≡⟨_⟩∞≈_ _≳⟨⟩_
+
+_∎≈ : ∀ {i} (x : Delay A ∞) → Weakly-bisimilar i x x
+_∎≈ = reflexive
+
+_≈⟨_⟩_ : ∀ {i} (x : Delay A ∞) {y z} →
+         Weakly-bisimilar i x y → y ∼ z → Weakly-bisimilar i x z
+_ ≈⟨ p ⟩ q = transitive-≈∼ p q
+
+_≈⟨_⟩∞_ : ∀ {i} (x : Delay A ∞) {y z} →
+          ∞Weakly-bisimilar i x y → y ∼ z → ∞Weakly-bisimilar i x z
+force (_ ≈⟨ p ⟩∞ q) = transitive-≈∼ (force p) q
+
+_≈⟨⟩_ : ∀ {i} (x : Delay A ∞) {y} →
+        Weakly-bisimilar i x y → Weakly-bisimilar i x y
+_ ≈⟨⟩ p = p
+
+_∼⟨_⟩≈_ : ∀ {i} (x : Delay A ∞) {y z} →
+          x ∼ y → Weakly-bisimilar i y z → Weakly-bisimilar i x z
+_ ∼⟨ p ⟩≈ q = transitive-∼≈ p q
+
+_≡⟨_⟩≈_ : ∀ {i} (x : Delay A ∞) {y z} →
+          x ≡ y → Weakly-bisimilar i y z → Weakly-bisimilar i x z
+_≡⟨_⟩≈_ {i} _ p q = subst (λ x → Weakly-bisimilar i x _) (sym p) q
+
+_≡⟨_⟩∞≈_ : ∀ {i} (x : Delay A ∞) {y z} →
+           x ≡ y → ∞Weakly-bisimilar i y z → ∞Weakly-bisimilar i x z
+force (_ ≡⟨ p ⟩∞≈ q) = _ ≡⟨ p ⟩≈ force q
+
+drop-later : Delay A ∞ → Delay A ∞
+drop-later (now x)   = now x
+drop-later (later x) = force x
+
+_≳⟨⟩_ : ∀ {i} (x : Delay A ∞) {y} →
+        Weakly-bisimilar i (drop-later x) y → Weakly-bisimilar i x y
+now x   ≳⟨⟩ p = p
+later x ≳⟨⟩ p = laterˡ p
+
+finally-≈ : ∀ {i} (x y : Delay A ∞) →
+            Weakly-bisimilar i x y → Weakly-bisimilar i x y
+finally-≈ _ _ p = p
+
+syntax finally-≈ x y p = x ≈⟨ p ⟩∎ y ∎
 
 -- The notion of weak bisimilarity defined here is not necessarily
 -- propositional.

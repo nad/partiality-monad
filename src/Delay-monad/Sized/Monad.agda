@@ -6,11 +6,14 @@
 
 module Delay-monad.Sized.Monad where
 
-open import Prelude
+open import Prelude hiding (module W)
 
 open import Delay-monad.Sized
 open import Delay-monad.Sized.Strong-bisimilarity as S
-open import Delay-monad.Sized.Weak-bisimilarity
+open import Delay-monad.Sized.Weak-bisimilarity as W
+
+------------------------------------------------------------------------
+-- Monadic combinators
 
 -- Return.
 
@@ -27,44 +30,8 @@ mutual
   map f (later x) = later (∞map f x)
 
   ∞map : ∀ {i a b} {A : Size → Set a} {B : Size → Set b} →
-        ({j : Size< (ssuc i)} → A j → B j) → ∞Delay A i → ∞Delay B i
+         ({j : Size< (ssuc i)} → A j → B j) → ∞Delay A i → ∞Delay B i
   force (∞map f x) = map f (force x)
-
-mutual
-
-  -- The map function preserves strong bisimilarity.
-
-  map-cong-∼ : ∀ {i a b} {A : Size → Set a} {B : Size → Set b}
-               (f : ∀ {i} → A i → B i) {x y : Delay A ∞} →
-               Strongly-bisimilar i x y →
-               Strongly-bisimilar i (map f x) (map f y)
-  map-cong-∼ f now-cong       = now-cong
-  map-cong-∼ f (later-cong p) = later-cong (∞map-cong-∼ f p)
-
-  ∞map-cong-∼ : ∀ {i a b} {A : Size → Set a} {B : Size → Set b}
-                (f : ∀ {i} → A i → B i) {x y : Delay A ∞} →
-                ∞Strongly-bisimilar i x y →
-                ∞Strongly-bisimilar i (map f x) (map f y)
-  force (∞map-cong-∼ f p) = map-cong-∼ f (force p)
-
-mutual
-
-  -- The map function preserves weak bisimilarity.
-
-  map-cong-≈ : ∀ {i a b} {A : Size → Set a} {B : Size → Set b}
-               (f : ∀ {i} → A i → B i) {x y : Delay A ∞} →
-               Weakly-bisimilar i x y →
-               Weakly-bisimilar i (map f x) (map f y)
-  map-cong-≈ f now-cong       = now-cong
-  map-cong-≈ f (later-cong p) = later-cong (∞map-cong-≈ f p)
-  map-cong-≈ f (laterˡ p)     = laterˡ (map-cong-≈ f p)
-  map-cong-≈ f (laterʳ p)     = laterʳ (map-cong-≈ f p)
-
-  ∞map-cong-≈ : ∀ {i a b} {A : Size → Set a} {B : Size → Set b}
-                (f : ∀ {i} → A i → B i) {x y : Delay A ∞} →
-                ∞Weakly-bisimilar i x y →
-                ∞Weakly-bisimilar i (map f x) (map f y)
-  force (∞map-cong-≈ f p) = map-cong-≈ f (force p)
 
 mutual
 
@@ -84,10 +51,12 @@ mutual
 infixl 5 _>>=_
 
 _>>=_ : ∀ {i a b} {A : Size → Set a} {B : Size → Set b} →
-        Delay A i → ({j : Size< (ssuc i)} → A j → Delay B j) → Delay B i
+        Delay A i → ({j : Size< (ssuc i)} → A j → Delay B j) →
+        Delay B i
 x >>= f = join (map f x)
 
--- The monad laws.
+------------------------------------------------------------------------
+-- Monad laws
 
 left-identity :
   ∀ {a b} {A : Size → Set a} {B : Size → Set b}
@@ -124,3 +93,113 @@ mutual
     (g : ∀ {i} → B i → Delay C i) →
     x >>= (λ x → f x >>= g) ∞∼ x >>= f >>= g
   force (∞associativity x f g) = associativity x f g
+
+------------------------------------------------------------------------
+-- The functions map, join and _>>=_ preserve strong bisimilarity
+
+mutual
+
+  map-cong-∼ : ∀ {i a b} {A : Size → Set a} {B : Size → Set b}
+               (f : ∀ {i} → A i → B i) {x y : Delay A ∞} →
+               Strongly-bisimilar i x y →
+               Strongly-bisimilar i (map f x) (map f y)
+  map-cong-∼ f now-cong       = now-cong
+  map-cong-∼ f (later-cong p) = later-cong (∞map-cong-∼ f p)
+
+  ∞map-cong-∼ : ∀ {i a b} {A : Size → Set a} {B : Size → Set b}
+                (f : ∀ {i} → A i → B i) {x y : Delay A ∞} →
+                ∞Strongly-bisimilar i x y →
+                ∞Strongly-bisimilar i (map f x) (map f y)
+  force (∞map-cong-∼ f p) = map-cong-∼ f (force p)
+
+mutual
+
+  join-cong-∼ : ∀ {i a} {A : Size → Set a} {x y : Delay (Delay A) ∞} →
+                Strongly-bisimilar i x y →
+                Strongly-bisimilar i (join x) (join y)
+  join-cong-∼ now-cong       = S.reflexive _
+  join-cong-∼ (later-cong p) = later-cong (∞join-cong-∼ p)
+
+  ∞join-cong-∼ : ∀ {i a} {A : Size → Set a} {x y : Delay (Delay A) ∞} →
+                 ∞Strongly-bisimilar i x y →
+                 ∞Strongly-bisimilar i (join x) (join y)
+  force (∞join-cong-∼ p) = join-cong-∼ (force p)
+
+mutual
+
+  infixl 5 _>>=-cong-∼_ _∞>>=-cong-∼_
+
+  _>>=-cong-∼_ :
+    ∀ {i a b} {A : Size → Set a} {B : Size → Set b}
+      {x y : Delay A ∞} {f g : ∀ {i} → A i → Delay B i} →
+    Strongly-bisimilar i x y →
+    (∀ z → Strongly-bisimilar i (f z) (g z)) →
+    Strongly-bisimilar i (x >>= f) (y >>= g)
+  now-cong     >>=-cong-∼ q = q _
+  later-cong p >>=-cong-∼ q = later-cong (p ∞>>=-cong-∼ q)
+
+  _∞>>=-cong-∼_ :
+    ∀ {i a b} {A : Size → Set a} {B : Size → Set b}
+      {x y : Delay A ∞} {f g : ∀ {i} → A i → Delay B i} →
+    ∞Strongly-bisimilar i x y →
+    (∀ z → Strongly-bisimilar i (f z) (g z)) →
+    ∞Strongly-bisimilar i (x >>= f) (y >>= g)
+  force (p ∞>>=-cong-∼ q) = force p >>=-cong-∼ q
+
+------------------------------------------------------------------------
+-- The functions map, join and _>>=_ preserve weak bisimilarity
+
+mutual
+
+  map-cong-≈ : ∀ {i a b} {A : Size → Set a} {B : Size → Set b}
+               (f : ∀ {i} → A i → B i) {x y : Delay A ∞} →
+               Weakly-bisimilar i x y →
+               Weakly-bisimilar i (map f x) (map f y)
+  map-cong-≈ f now-cong       = now-cong
+  map-cong-≈ f (later-cong p) = later-cong (∞map-cong-≈ f p)
+  map-cong-≈ f (laterˡ p)     = laterˡ (map-cong-≈ f p)
+  map-cong-≈ f (laterʳ p)     = laterʳ (map-cong-≈ f p)
+
+  ∞map-cong-≈ : ∀ {i a b} {A : Size → Set a} {B : Size → Set b}
+                (f : ∀ {i} → A i → B i) {x y : Delay A ∞} →
+                ∞Weakly-bisimilar i x y →
+                ∞Weakly-bisimilar i (map f x) (map f y)
+  force (∞map-cong-≈ f p) = map-cong-≈ f (force p)
+
+mutual
+
+  join-cong-≈ : ∀ {i a} {A : Size → Set a} {x y : Delay (Delay A) ∞} →
+                Weakly-bisimilar i x y →
+                Weakly-bisimilar i (join x) (join y)
+  join-cong-≈ now-cong       = W.reflexive _
+  join-cong-≈ (later-cong p) = later-cong (∞join-cong-≈ p)
+  join-cong-≈ (laterˡ p)     = laterˡ (join-cong-≈ p)
+  join-cong-≈ (laterʳ p)     = laterʳ (join-cong-≈ p)
+
+  ∞join-cong-≈ : ∀ {i a} {A : Size → Set a} {x y : Delay (Delay A) ∞} →
+                 ∞Weakly-bisimilar i x y →
+                 ∞Weakly-bisimilar i (join x) (join y)
+  force (∞join-cong-≈ p) = join-cong-≈ (force p)
+
+mutual
+
+  infixl 5 _>>=-cong-≈_ _∞>>=-cong-≈_
+
+  _>>=-cong-≈_ :
+    ∀ {i a b} {A : Size → Set a} {B : Size → Set b}
+      {x y : Delay A ∞} {f g : ∀ {i} → A i → Delay B i} →
+    Weakly-bisimilar i x y →
+    (∀ z → Weakly-bisimilar i (f z) (g z)) →
+    Weakly-bisimilar i (x >>= f) (y >>= g)
+  now-cong     >>=-cong-≈ q = q _
+  later-cong p >>=-cong-≈ q = later-cong (p ∞>>=-cong-≈ q)
+  laterˡ p     >>=-cong-≈ q = laterˡ (p >>=-cong-≈ q)
+  laterʳ p     >>=-cong-≈ q = laterʳ (p >>=-cong-≈ q)
+
+  _∞>>=-cong-≈_ :
+    ∀ {i a b} {A : Size → Set a} {B : Size → Set b}
+      {x y : Delay A ∞} {f g : ∀ {i} → A i → Delay B i} →
+    ∞Weakly-bisimilar i x y →
+    (∀ z → Weakly-bisimilar i (f z) (g z)) →
+    ∞Weakly-bisimilar i (x >>= f) (y >>= g)
+  force (p ∞>>=-cong-≈ q) = force p >>=-cong-≈ q

@@ -161,6 +161,10 @@ import Delay-monad.Sized.Least-upper-bound
 
 import Delay-monad.Sized.Monad
 
+-- The "always true" predicate, □.
+
+import Delay-monad.Sized.Always
+
 ------------------------------------------------------------------------
 -- The delay monad quotiented by weak bisimilarity
 

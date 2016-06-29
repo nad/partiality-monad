@@ -6,7 +6,7 @@
 
 module Delay-monad.Sized.Strong-bisimilarity where
 
-open import Equality.Propositional using (_≡_)
+open import Equality.Propositional using (_≡_; subst; sym)
 open import Prelude
 
 open import Delay-monad.Sized
@@ -98,3 +98,30 @@ module _ {a} {A : Size → Set a} where
                   ∞Strongly-bisimilar i y z →
                   ∞Strongly-bisimilar i x z
     force (∞transitive p q) = transitive (force p) (force q)
+
+  -- Some equational reasoning combinators.
+
+  infix  -1 finally-∼ _∎∼
+  infixr -2 _∼⟨_⟩_ _∼⟨⟩_ _≡⟨_⟩∼_
+
+  _∎∼ : ∀ {i} (x : Delay A ∞) → Strongly-bisimilar i x x
+  _∎∼ = reflexive
+
+  _∼⟨_⟩_ : ∀ {i} (x : Delay A ∞) {y z} →
+           Strongly-bisimilar i x y → Strongly-bisimilar i y z →
+           Strongly-bisimilar i x z
+  _ ∼⟨ p ⟩ q = transitive p q
+
+  _∼⟨⟩_ : ∀ {i} (x : Delay A ∞) {y} →
+          Strongly-bisimilar i x y → Strongly-bisimilar i x y
+  _ ∼⟨⟩ p = p
+
+  _≡⟨_⟩∼_ : ∀ {i} (x : Delay A ∞) {y z} →
+            x ≡ y → Strongly-bisimilar i y z → Strongly-bisimilar i x z
+  _≡⟨_⟩∼_ {i} _ p q = subst (λ x → Strongly-bisimilar i x _) (sym p) q
+
+  finally-∼ : ∀ {i} (x y : Delay A ∞) →
+              Strongly-bisimilar i x y → Strongly-bisimilar i x y
+  finally-∼ _ _ p = p
+
+  syntax finally-∼ x y p = x ∼⟨ p ⟩∎ y ∎
