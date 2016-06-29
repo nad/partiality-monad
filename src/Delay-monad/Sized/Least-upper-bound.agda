@@ -6,7 +6,7 @@
 
 module Delay-monad.Sized.Least-upper-bound where
 
-open import Equality.Propositional hiding (reflexive)
+open import Equality.Propositional
 open import Prelude hiding (_⊔_)
 
 open import Nat equality-with-J
