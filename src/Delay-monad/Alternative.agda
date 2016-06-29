@@ -39,8 +39,7 @@ x ⇓ y = just y ≡ x
 Upwards-closed : ∀ {a} {A : Set a} → (ℕ → Maybe A) → Set a
 Upwards-closed f = ∀ {m n x} → m ≤ n → f m ⇓ x → f n ⇓ x
 
--- An alternative definition of the delay monad. Nicolai Kraus
--- suggested a similar definition.
+-- An alternative definition of the delay monad.
 
 Delay : ∀ {a} → Set a → Set a
 Delay A = ∃ λ (f : ℕ → Maybe A) → Upwards-closed f

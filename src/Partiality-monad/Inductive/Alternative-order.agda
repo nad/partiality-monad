@@ -37,8 +37,7 @@ open import Partiality-monad.Inductive.Properties
 -- This characterisation uses a technique from the first edition of
 -- the HoTT book (Theorems 11.3.16 and 11.3.32).
 --
--- The characterisation was developed together with Paolo Capriotti
--- and Nicolai Kraus.
+-- The characterisation was developed together with Paolo Capriotti.
 
 -- A binary relation, defined using structural recursion.
 
@@ -236,8 +235,7 @@ private
 -- Defined values of the form now x are never smaller than or equal
 -- to never (assuming univalence).
 --
--- This lemma was proved together with Paolo Capriotti and Nicolai
--- Kraus.
+-- This lemma was proved together with Paolo Capriotti.
 
 now⋢never : (x : A) → ¬ now x ⊑ never
 now⋢never x =

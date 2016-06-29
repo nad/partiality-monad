@@ -1,6 +1,6 @@
 ------------------------------------------------------------------------
 -- Code related to the paper "Partiality, Revisited"
--- Thorsten Altenkirch and Nils Anders Danielsson
+-- Thorsten Altenkirch, Nils Anders Danielsson and Nicolai Kraus
 ------------------------------------------------------------------------
 
 {-# OPTIONS --without-K #-}
