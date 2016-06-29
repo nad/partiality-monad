@@ -1,14 +1,12 @@
 ------------------------------------------------------------------------
--- A virtual machine
+-- Most of a virtual machine
 ------------------------------------------------------------------------
 
 {-# OPTIONS --without-K #-}
 
 module Lambda.Virtual-machine where
 
-open import Prelude hiding (⊥)
-
-open import Partiality-monad.Inductive
+open import Prelude
 
 open import Lambda.Syntax
 
@@ -55,7 +53,7 @@ data State : Set where
 pattern ⟨_∣_,_,_⟩ n c s ρ = ⟨_,_,_⟩ {n} c s ρ
 
 ------------------------------------------------------------------------
--- Functional semantics of the VM
+-- A kind of small-step semantics for the virtual machine
 
 -- The result of running the VM one step.
 
@@ -74,25 +72,3 @@ step ⟨ app    ∷ c , val v ∷ val (ƛ c′ ρ′) ∷  s , ρ ⟩ = continue
 step ⟨ ret    ∷ c , val v ∷ ret c′ ρ′     ∷  s , ρ ⟩ = continue ⟨ c′ , val v        ∷ s ,      ρ′   ⟩
 step ⟨ zero ∣ []  ,                 val v ∷ [] , ρ ⟩ = done v
 step _                                               = crash
-
--- The VM.
-
-steps : State → ℕ → Maybe Value ⊥
-steps s n       with step s
-steps s zero    | continue s′ = never
-steps s (suc n) | continue s′ = steps s′ n
-steps s n       | done v      = now (just v)
-steps s n       | crash       = now nothing
-
-steps-increasing : ∀ s n → steps s n ⊑ steps s (suc n)
-steps-increasing s n       with step s
-steps-increasing s zero    | continue s′ = never⊑ _
-steps-increasing s (suc n) | continue s′ = steps-increasing s′ n
-steps-increasing s n       | done v      = ⊑-refl _
-steps-increasing s n       | crash       = ⊑-refl _
-
-stepsˢ : State → Increasing-sequence (Maybe Value)
-stepsˢ s = (steps s , steps-increasing s)
-
-exec : State → Maybe Value ⊥
-exec s = ⨆ (stepsˢ s)

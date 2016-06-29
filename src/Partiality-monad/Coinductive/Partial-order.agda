@@ -4,7 +4,7 @@
 
 {-# OPTIONS --without-K --rewriting #-}
 
-open import Equality.Propositional hiding (reflexive)
+open import Equality.Propositional
 open import Univalence-axiom equality-with-J
 
 module Partiality-monad.Coinductive.Partial-order

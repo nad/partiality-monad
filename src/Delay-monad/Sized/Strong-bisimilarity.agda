@@ -4,16 +4,22 @@
 
 {-# OPTIONS --without-K #-}
 
-module Delay-monad.Strong-bisimilarity where
+module Delay-monad.Sized.Strong-bisimilarity where
 
 open import Equality.Propositional using (_≡_; subst; sym)
 open import Prelude
 
-open import Delay-monad
+open import Delay-monad.Sized
 
-module _ {a} {A : Set a} where
+module _ {a} {A : Size → Set a} where
 
-  -- Strong bisimilarity.
+  -- Strong bisimilarity. Note that this type is not defined in the
+  -- same way as Delay. One might argue that the now-cong constructor
+  -- should have the following type, using a /sized/ identity type Id:
+  --
+  --   now-cong : ∀ {x y} →
+  --              Id (A ∞) i x y →
+  --              Strongly-bisimilar i (now x) (now y)
 
   mutual
 
@@ -45,9 +51,9 @@ module _ {a} {A : Set a} where
 
 Extensionality : (ℓ : Level) → Set (lsuc ℓ)
 Extensionality a =
-  {A : Set a} {x y : Delay A ∞} → x ∼ y → x ≡ y
+  {A : Size → Set a} {x y : Delay A ∞} → x ∼ y → x ≡ y
 
-module _ {a} {A : Set a} where
+module _ {a} {A : Size → Set a} where
 
   mutual
 

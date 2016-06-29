@@ -56,37 +56,6 @@ import Partiality-monad.Inductive.Strict-omega-continuous
 import Partiality-monad.Inductive.Fixpoints
 
 ------------------------------------------------------------------------
--- An example
-
--- Some developments from "Operational Semantics Using the Partiality
--- Monad" by Danielsson, implemented using the higher
--- inductive-inductive partiality monad.
---
--- These developments to a large extent mirror developments in
--- "Coinductive big-step operational semantics" by Leroy and Grall.
-
--- The syntax of, and a type system for, the untyped λ-calculus with
--- constants.
-
-import Lambda.Syntax
-
--- A definitional interpreter.
-
-import Lambda.Interpreter
-
--- A type soundness result.
-
-import Lambda.Type-soundness
-
--- A virtual machine.
-
-import Lambda.Virtual-machine
-
--- A correct compiler.
-
-import Lambda.Compiler
-
-------------------------------------------------------------------------
 -- The delay monad
 
 -- The delay monad, defined coinductively.
@@ -116,6 +85,85 @@ import Delay-monad.Least-upper-bound
 -- The delay monad is a monad up to strong bisimilarity.
 
 import Delay-monad.Monad
+
+-- The "always true" predicate, □.
+
+import Delay-monad.Always
+
+------------------------------------------------------------------------
+-- An example
+
+-- Some developments from "Operational Semantics Using the Partiality
+-- Monad" by Danielsson, implemented using both the higher
+-- inductive-inductive partiality monad, and the delay monad.
+--
+-- These developments to a large extent mirror developments in
+-- "Coinductive big-step operational semantics" by Leroy and Grall.
+
+-- The syntax of, and a type system for, the untyped λ-calculus with
+-- constants.
+
+import Lambda.Syntax
+
+-- Most of a virtual machine.
+
+import Lambda.Virtual-machine
+
+-- A compiler.
+
+import Lambda.Compiler
+
+-- A definitional interpreter.
+
+import Lambda.Partiality-monad.Inductive.Interpreter
+import Lambda.Delay-monad.Interpreter
+
+-- A type soundness result.
+
+import Lambda.Partiality-monad.Inductive.Type-soundness
+import Lambda.Delay-monad.Type-soundness
+
+-- A virtual machine.
+
+import Lambda.Partiality-monad.Inductive.Virtual-machine
+import Lambda.Delay-monad.Virtual-machine
+
+-- Compiler correctness.
+
+import Lambda.Partiality-monad.Inductive.Compiler-correctness
+import Lambda.Delay-monad.Compiler-correctness
+
+------------------------------------------------------------------------
+-- A variant of the delay monad with a sized type parameter
+
+-- The delay monad, defined coinductively, with a sized type
+-- parameter.
+
+import Delay-monad.Sized
+
+-- Strong bisimilarity.
+
+import Delay-monad.Sized.Strong-bisimilarity
+
+-- Weak bisimilarity.
+
+import Delay-monad.Sized.Weak-bisimilarity
+
+-- A partial order.
+
+import Delay-monad.Sized.Partial-order
+
+-- Least upper bounds.
+
+import Delay-monad.Sized.Least-upper-bound
+
+-- A monad-like structure.
+
+import Delay-monad.Sized.Monad
+
+-- The "always true" predicate, □.
+
+import Delay-monad.Sized.Always
 
 ------------------------------------------------------------------------
 -- The delay monad quotiented by weak bisimilarity

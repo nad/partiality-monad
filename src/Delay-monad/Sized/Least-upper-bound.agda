@@ -4,17 +4,17 @@
 
 {-# OPTIONS --without-K #-}
 
-module Delay-monad.Least-upper-bound where
+module Delay-monad.Sized.Least-upper-bound where
 
 open import Equality.Propositional
 open import Prelude hiding (_⊔_)
 
 open import Nat equality-with-J
 
-open import Delay-monad
-open import Delay-monad.Partial-order
+open import Delay-monad.Sized
+open import Delay-monad.Sized.Partial-order
 
-module _ {a} {A : Set a} where
+module _ {a} {A : Size → Set a} where
 
   mutual
 
@@ -113,7 +113,7 @@ module _ {a} {A : Set a} where
 
   -- If x terminates, then x ⊔ y also terminates.
 
-  ⊔-⇓ˡ : ∀ {i x y} {z : A} →
+  ⊔-⇓ˡ : ∀ {i x y} {z : A ∞} →
          Terminates i x z → ∃ λ z′ → Terminates i (x ⊔ y) z′
   ⊔-⇓ˡ               now-cong   = _ , now-cong
   ⊔-⇓ˡ {y = now y}   (laterʳ p) = _ , now-cong
@@ -121,7 +121,7 @@ module _ {a} {A : Set a} where
 
   -- If y terminates, then x ⊔ y also terminates.
 
-  ⊔-⇓ʳ : ∀ {i} x {y} {z : A} →
+  ⊔-⇓ʳ : ∀ {i} x {y} {z : A ∞} →
          Terminates i y z → ∃ λ z′ → Terminates i (x ⊔ y) z′
   ⊔-⇓ʳ (now x)   _          = _ , now-cong
   ⊔-⇓ʳ (later x) now-cong   = _ , now-cong
@@ -129,11 +129,11 @@ module _ {a} {A : Set a} where
 
 -- Increasing sequences.
 
-Increasing-sequence : ∀ {a} → Set a → Set a
+Increasing-sequence : ∀ {a} → (Size → Set a) → Set a
 Increasing-sequence A =
-  ∃ λ (f : ℕ → Delay A ∞) → ∀ n → f n ⊑ f (suc n)
+  ∃ λ (f : ℕ → ∀ {i} → Delay A i) → ∀ n → f n ⊑ f (suc n)
 
-module _ {a} {A : Set a} where
+module _ {a} {A : Size → Set a} where
 
   -- The tail of an increasing sequence.
 
