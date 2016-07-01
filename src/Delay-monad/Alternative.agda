@@ -137,49 +137,6 @@ upwards-closed₀ inc f0⇓ (suc n) =
   upwards-closed₀ (inc ∘ suc) (step inc f0⇓) n
 
 ------------------------------------------------------------------------
--- An alternative definition of Increasing (not used below)
-
--- An alternative definition of N._≤_.
-
-infix 4 _≤_
-
-data _≤_ : ℕ → ℕ → Set where
-  zero≤   : ∀ n → zero ≤ n
-  suc≤suc : ∀ {m n} → m ≤ n → suc m ≤ suc n
-
--- A simple lemma.
-
-≤-step : ∀ n → n ≤ suc n
-≤-step zero    = zero≤ 1
-≤-step (suc n) = suc≤suc (≤-step n)
-
--- Upwards closed with respect to _⇓_.
-
-Upwards-closed : ∀ {a} {A : Set a} → (ℕ → Maybe A) → Set a
-Upwards-closed f = ∀ {m n} → m ≤ n → ∀ {x} → f m ⇓ x → f n ⇓ x
-
--- Upwards-closed and Increasing are pointwise logically equivalent.
-
-Upwards-closed⇔Increasing :
-  ∀ {a} {A : Set a} {f : ℕ → Maybe A} →
-  Upwards-closed f ⇔ Increasing f
-Upwards-closed⇔Increasing {f = f} = record
-  { to   = to
-  ; from = from
-  }
-  where
-  to : Upwards-closed f → Increasing f
-  to up n with f n | f (suc n) | up (≤-step n)
-  ... | nothing | nothing | _ = inj₁ refl
-  ... | nothing | just y  | _ = inj₂ (refl , ⊎.inj₁≢inj₂ ∘ sym)
-  ... | just x  | nothing | u = ⊥-elim $ ⊎.inj₁≢inj₂ $ u refl
-  ... | just x  | just y  | u = inj₁ (sym $ u refl)
-
-  from : ∀ {f} → Increasing f → Upwards-closed f
-  from inc (zero≤ n)     = flip (upwards-closed₀ inc) n
-  from inc (suc≤suc m≤n) = from (inc ∘ suc) m≤n
-
-------------------------------------------------------------------------
 -- Theorems relating the two definitions of the delay monad
 
 module _ {a} {A : Set a} where
