@@ -9,7 +9,7 @@ module Delay-monad.Alternative where
 open import Equality.Propositional
 open import Interval
 open import Logical-equivalence using (_⇔_)
-open import Prelude
+open import Prelude hiding (↑)
 
 open import Bijection equality-with-J as Bijection using (_↔_)
 open import Equality.Decision-procedures equality-with-J
@@ -29,17 +29,17 @@ open import Delay-monad.Strong-bisimilarity as Strong-bisimilarity
 
 module _ {a} {A : Set a} where
 
-  -- x ⇑ means that the computation x does not have a value.
+  -- x ↑ means that the computation x does not have a value.
 
-  infix 4 _⇑
+  infix 4 _↑
 
-  _⇑ : Maybe A → Set a
-  x ⇑ = x ≡ nothing
+  _↑ : Maybe A → Set a
+  x ↑ = x ≡ nothing
 
   -- The property of being an increasing sequence.
 
   LE : Maybe A → Maybe A → Set a
-  LE x y = x ≡ y ⊎ (x ⇑ × ¬ y ⇑)
+  LE x y = x ≡ y ⊎ (x ↑ × ¬ y ↑)
 
   Increasing-at : ℕ → (ℕ → Maybe A) → Set a
   Increasing-at n f = LE (f n) (f (suc n))
@@ -57,26 +57,26 @@ Delay A = ∃ λ (f : ℕ → Maybe A) → Increasing f
 
 module _ {a} {A : Set a} where
 
-  -- x ⇓ y means that the computation x terminates with the value y.
+  -- x ↓ y means that the computation x terminates with the value y.
 
-  infix 4 _⇓_
+  infix 4 _↓_
 
-  _⇓_ : Maybe A → A → Set a
-  x ⇓ y = x ≡ just y
+  _↓_ : Maybe A → A → Set a
+  x ↓ y = x ≡ just y
 
-  -- _⇑ is a family of propositions.
+  -- _↑ is a family of propositions.
 
-  ⇑-propositional : (x : Maybe A) → Is-proposition (x ⇑)
-  ⇑-propositional nothing =
+  ↑-propositional : (x : Maybe A) → Is-proposition (x ↑)
+  ↑-propositional nothing =
                                         $⟨ mono (N.zero≤ 2) ⊤-contractible _ _ ⟩
     Is-proposition (tt ≡ tt)            ↝⟨ H-level.respects-surjection (_↔_.surjection Bijection.≡↔inj₁≡inj₁) 1 ⟩□
     Is-proposition (nothing ≡ nothing)  □
 
-  ⇑-propositional (just x) = [inhabited⇒+]⇒+ 0 (
+  ↑-propositional (just x) = [inhabited⇒+]⇒+ 0 (
 
     just x ≡ nothing           ↝⟨ ⊎.inj₁≢inj₂ ∘ sym ⟩
     ⊥₀                         ↝⟨ ⊥-elim ⟩□
-    Is-proposition (just x ⇑)  □)
+    Is-proposition (just x ↑)  □)
 
   -- LE nothing is a family of contractible types.
 
@@ -85,19 +85,19 @@ module _ {a} {A : Set a} where
   LE-nothing-contractible {x = x} =
     propositional⇒inhabited⇒contractible
       (_⇔_.from propositional⇔irrelevant λ
-         { (inj₁ x⇑)        (inj₂ (_ , ¬x⇑)) → ⊥-elim (¬x⇑ (sym x⇑))
-         ; (inj₂ (_ , ¬x⇑)) (inj₁ x⇑)        → ⊥-elim (¬x⇑ (sym x⇑))
+         { (inj₁ x↑)        (inj₂ (_ , ¬x↑)) → ⊥-elim (¬x↑ (sym x↑))
+         ; (inj₂ (_ , ¬x↑)) (inj₁ x↑)        → ⊥-elim (¬x↑ (sym x↑))
 
          ; (inj₁ p)         (inj₁ q)         →
-                                 $⟨ ⇑-propositional _ ⟩
-           Is-proposition (x ⇑)  ↝⟨ (λ hyp → _⇔_.to propositional⇔irrelevant hyp _ _) ⟩
+                                 $⟨ ↑-propositional _ ⟩
+           Is-proposition (x ↑)  ↝⟨ (λ hyp → _⇔_.to propositional⇔irrelevant hyp _ _) ⟩
            sym p ≡ sym q         ↔⟨ Eq.≃-≡ $ from-bijection $ Groupoid.⁻¹-bijection (EG.groupoid _) ⟩
            p ≡ q                 ↔⟨ Bijection.≡↔inj₁≡inj₁ ⟩□
            inj₁ p ≡ inj₁ q       □
 
          ; (inj₂ p) (inj₂ q) →
-                                               $⟨ ×-closure 1 (⇑-propositional _) (¬-propositional ext) ⟩
-           Is-proposition (nothing ⇑ × ¬ x ⇑)  ↝⟨ (λ hyp → _⇔_.to propositional⇔irrelevant hyp _ _) ⟩
+                                               $⟨ ×-closure 1 (↑-propositional _) (¬-propositional ext) ⟩
+           Is-proposition (nothing ↑ × ¬ x ↑)  ↝⟨ (λ hyp → _⇔_.to propositional⇔irrelevant hyp _ _) ⟩
            p ≡ q                               ↔⟨ Bijection.≡↔inj₂≡inj₂ ⟩□
            inj₂ p ≡ inj₂ q                     □
          })
@@ -111,30 +111,30 @@ private
   -- If f is increasing and f 0 terminates, then f 1 terminates.
 
   step : ∀ {a} {A : Set a} {f} {x : A} →
-         Increasing f → f 0 ⇓ x → f 1 ⇓ x
-  step {f = f} {x} inc f0⇓x = step′ (inc 0)
+         Increasing f → f 0 ↓ x → f 1 ↓ x
+  step {f = f} {x} inc f0↓x = step′ (inc 0)
     module Step where
-    step′ : LE (f 0) (f 1) → f 1 ⇓ x
+    step′ : LE (f 0) (f 1) → f 1 ↓ x
     step′ (inj₁ f0≡f1) =
 
       f 1     ≡⟨ sym f0≡f1 ⟩
-      f 0     ≡⟨ f0⇓x ⟩∎
+      f 0     ≡⟨ f0↓x ⟩∎
       just x  ∎
 
-    step′ (inj₂ (f0⇑ , f1⇓)) =
+    step′ (inj₂ (f0↑ , f1↓)) =
 
       ⊥-elim $ ⊎.inj₁≢inj₂ (
-        nothing  ≡⟨ sym f0⇑ ⟩
-        f 0      ≡⟨ f0⇓x ⟩∎
+        nothing  ≡⟨ sym f0↑ ⟩
+        f 0      ≡⟨ f0↓x ⟩∎
         just x   ∎)
 
 -- If f is increasing and f 0 terminates, then f n terminates.
 
 upwards-closed₀ : ∀ {a} {A : Set a} {f} {x : A} →
-                  Increasing f → f 0 ⇓ x → ∀ n → f n ⇓ x
-upwards-closed₀ _   f0⇓ zero    = f0⇓
-upwards-closed₀ inc f0⇓ (suc n) =
-  upwards-closed₀ (inc ∘ suc) (step inc f0⇓) n
+                  Increasing f → f 0 ↓ x → ∀ n → f n ↓ x
+upwards-closed₀ _   f0↓ zero    = f0↓
+upwards-closed₀ inc f0↓ (suc n) =
+  upwards-closed₀ (inc ∘ suc) (step inc f0↓) n
 
 ------------------------------------------------------------------------
 -- Theorems relating the two definitions of the delay monad
@@ -224,37 +224,37 @@ module _ {a} {A : Set a} where
         (g-increasing : Increasing g) →
         ∀ x → g 0 ≡ x → ∀ n →
         proj₁ (from (To.to′ g g-increasing x)) n ≡ g n
-      proj₁∘from∘to g g-inc (just x) g0⇓x n       = sym $ upwards-closed₀ g-inc g0⇓x n
-      proj₁∘from∘to g g-inc nothing  g0⇑  zero    = sym g0⇑
-      proj₁∘from∘to g g-inc nothing  g0⇑  (suc n) =
+      proj₁∘from∘to g g-inc (just x) g0↓x n       = sym $ upwards-closed₀ g-inc g0↓x n
+      proj₁∘from∘to g g-inc nothing  g0↑  zero    = sym g0↑
+      proj₁∘from∘to g g-inc nothing  g0↑  (suc n) =
           proj₁∘from∘to (g ∘ suc) (g-inc ∘ suc) _ refl n
 
-      ⇓-lemma :
+      ↓-lemma :
         (g : ℕ → Maybe A) →
         (g-increasing : Increasing g) →
-        ∀ n x (g0⇓x : g 0 ⇓ x) p → p ≡ g-increasing 0 →
+        ∀ n x (g0↓x : g 0 ↓ x) p → p ≡ g-increasing 0 →
 
         subst (Increasing-at n)
-              (ext (sym ∘ upwards-closed₀ g-increasing g0⇓x))
+              (ext (sym ∘ upwards-closed₀ g-increasing g0↓x))
               (inj₁ refl)
           ≡
         g-increasing n
 
-      ⇓-lemma g _ _ x g0⇓x (inj₂ (g0⇑ , _)) _ =
+      ↓-lemma g _ _ x g0↓x (inj₂ (g0↑ , _)) _ =
         ⊥-elim $ ⊎.inj₁≢inj₂ (
-          nothing  ≡⟨ sym g0⇑ ⟩
-          g 0      ≡⟨ g0⇓x ⟩∎
+          nothing  ≡⟨ sym g0↑ ⟩
+          g 0      ≡⟨ g0↓x ⟩∎
           just x   ∎)
 
-      ⇓-lemma g g-inc zero x g0⇓x (inj₁ g0≡g1) ≡g-inc0 =
+      ↓-lemma g g-inc zero x g0↓x (inj₁ g0≡g1) ≡g-inc0 =
 
         subst (Increasing-at zero)
-              (ext (sym ∘ upwards-closed₀ g-inc g0⇓x))
+              (ext (sym ∘ upwards-closed₀ g-inc g0↓x))
               (inj₁ refl)                                     ≡⟨ push-subst-inj₁
-                                                                   {y≡z = ext (sym ∘ upwards-closed₀ g-inc g0⇓x)}
-                                                                   (λ f → f 0 ≡ f 1) (λ f → f 0 ⇑ × ¬ f 1 ⇑) ⟩
+                                                                   {y≡z = ext (sym ∘ upwards-closed₀ g-inc g0↓x)}
+                                                                   (λ f → f 0 ≡ f 1) (λ f → f 0 ↑ × ¬ f 1 ↑) ⟩
         inj₁ (subst (λ f → f 0 ≡ f 1)
-                    (ext (sym ∘ upwards-closed₀ g-inc g0⇓x))
+                    (ext (sym ∘ upwards-closed₀ g-inc g0↓x))
                     refl)                                     ≡⟨ cong inj₁ lemma ⟩
 
         inj₁ g0≡g1                                            ≡⟨ ≡g-inc0 ⟩∎
@@ -262,7 +262,7 @@ module _ {a} {A : Set a} where
         g-inc zero                                            ∎
 
         where
-        eq    = upwards-closed₀ g-inc g0⇓x
+        eq    = upwards-closed₀ g-inc g0↓x
         lemma =
 
           subst (λ f → f 0 ≡ f 1) (ext (sym ∘ eq)) refl          ≡⟨ subst-in-terms-of-trans-and-cong {x≡y = ext (sym ∘ eq)} ⟩
@@ -277,54 +277,54 @@ module _ {a} {A : Set a} where
 
           trans (eq 0) (sym $ eq 1)                              ≡⟨⟩
 
-          trans g0⇓x (sym $ Step.step′ g-inc g0⇓x (g-inc 0))     ≡⟨ cong (λ eq′ → trans g0⇓x (sym $ Step.step′ g-inc g0⇓x eq′)) $ sym $ ≡g-inc0 ⟩
+          trans g0↓x (sym $ Step.step′ g-inc g0↓x (g-inc 0))     ≡⟨ cong (λ eq′ → trans g0↓x (sym $ Step.step′ g-inc g0↓x eq′)) $ sym $ ≡g-inc0 ⟩
 
-          trans g0⇓x (sym $ Step.step′ g-inc g0⇓x (inj₁ g0≡g1))  ≡⟨⟩
+          trans g0↓x (sym $ Step.step′ g-inc g0↓x (inj₁ g0≡g1))  ≡⟨⟩
 
-          trans g0⇓x (sym $ trans (sym g0≡g1) g0⇓x)              ≡⟨ cong (trans g0⇓x) $ sym-trans (sym g0≡g1) g0⇓x ⟩
+          trans g0↓x (sym $ trans (sym g0≡g1) g0↓x)              ≡⟨ cong (trans g0↓x) $ sym-trans (sym g0≡g1) g0↓x ⟩
 
-          trans g0⇓x (trans (sym g0⇓x) (sym (sym g0≡g1)))        ≡⟨ trans--[trans-sym] _ _ ⟩
+          trans g0↓x (trans (sym g0↓x) (sym (sym g0≡g1)))        ≡⟨ trans--[trans-sym] _ _ ⟩
 
           sym (sym g0≡g1)                                        ≡⟨ sym-sym _ ⟩∎
 
           g0≡g1                                                  ∎
 
-      ⇓-lemma g g-inc (suc n) x g0⇓x (inj₁ g0≡g1) ≡g-inc0 =
+      ↓-lemma g g-inc (suc n) x g0↓x (inj₁ g0≡g1) ≡g-inc0 =
 
         subst (Increasing-at (suc n))
-              (ext (sym ∘ upwards-closed₀ g-inc g0⇓x))
+              (ext (sym ∘ upwards-closed₀ g-inc g0↓x))
               (inj₁ refl)                                                 ≡⟨⟩
 
         subst (Increasing-at n ∘ (_∘ suc))
-              (ext (sym ∘ upwards-closed₀ g-inc g0⇓x))
+              (ext (sym ∘ upwards-closed₀ g-inc g0↓x))
               (inj₁ refl)                                                 ≡⟨ subst-∘ (Increasing-at n) (_∘ suc)
-                                                                                     (ext (sym ∘ upwards-closed₀ g-inc g0⇓x)) ⟩
+                                                                                     (ext (sym ∘ upwards-closed₀ g-inc g0↓x)) ⟩
         subst (Increasing-at n)
               (cong (_∘ suc)
-                 (ext (sym ∘ upwards-closed₀ g-inc g0⇓x)))
+                 (ext (sym ∘ upwards-closed₀ g-inc g0↓x)))
               (inj₁ refl)                                                 ≡⟨ cong (λ eq → subst (Increasing-at n) eq _) $
-                                                                               cong-∘-ext (sym ∘ upwards-closed₀ g-inc g0⇓x) ⟩
+                                                                               cong-∘-ext (sym ∘ upwards-closed₀ g-inc g0↓x) ⟩
         subst (Increasing-at n)
-              (ext (sym ∘ upwards-closed₀ g-inc g0⇓x ∘ suc))
+              (ext (sym ∘ upwards-closed₀ g-inc g0↓x ∘ suc))
               (inj₁ refl)                                                 ≡⟨⟩
 
         subst (Increasing-at n)
               (ext (sym ∘ upwards-closed₀ (g-inc ∘ suc)
-                            (Step.step′ g-inc g0⇓x (g-inc 0))))
+                            (Step.step′ g-inc g0↓x (g-inc 0))))
               (inj₁ refl)                                                 ≡⟨ cong (λ p → subst (Increasing-at n)
                                                                                                (ext (sym ∘ upwards-closed₀ (g-inc ∘ suc)
-                                                                                                             (Step.step′ g-inc g0⇓x p)))
+                                                                                                             (Step.step′ g-inc g0↓x p)))
                                                                                                (inj₁ refl))
                                                                                   (sym ≡g-inc0) ⟩
         subst (Increasing-at n)
               (ext (sym ∘ upwards-closed₀ (g-inc ∘ suc)
-                            (Step.step′ g-inc g0⇓x (inj₁ g0≡g1))))
+                            (Step.step′ g-inc g0↓x (inj₁ g0≡g1))))
               (inj₁ refl)                                                 ≡⟨⟩
 
         subst (Increasing-at n)
               (ext (sym ∘ upwards-closed₀ (g-inc ∘ suc)
-                                          (trans (sym g0≡g1) g0⇓x)))
-              (inj₁ refl)                                                 ≡⟨ ⇓-lemma (g ∘ suc) (g-inc ∘ suc) n _ _ _ refl ⟩∎
+                                          (trans (sym g0≡g1) g0↓x)))
+              (inj₁ refl)                                                 ≡⟨ ↓-lemma (g ∘ suc) (g-inc ∘ suc) n _ _ _ refl ⟩∎
 
         g-inc (suc n)                                                     ∎
 
@@ -339,32 +339,32 @@ module _ {a} {A : Set a} where
           ≡
         g-increasing n
 
-      proj₂∘from∘to g g-inc n (just y) g0⇓y =
-        ⇓-lemma g g-inc n y g0⇓y _ refl
+      proj₂∘from∘to g g-inc n (just y) g0↓y =
+        ↓-lemma g g-inc n y g0↓y _ refl
 
-      proj₂∘from∘to g g-inc zero nothing g0⇑ =
+      proj₂∘from∘to g g-inc zero nothing g0↑ =
         _⇔_.to propositional⇔irrelevant
           (                                   $⟨ mono₁ 0 LE-nothing-contractible ⟩
-           Is-proposition (LE nothing (g 1))  ↝⟨ subst (λ x → Is-proposition (LE x (g 1))) (sym g0⇑) ⟩□
+           Is-proposition (LE nothing (g 1))  ↝⟨ subst (λ x → Is-proposition (LE x (g 1))) (sym g0↑) ⟩□
            Is-proposition (LE (g 0) (g 1))    □)
           _ _
 
-      proj₂∘from∘to g g-inc (suc n) nothing g0⇑ =
+      proj₂∘from∘to g g-inc (suc n) nothing g0↑ =
 
         subst (Increasing-at (suc n))
-              (ext (proj₁∘from∘to g g-inc nothing g0⇑))
+              (ext (proj₁∘from∘to g g-inc nothing g0↑))
               (proj₂ (from (to (g ∘ suc , g-inc ∘ suc))) n)              ≡⟨⟩
 
         subst (Increasing-at n ∘ (_∘ suc))
-              (ext (proj₁∘from∘to g g-inc nothing g0⇑))
+              (ext (proj₁∘from∘to g g-inc nothing g0↑))
               (proj₂ (from (to (g ∘ suc , g-inc ∘ suc))) n)              ≡⟨ subst-∘ (Increasing-at n) (_∘ suc)
-                                                                                    (ext (proj₁∘from∘to g g-inc nothing g0⇑)) ⟩
+                                                                                    (ext (proj₁∘from∘to g g-inc nothing g0↑)) ⟩
         subst (Increasing-at n)
-              (cong (_∘ suc) (ext (proj₁∘from∘to g g-inc nothing g0⇑)))
+              (cong (_∘ suc) (ext (proj₁∘from∘to g g-inc nothing g0↑)))
               (proj₂ (from (to (g ∘ suc , g-inc ∘ suc))) n)              ≡⟨ cong (λ eq → subst (Increasing-at n) eq _) $
-                                                                              cong-∘-ext (proj₁∘from∘to g g-inc nothing g0⇑) ⟩
+                                                                              cong-∘-ext (proj₁∘from∘to g g-inc nothing g0↑) ⟩
         subst (Increasing-at n)
-              (ext (proj₁∘from∘to g g-inc nothing g0⇑ ∘ suc))
+              (ext (proj₁∘from∘to g g-inc nothing g0↑ ∘ suc))
               (proj₂ (from (to (g ∘ suc , g-inc ∘ suc))) n)              ≡⟨⟩
 
         subst (Increasing-at n)
