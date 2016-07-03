@@ -11,6 +11,7 @@ module Delay-monad.Sized.Partial-order {a} {A : Size → Set a} where
 open import Equality.Propositional
 open import Logical-equivalence using (_⇔_)
 
+open import Bijection equality-with-J using (_↔_)
 open import Function-universe equality-with-J
 
 open import Delay-monad.Sized
@@ -21,9 +22,12 @@ mutual
 
   -- An ordering relation.
   --
+  -- Capretta defines a logically equivalent relation in "General
+  -- Recursion via Coinductive Types".
+  --
   -- Benton, Kennedy and Varming define a relation that is perhaps
-  -- logically equivalent to the one below in "Some Domain Theory and
-  -- Denotational Semantics in Coq".
+  -- logically equivalent in "Some Domain Theory and Denotational
+  -- Semantics in Coq".
 
   data LE (i : Size) : Delay A ∞ → Delay A ∞ → Set a where
     now-cong : ∀ {x} → LE i (now x) (now x)
@@ -82,11 +86,36 @@ _⇓_ = Terminates ∞
 ⊑now→⇓→⇓ now-cong   now-cong   = now-cong
 ⊑now→⇓→⇓ (laterˡ p) (laterʳ q) = laterʳ (⊑now→⇓→⇓ (force p) q)
 
--- Terminating computations are weakly bisimilar to their values.
+-- The notion of termination defined here is isomorphic to the one
+-- defined in Delay-monad.Weak-bisimilarity.
 
-⇓→now≈ : ∀ {i x y} → Terminates i x y → Weakly-bisimilar i (now y) x
-⇓→now≈ now-cong   = W.now-cong
-⇓→now≈ (laterʳ p) = W.laterʳ (⇓→now≈ p)
+⇓↔⇓ : ∀ {i x y} → Terminates i x y ↔ W.Terminates i x y
+⇓↔⇓ = record
+  { surjection = record
+    { logical-equivalence = record
+      { to   = to
+      ; from = from
+      }
+    ; right-inverse-of = to∘from
+    }
+  ; left-inverse-of = from∘to
+  }
+  where
+  to : ∀ {i x y} → Terminates i x y → W.Terminates i x y
+  to now-cong   = W.now-cong
+  to (laterʳ p) = W.laterʳ (to p)
+
+  from : ∀ {i x y} → W.Terminates i x y → Terminates i x y
+  from W.now-cong   = now-cong
+  from (W.laterʳ p) = laterʳ (from p)
+
+  from∘to : ∀ {i x y} (p : Terminates i x y) → from (to p) ≡ p
+  from∘to now-cong   = refl
+  from∘to (laterʳ p) = cong laterʳ (from∘to p)
+
+  to∘from : ∀ {i x y} (p : W.Terminates i x y) → to (from p) ≡ p
+  to∘from W.now-cong   = refl
+  to∘from (W.laterʳ p) = cong W.laterʳ (to∘from p)
 
 mutual
 
@@ -145,14 +174,22 @@ mutual
   antisymmetric : ∀ {i x y} →
                   LE i x y → LE i y x → Weakly-bisimilar i x y
   antisymmetric {x = now x}   {y = now .x}  now-cong   _          = W.now-cong
-  antisymmetric {x = now x}   {y = later y} (laterʳ p) q          = W.laterʳ (⇓→now≈ p)
-  antisymmetric {x = later x} {y = now y}   p          (laterʳ q) = W.laterˡ (W.symmetric (⇓→now≈ q))
+  antisymmetric {x = now x}   {y = later y} (laterʳ p) q          = W.laterʳ (_↔_.to ⇓↔⇓ p)
+  antisymmetric {x = later x} {y = now y}   p          (laterʳ q) = W.laterˡ (W.symmetric (_↔_.to ⇓↔⇓ q))
   antisymmetric {x = later x} {y = later y} p          q          =
     W.later-cong (∞antisymmetric (later-cong⁻¹ p) (later-cong⁻¹ q))
 
   ∞antisymmetric : ∀ {i x y} →
                    ∞LE i x y → ∞LE i y x → ∞Weakly-bisimilar i x y
   force (∞antisymmetric p q) = antisymmetric (force p) (force q)
+
+-- An alternative characterisation of weak bisimilarity.
+
+≈⇔⊑×⊒ : ∀ {i x y} → Weakly-bisimilar i x y ⇔ (LE i x y × LE i y x)
+≈⇔⊑×⊒ = record
+  { to   = λ p → ≈→⊑ p , ≈→⊑ (W.symmetric p)
+  ; from = uncurry antisymmetric
+  }
 
 mutual
 
@@ -262,3 +299,28 @@ uninhabited→other-transitivity =
       ∀ {i} → ¬ A ∞ → ∀ x y → ∞LE i (force x) (force y)
     force (∞uninhabited→trivial ¬A x y) =
       uninhabited→trivial ¬A (force x) (force y)
+
+-- An alternative characterisation of the ordering relation.
+--
+-- Capretta proves a similar result in "General Recursion via
+-- Coinductive Types".
+
+⊑⇔⇓→⇓ : ∀ {x y} → x ⊑ y ⇔ (∀ z → x ⇓ z → y ⇓ z)
+⊑⇔⇓→⇓ = record
+  { to   = to
+  ; from = from _
+  }
+  where
+  to : ∀ {x y} → x ⊑ y → ∀ z → x ⇓ z → y ⇓ z
+  to p          z now-cong   = p
+  to (laterʳ p) z q          = laterʳ (to p z q)
+  to (laterˡ p) z (laterʳ q) = to (force p) z q
+
+  mutual
+
+    from : ∀ x {y} → (∀ z → x ⇓ z → y ⇓ z) → x ⊑ y
+    from (now x)   p = p x now-cong
+    from (later x) p = laterˡ (∞from (force x) (λ z q → p z (laterʳ q)))
+
+    ∞from : ∀ x {y} → (∀ z → x ⇓ z → y ⇓ z) → x ∞⊑ y
+    force (∞from x p) = from x p
