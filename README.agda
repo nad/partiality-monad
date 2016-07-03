@@ -175,3 +175,13 @@ import Partiality-monad.Coinductive
 -- A partial order.
 
 import Partiality-monad.Coinductive.Partial-order
+
+------------------------------------------------------------------------
+-- A proof of equivalence
+
+-- The partiality monads in Partiality-monad.Inductive and
+-- Partiality-monad.Coinductive are pointwise equivalent, for sets,
+-- assuming extensionality, univalence and countable choice.
+
+import Countchoice-equiv
+import Partiality-monad.Equivalence
