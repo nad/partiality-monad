@@ -7,22 +7,25 @@
 module Delay-monad.Alternative where
 
 open import Equality.Propositional
+open import H-level.Truncation.Propositional as Trunc
 open import Interval
 open import Logical-equivalence using (_⇔_)
-open import Prelude hiding (↑)
+open import Prelude hiding (↑; module W)
 
 open import Bijection equality-with-J as Bijection using (_↔_)
 open import Equality.Decision-procedures equality-with-J
 import Equality.Groupoid equality-with-J as EG
 import Equivalence equality-with-J as Eq
-open import Function-universe equality-with-J hiding (_∘_)
+open import Function-universe equality-with-J as F hiding (id; _∘_)
 open import Groupoid equality-with-J
 open import H-level equality-with-J as H-level
 open import H-level.Closure equality-with-J
 import Nat equality-with-J as N
 
 open import Delay-monad as D hiding (Delay)
+import Delay-monad.Partial-order as PO
 open import Delay-monad.Strong-bisimilarity as Strong-bisimilarity
+import Delay-monad.Weak-bisimilarity as W
 
 ------------------------------------------------------------------------
 -- An alternative definition of the delay monad
@@ -372,3 +375,83 @@ module _ {a} {A : Set a} where
               (proj₂ (from (to (g ∘ suc , g-inc ∘ suc))) n)              ≡⟨ proj₂∘from∘to (g ∘ suc) (g-inc ∘ suc) n _ refl ⟩∎
 
         g-inc (suc n)                                                    ∎
+
+------------------------------------------------------------------------
+-- Weak bisimilarity
+
+module _ {a} {A : Set a} where
+
+  infix 4 _⇓_ _⊑_ _≈_
+
+  -- x ⇓ y means that the computation x terminates with the value y.
+
+  _⇓_ : Delay A → A → Set a
+  (f , _) ⇓ y = ∃ λ n → f n ↓ y
+
+  -- Information ordering.
+
+  _⊑_ : Delay A → Delay A → Set a
+  x ⊑ y = ∀ z → x ⇓ z → y ⇓ z
+
+  -- Weak bisimilarity.
+
+  _≈_ : Delay A → Delay A → Set a
+  x ≈ y = x ⊑ y × y ⊑ x
+
+  -- The notion of termination defined here is logically equivalent
+  -- (via Delay⇔Delay) to the one defined for the coinductive delay
+  -- monad.
+
+  ⇓⇔⇓ : ∀ {x y} → x ⇓ y ⇔ _⇔_.to Delay⇔Delay x W.⇓ y
+  ⇓⇔⇓ = record
+    { to   = λ { (n , fn↓y) → to′ n _ refl fn↓y }
+    ; from = from′ _ refl
+    }
+    where
+    to′ : ∀ {f : ℕ → Maybe A} {f-inc} n x {y} →
+          x ≡ f 0 → f n ↓ y → To.to′ f f-inc x W.⇓ y
+    to′     (suc n) nothing     f0↑ fn↓y = W.laterʳ (to′ n _ refl fn↓y)
+    to′ {f} zero    nothing {y} f0↑ fn↓y =
+      ⊥-elim $ ⊎.inj₁≢inj₂ (
+        nothing  ≡⟨ f0↑ ⟩
+        f 0      ≡⟨ fn↓y ⟩∎
+        just y   ∎)
+    to′ {f} {f-inc} n (just x) {y} f0↓x fn↓y =
+      subst (_ W.⇓_)
+            (⊎.cancel-inj₂ {A = ⊤}
+               (just x  ≡⟨ sym $ upwards-closed₀ f-inc (sym f0↓x) n ⟩
+                f n     ≡⟨ fn↓y ⟩∎
+                just y  ∎))
+            W.now-cong
+
+    from′ : ∀ {f : ℕ → Maybe A} {f-inc y} x →
+            x ≡ f 0 → To.to′ f f-inc x W.⇓ y → ∃ λ n → f n ↓ y
+    from′ (just x) f0↓x W.now-cong      = 0 , sym f0↓x
+    from′ nothing  _    (W.laterʳ to⇓y) =
+      Σ-map suc id (from′ _ refl to⇓y)
+
+  -- The ordering relation defined here is logically equivalent (via
+  -- Delay⇔Delay) to the one defined in Delay-monad.Partial-order.
+
+  ⊑⇔⊑ : ∀ {x y} →
+        x ⊑ y ⇔ _⇔_.to Delay⇔Delay x PO.⊑ _⇔_.to Delay⇔Delay y
+  ⊑⇔⊑ {x} {y} =
+    x ⊑ y                                                              ↝⟨ F.id ⟩
+    (∀ z → x ⇓ z → y ⇓ z)                                              ↝⟨ ∀-cong-⇔ (λ _ → →-cong-⇔ ⇓⇔⇓ ⇓⇔⇓) ⟩
+    (∀ z → _⇔_.to Delay⇔Delay x  W.⇓ z → _⇔_.to Delay⇔Delay y  W.⇓ z)  ↝⟨ inverse $ ∀-cong-⇔ (λ _ → →-cong-⇔ (_↔_.logical-equivalence PO.⇓↔⇓)
+                                                                                                             (_↔_.logical-equivalence PO.⇓↔⇓)) ⟩
+    (∀ z → _⇔_.to Delay⇔Delay x PO.⇓ z → _⇔_.to Delay⇔Delay y PO.⇓ z)  ↝⟨ inverse PO.⊑⇔⇓→⇓ ⟩□
+    _⇔_.to Delay⇔Delay x PO.⊑ _⇔_.to Delay⇔Delay y                     □
+
+  -- The notion of weak bisimilarity defined here is logically
+  -- equivalent (via Delay⇔Delay) to the one defined for the
+  -- coinductive delay monad.
+
+  ≈⇔≈ : ∀ {x y} →
+        x ≈ y ⇔ _⇔_.to Delay⇔Delay x W.≈ _⇔_.to Delay⇔Delay y
+  ≈⇔≈ {x} {y} =
+    x ⊑ y × y ⊑ x                    ↝⟨ ⊑⇔⊑ ×-cong ⊑⇔⊑ ⟩
+    to x PO.⊑ to y × to y PO.⊑ to x  ↝⟨ inverse PO.≈⇔⊑×⊒ ⟩□
+    to x W.≈ to y                    □
+    where
+    open _⇔_ Delay⇔Delay
