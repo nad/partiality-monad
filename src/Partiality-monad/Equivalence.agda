@@ -23,22 +23,41 @@ open import Univalence-axiom equality-with-J
 import Countchoice-equiv as L
 import Delay-monad.Alternative as A
 import Delay-monad.Strong-bisimilarity as Strong-bisimilarity
-open import Delay-monad.Weak-bisimilarity using (_≈_)
+import Delay-monad.Weak-bisimilarity as W
 import Partiality-monad.Coinductive as C
 import Partiality-monad.Inductive as I
+
+private
+
+  -- A lemma showing that two relations corresponding to weak
+  -- bisimilarity are logically equivalent for sets.
+
+  ~⇔≈ :
+    ∀ {a} {A : Set a}
+    (A-set : Is-set A) →
+    let module R = L.relation-on-Seq in
+    ∀ x y → x R.~ y ⇔ x A.≈ y
+  ~⇔≈ A-set x y =
+    ∀-cong-⇔ (λ _ → →-cong-⇔ (inverse (E.↓⇔∥↓∥ A-set {fp = x}))
+                             (inverse (E.↓⇔∥↓∥ A-set {fp = y})))
+      ×-cong
+    ∀-cong-⇔ (λ _ → →-cong-⇔ (inverse (E.↓⇔∥↓∥ A-set {fp = y}))
+                             (inverse (E.↓⇔∥↓∥ A-set {fp = x})))
+    where
+    module E = L.evaluating-sequences
 
 -- The two definitions of the partiality monad are pointwise
 -- equivalent, for sets, assuming extensionality, univalence and
 -- countable choice.
 
-equivalent :
+partiality≃partiality :
   ∀ {a} {A : Set a} →
   Is-set A →
   Strong-bisimilarity.Extensionality a →
   Univalence a →
   Axiom-of-countable-choice a →
   A I.⊥ ≃ A C.⊥
-equivalent {A = A} A-set delay-ext univ choice =
+partiality≃partiality {A = A} A-set delay-ext univ choice =
 
   A I.⊥    ↝⟨ inverse Eq.⟨ _ , L.canonical'-equivalence.canonical'-equiv
                                  A-set univ choice ⟩ ⟩
@@ -53,13 +72,9 @@ equivalent {A = A} A-set delay-ext univ choice =
   D↔D = A.Delay↔Delay delay-ext
 
   lemma : (x y : A.Delay A) →
-          x R.~ y ⇔ ∥ _↔_.to D↔D x ≈ _↔_.to D↔D y ∥
+          x R.~ y ⇔ ∥ _↔_.to D↔D x W.≈ _↔_.to D↔D y ∥
   lemma x y =
-    x R.~ y                          ↔⟨ inverse $ ∥∥↔ (R.~-is-prop x y) ⟩
-    ∥ x R.~ y ∥                      ↝⟨ ∥∥-cong-⇔ (∀-cong-⇔ (λ _ → →-cong-⇔ (inverse (E.↓⇔∥↓∥ A-set {fp = x}))
-                                                                            (inverse (E.↓⇔∥↓∥ A-set {fp = y})))
-                                                     ×-cong
-                                                   ∀-cong-⇔ (λ _ → →-cong-⇔ (inverse (E.↓⇔∥↓∥ A-set {fp = y}))
-                                                                            (inverse (E.↓⇔∥↓∥ A-set {fp = x})))) ⟩
-    ∥ x A.≈ y ∥                      ↝⟨ ∥∥-cong-⇔ A.≈⇔≈ ⟩□
-    ∥ _↔_.to D↔D x ≈ _↔_.to D↔D y ∥  □
+    x R.~ y                            ↔⟨ inverse $ ∥∥↔ (R.~-is-prop x y) ⟩
+    ∥ x R.~ y ∥                        ↝⟨ ∥∥-cong-⇔ (~⇔≈ A-set x y) ⟩
+    ∥ x A.≈ y ∥                        ↝⟨ ∥∥-cong-⇔ A.≈⇔≈ ⟩□
+    ∥ _↔_.to D↔D x W.≈ _↔_.to D↔D y ∥  □
