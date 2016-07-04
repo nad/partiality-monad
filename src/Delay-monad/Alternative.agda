@@ -142,11 +142,11 @@ upwards-closed₀ inc f0↓ (suc n) =
 ------------------------------------------------------------------------
 -- Theorems relating the two definitions of the delay monad
 
-module _ {a} {A : Set a} where
+-- The two definitions are logically equivalent.
 
-  -- The two definitions are logically equivalent.
+private
 
-  private
+  module LE {a} {A : Set a} where
 
     mutual
 
@@ -174,8 +174,10 @@ module _ {a} {A : Set a} where
       f-increasing (later x) zero    = proj₁ LE-nothing-contractible
       f-increasing (later x) (suc n) = f-increasing (force x) n
 
+module _ {a} {A : Set a} where
+
   Delay⇔Delay : Delay A ⇔ D.Delay A ∞
-  Delay⇔Delay = record { to = to; from = from }
+  Delay⇔Delay = record { to = LE.to; from = LE.from }
 
   -- The two definitions are isomorphic (assuming extensionality).
 
@@ -189,6 +191,7 @@ module _ {a} {A : Set a} where
     ; left-inverse-of = from∘to
     }
     where
+    open LE
 
     -- The function from is a right inverse of to.
 
@@ -404,19 +407,19 @@ module _ {a} {A : Set a} where
 
   ⇓⇔⇓ : ∀ {x y} → x ⇓ y ⇔ _⇔_.to Delay⇔Delay x W.⇓ y
   ⇓⇔⇓ = record
-    { to   = λ { (n , fn↓y) → to′ n _ refl fn↓y }
-    ; from = from′ _ refl
+    { to   = λ { (n , fn↓y) → to n _ refl fn↓y }
+    ; from = from _ refl
     }
     where
-    to′ : ∀ {f : ℕ → Maybe A} {f-inc} n x {y} →
-          x ≡ f 0 → f n ↓ y → To.to′ f f-inc x W.⇓ y
-    to′     (suc n) nothing     f0↑ fn↓y = W.laterʳ (to′ n _ refl fn↓y)
-    to′ {f} zero    nothing {y} f0↑ fn↓y =
+    to : ∀ {f : ℕ → Maybe A} {f-inc} n x {y} →
+         x ≡ f 0 → f n ↓ y → LE.To.to′ f f-inc x W.⇓ y
+    to     (suc n) nothing     f0↑ fn↓y = W.laterʳ (to n _ refl fn↓y)
+    to {f} zero    nothing {y} f0↑ fn↓y =
       ⊥-elim $ ⊎.inj₁≢inj₂ (
         nothing  ≡⟨ f0↑ ⟩
         f 0      ≡⟨ fn↓y ⟩∎
         just y   ∎)
-    to′ {f} {f-inc} n (just x) {y} f0↓x fn↓y =
+    to {f} {f-inc} n (just x) {y} f0↓x fn↓y =
       subst (_ W.⇓_)
             (⊎.cancel-inj₂ {A = ⊤}
                (just x  ≡⟨ sym $ upwards-closed₀ f-inc (sym f0↓x) n ⟩
@@ -424,11 +427,26 @@ module _ {a} {A : Set a} where
                 just y  ∎))
             W.now-cong
 
-    from′ : ∀ {f : ℕ → Maybe A} {f-inc y} x →
-            x ≡ f 0 → To.to′ f f-inc x W.⇓ y → ∃ λ n → f n ↓ y
-    from′ (just x) f0↓x W.now-cong      = 0 , sym f0↓x
-    from′ nothing  _    (W.laterʳ to⇓y) =
-      Σ-map suc id (from′ _ refl to⇓y)
+    from : ∀ {f : ℕ → Maybe A} {f-inc y} x →
+           x ≡ f 0 → LE.To.to′ f f-inc x W.⇓ y → ∃ λ n → f n ↓ y
+    from (just x) f0↓x W.now-cong      = 0 , sym f0↓x
+    from nothing  _    (W.laterʳ to⇓y) =
+      Σ-map suc id (from _ refl to⇓y)
+
+  ⇓⇔⇓′ : ∀ {x y} → x W.⇓ y ⇔ _⇔_.from Delay⇔Delay x ⇓ y
+  ⇓⇔⇓′ = record
+    { to   = to
+    ; from = uncurry (from _)
+    }
+    where
+    to : ∀ {x y} → x W.⇓ y → LE.from x ⇓ y
+    to W.now-cong   = 0 , refl
+    to (W.laterʳ p) = Σ-map suc id (to p)
+
+    from : ∀ x {y} n → proj₁ (LE.from x) n ↓ y → x W.⇓ y
+    from (now x)   n       refl = W.now-cong
+    from (later x) zero    ()
+    from (later x) (suc n) xn↓y = W.laterʳ (from (force x) n xn↓y)
 
   -- The ordering relation defined here is logically equivalent (via
   -- Delay⇔Delay) to the one defined in Delay-monad.Partial-order.
@@ -443,6 +461,16 @@ module _ {a} {A : Set a} where
     (∀ z → _⇔_.to Delay⇔Delay x PO.⇓ z → _⇔_.to Delay⇔Delay y PO.⇓ z)  ↝⟨ inverse PO.⊑⇔⇓→⇓ ⟩□
     _⇔_.to Delay⇔Delay x PO.⊑ _⇔_.to Delay⇔Delay y                     □
 
+  ⊑⇔⊑′ : ∀ {x y} →
+         x PO.⊑ y ⇔ _⇔_.from Delay⇔Delay x ⊑ _⇔_.from Delay⇔Delay y
+  ⊑⇔⊑′ {x} {y} =
+    x PO.⊑ y                                                         ↝⟨ PO.⊑⇔⇓→⇓ ⟩
+    (∀ z → x PO.⇓ z → y PO.⇓ z)                                      ↝⟨ ∀-cong-⇔ (λ _ → →-cong-⇔ (_↔_.logical-equivalence PO.⇓↔⇓)
+                                                                                                 (_↔_.logical-equivalence PO.⇓↔⇓))  ⟩
+    (∀ z → x  W.⇓ z → y  W.⇓ z)                                      ↝⟨ ∀-cong-⇔ (λ _ → →-cong-⇔ ⇓⇔⇓′ ⇓⇔⇓′) ⟩
+    (∀ z → _⇔_.from Delay⇔Delay x ⇓ z → _⇔_.from Delay⇔Delay y ⇓ z)  ↝⟨ F.id ⟩□
+    _⇔_.from Delay⇔Delay x ⊑ _⇔_.from Delay⇔Delay y                  □
+
   -- The notion of weak bisimilarity defined here is logically
   -- equivalent (via Delay⇔Delay) to the one defined for the
   -- coinductive delay monad.
@@ -453,5 +481,14 @@ module _ {a} {A : Set a} where
     x ⊑ y × y ⊑ x                    ↝⟨ ⊑⇔⊑ ×-cong ⊑⇔⊑ ⟩
     to x PO.⊑ to y × to y PO.⊑ to x  ↝⟨ inverse PO.≈⇔⊑×⊒ ⟩□
     to x W.≈ to y                    □
+    where
+    open _⇔_ Delay⇔Delay
+
+  ≈⇔≈′ : ∀ {x y} →
+         x W.≈ y ⇔ _⇔_.from Delay⇔Delay x ≈ _⇔_.from Delay⇔Delay y
+  ≈⇔≈′ {x} {y} =
+    x W.≈ y                            ↝⟨ PO.≈⇔⊑×⊒ ⟩
+    x PO.⊑ y × y PO.⊑ x                ↝⟨ ⊑⇔⊑′ ×-cong ⊑⇔⊑′ ⟩□
+    from x ⊑ from y × from y ⊑ from x  □
     where
     open _⇔_ Delay⇔Delay
