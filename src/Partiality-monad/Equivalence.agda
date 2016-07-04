@@ -41,14 +41,14 @@ equivalent :
 equivalent {A = A} A-set delay-ext univ choice =
 
   A I.⊥    ↝⟨ inverse Eq.⟨ _ , L.canonical'-equivalence.canonical'-equiv
-                                 univ {Aset = A , A-set} choice ⟩ ⟩
+                                 A-set univ choice ⟩ ⟩
   R.Seq/~  ↔⟨ D↔D /-cong lemma ⟩
 
   A C.⊥    □
 
   where
-  module R = L.relation-on-Seq      univ {Aset = A , A-set}
-  module E = L.evaluating-sequences univ {Aset = A , A-set}
+  module E = L.evaluating-sequences
+  module R = L.relation-on-Seq
 
   D↔D = A.Delay↔Delay delay-ext
 
@@ -56,8 +56,10 @@ equivalent {A = A} A-set delay-ext univ choice =
           x R.~ y ⇔ ∥ _↔_.to D↔D x ≈ _↔_.to D↔D y ∥
   lemma x y =
     x R.~ y                          ↔⟨ inverse $ ∥∥↔ (R.~-is-prop x y) ⟩
-    ∥ x R.~ y ∥                      ↝⟨ ∥∥-cong-⇔ (∀-cong-⇔ (λ _ → →-cong-⇔ (inverse (E.↓⇔∥↓∥ {fp = x})) (inverse (E.↓⇔∥↓∥ {fp = y})))
+    ∥ x R.~ y ∥                      ↝⟨ ∥∥-cong-⇔ (∀-cong-⇔ (λ _ → →-cong-⇔ (inverse (E.↓⇔∥↓∥ A-set {fp = x}))
+                                                                            (inverse (E.↓⇔∥↓∥ A-set {fp = y})))
                                                      ×-cong
-                                                   ∀-cong-⇔ (λ _ → →-cong-⇔ (inverse (E.↓⇔∥↓∥ {fp = y})) (inverse (E.↓⇔∥↓∥ {fp = x})))) ⟩
+                                                   ∀-cong-⇔ (λ _ → →-cong-⇔ (inverse (E.↓⇔∥↓∥ A-set {fp = y}))
+                                                                            (inverse (E.↓⇔∥↓∥ A-set {fp = x})))) ⟩
     ∥ x A.≈ y ∥                      ↝⟨ ∥∥-cong-⇔ A.≈⇔≈ ⟩□
     ∥ _↔_.to D↔D x ≈ _↔_.to D↔D y ∥  □

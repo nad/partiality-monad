@@ -13,18 +13,16 @@
 
 {-# OPTIONS --without-K #-}
 
-open import Equality.Propositional hiding (elim)
-open import Univalence-axiom equality-with-J
+module Countchoice-equiv {a} {A : Set a} where
 
-module Countchoice-equiv {a} (ua : Univalence a) where
-
-open import Prelude hiding (⊥)
-open import Equality
+open import Equality.Propositional
 open import H-level equality-with-J
 open import H-level.Closure equality-with-J
 open import Logical-equivalence hiding (_∘_)
 open import Nat equality-with-J
 open import Equivalence equality-with-J hiding (_∘_)
+open import Prelude hiding (⊥)
+open import Univalence-axiom equality-with-J
 
 open import Quotient.HIT hiding ([_])
 open import H-level.Truncation.Propositional renaming (rec to ∥∥-rec)
@@ -32,6 +30,10 @@ open import H-level.Truncation.Propositional renaming (rec to ∥∥-rec)
 open import Interval using (ext)
 
 open import Equality.Decision-procedures equality-with-J
+
+open import Partiality-monad.Inductive hiding (_[_])
+open import Partiality-monad.Inductive.Alternative-order hiding (_≲_)
+open import Partiality-monad.Inductive.Properties
 
 -- Here are some library lemmas. I include them here in ad-hoc style (should be sorted out later).
 module library-stuff where
@@ -100,30 +102,32 @@ module library-stuff where
               (λ x → mono₁ 1 (prop x))
 
 
-  module _ {Aset : SET a} where
+  -- TODO: the following should be used to replace some code below a couple of times
+  ≡→⊑ : {A : Set a} {x y : A ⊥} → x ≡ y → x ⊑ y
+  ≡→⊑ refl = ⊑-refl _
 
-    open import Partiality-monad.Inductive
-    open import Partiality-monad.Inductive.Alternative-order
-    open import Partiality-monad.Inductive.Properties
+  module _ (A-set : Is-set A) where
 
     -- a slightly more convenient form (for A set) of the library lemma
-    now⊑now→≡ : {x y : proj₁ Aset} → (now x ⊑ now y) → x ≡ y
-    now⊑now→≡ nn = ∥∥-rec (proj₂ Aset _ _) Prelude.id (_≃_.to (now⊑now≃∥≡∥ ua) nn)
+    now⊑now→≡ : Univalence a →
+                {x y : A} → (now x ⊑ now y) → x ≡ y
+    now⊑now→≡ ua nn =
+      ∥∥-rec (A-set _ _) Prelude.id (_≃_.to (now⊑now≃∥≡∥ ua) nn)
 
-    now-injective : {x y : proj₁ Aset} → now x ≡ now y → x ≡ y
-    now-injective {x} {y} nowx≡nowy = now⊑now→≡ (subst (λ z → now x ⊑ z) nowx≡nowy (⊑-refl _))
+    now-injective : Univalence a →
+                    {x y : A} → now x ≡ now y → x ≡ y
+    now-injective ua {x} {y} nowx≡nowy =
+      now⊑now→≡ ua (subst (λ z → now x ⊑ z) nowx≡nowy (⊑-refl _))
 
     -- TODO: the two above should be used a couple of times below instead of the unfolded versions
 
-    termination-value-unique : (x : (proj₁ Aset) ⊥) → (a b : (proj₁ Aset)) → x ⇓ a → x ⇓ b → a ≡ b
-    termination-value-unique x a b x⇓a x⇓b =
+    termination-value-unique :
+      Univalence a →
+      (x : A ⊥) → (a b : A) → x ⇓ a → x ⇓ b → a ≡ b
+    termination-value-unique ua x a b x⇓a x⇓b =
       ∥∥-rec {B = a ≡ b}
-            (proj₂ Aset _ _)
+            (A-set _ _)
             Prelude.id (termination-value-merely-unique ua x⇓a x⇓b)
-
-    -- TODO: the following should be used to replace some code below a couple of times
-    ≡→⊑ : {x y : (proj₁ Aset) ⊥} → x ≡ y → x ⊑ y
-    ≡→⊑ refl = ⊑-refl _
 
 
 open library-stuff
@@ -134,44 +138,14 @@ open library-stuff
 
 
 -- my version of monotone sequences.
-module monotone-sequences {Aset : SET a} where
-
-  A = proj₁ Aset
-  A-is-set = proj₂ Aset
-
-  -- works only because A is a set, of course.
-  MA-is-set : Is-set (Maybe A)
-  MA-is-set = ⊎-closure 0 (mono₁ 1 (mono₁ 0 ⊤-contractible)) A-is-set
+module monotone-sequences where
 
   -- a predicate stating that a function ℕ → Maybe A is monotone (in a propositional way)
   is-monotone : (f : ℕ → Maybe A) → Set a
   is-monotone f = (n : ℕ) → (f n ≡ f (suc n)) ⊎ f n ≡ nothing × f (suc n) ≢ nothing
 
-
-  {- this part only works because of the assumption that A is a set.
-     The equivalence with Delay A should work more generally (todo: check this claim),
-     but it's probably not worth it to emphasize this anyway: As soon as we go to
-     A ⊥ we can only work with sets (otherwise, we would have to change the QIIT to a
-     HIIT with infinite coherences). -}
-  -- surely, there is a more elegant way to do this?!
-  abstract
-    is-monotone-is-prop : (f : ℕ → Maybe A) → Is-proposition (is-monotone f)
-    is-monotone-is-prop f =
-      Π-closure {A = ℕ} ext 1 (λ n → _⇔_.from propositional⇔irrelevant (λ {
-        (inj₁ fn≡fSn₁) (inj₁ fn≡fSn₂) → cong inj₁ (_⇔_.to set⇔UIP MA-is-set _ _) ;
-        (inj₁ fn≡fSn) (inj₂ (fn≡nothing , fSn≢nothing)) → ⊥-elim (fSn≢nothing (trans (sym fn≡fSn) fn≡nothing)) ;
-        (inj₂ (fn≡nothing , fSn≢nothing)) (inj₁ fn≡fSn) → ⊥-elim (fSn≢nothing (trans (sym fn≡fSn) fn≡nothing)) ;
-        (inj₂ (fn≡nothing₁ , fSn≢nothing₁)) (inj₂ (fn≡nothing₂ , fSn≢nothing₂)) →
-          cong inj₂ (Σ-≡,≡→≡ {B = λ _ → f (suc n) ≢ nothing}
-                      (_⇔_.to set⇔UIP MA-is-set _ _)
-                      (_⇔_.to propositional⇔irrelevant (¬-propositional ext) _ _)) }))
-
   Seq : Set a
   Seq = Σ (ℕ → Maybe A) is-monotone
-
-  -- equality on Seq
-  Seq≡ : (s₁ s₂ : Seq) → ((n : ℕ) → proj₁ s₁ n ≡ proj₁ s₂ n) → s₁ ≡ s₂
-  Seq≡ (f , _) (g , _) p = Σ-≡,≡→≡ (ext p) (_⇔_.to propositional⇔irrelevant (is-monotone-is-prop _) _ _)
 
   -- shift and unshift: operations of sequences that add or remove an element in the beginning.
   shift : Seq → Seq
@@ -185,7 +159,6 @@ module monotone-sequences {Aset : SET a} where
 
   unshift : Seq → Seq
   unshift (f , m) = (λ n → f (suc n)) , (λ n → m (suc n))
-
 
   -- What now follows is a bunch of straightforward boring lemmas.
   abstract
@@ -233,12 +206,41 @@ module monotone-sequences {Aset : SET a} where
           n≤m : n ≤ m
           n≤m = suc≤suc⁻¹ Sn≤Sm
 
+  -- works only because A is a set, of course.
+  MA-is-set : Is-set A → Is-set (Maybe A)
+  MA-is-set = ⊎-closure 0 (mono₁ 1 (mono₁ 0 ⊤-contractible))
 
+  {- this part only works because of the assumption that A is a set.
+     The equivalence with Delay A should work more generally (todo: check this claim),
+     but it's probably not worth it to emphasize this anyway: As soon as we go to
+     A ⊥ we can only work with sets (otherwise, we would have to change the QIIT to a
+     HIIT with infinite coherences). -}
+  -- surely, there is a more elegant way to do this?!
+  abstract
+    is-monotone-is-prop :
+      Is-set A → (f : ℕ → Maybe A) → Is-proposition (is-monotone f)
+    is-monotone-is-prop A-set f =
+      Π-closure {A = ℕ} ext 1 (λ n → _⇔_.from propositional⇔irrelevant (λ {
+        (inj₁ fn≡fSn₁) (inj₁ fn≡fSn₂) → cong inj₁ (_⇔_.to set⇔UIP (MA-is-set A-set) _ _) ;
+        (inj₁ fn≡fSn) (inj₂ (fn≡nothing , fSn≢nothing)) → ⊥-elim (fSn≢nothing (trans (sym fn≡fSn) fn≡nothing)) ;
+        (inj₂ (fn≡nothing , fSn≢nothing)) (inj₁ fn≡fSn) → ⊥-elim (fSn≢nothing (trans (sym fn≡fSn) fn≡nothing)) ;
+        (inj₂ (fn≡nothing₁ , fSn≢nothing₁)) (inj₂ (fn≡nothing₂ , fSn≢nothing₂)) →
+          cong inj₂ (Σ-≡,≡→≡ {B = λ _ → f (suc n) ≢ nothing}
+                      (_⇔_.to set⇔UIP (MA-is-set A-set) _ _)
+                      (_⇔_.to propositional⇔irrelevant (¬-propositional ext) _ _)) }))
+
+  -- equality on Seq
+  Seq≡ : Is-set A → (s₁ s₂ : Seq) →
+         ((n : ℕ) → proj₁ s₁ n ≡ proj₁ s₂ n) → s₁ ≡ s₂
+  Seq≡ A-set (f , _) (g , _) p =
+    Σ-≡,≡→≡ (ext p)
+            (_⇔_.to propositional⇔irrelevant
+               (is-monotone-is-prop A-set _) _ _)
 
 -- the ↓ relation: "f ↓ a" should mean that the sequence f "evaluates" to (just a)
-module evaluating-sequences {Aset : SET a} where
+module evaluating-sequences where
 
-  open monotone-sequences {Aset}
+  open monotone-sequences
 
   {-
   I define *three* variants of the ↓ relation; f ↓ a says that the sequence f "evaluates" to a.
@@ -275,9 +277,13 @@ module evaluating-sequences {Aset : SET a} where
   abstract
 
     -- The point of ↓' is that it is propositional without making use of explicit truncation.
-    ↓'-is-prop : (fp : Seq) → (a : A) → Is-proposition (fp ↓' a)
-    ↓'-is-prop (f , p) a = Σ-property _ _ (λ _ → ×-closure 1 (MA-is-set _ _)
-                                       (Π-closure ext 1 (λ _ → Π-closure ext 1 (λ _ → ≤-propositional)))) number-unique
+    ↓'-is-prop : Is-set A → (fp : Seq) → (a : A) → Is-proposition (fp ↓' a)
+    ↓'-is-prop A-set (f , p) a =
+      Σ-property _ _ (λ _ → ×-closure 1 (MA-is-set A-set _ _)
+                                        (Π-closure ext 1 λ _ →
+                                         Π-closure ext 1 λ _ →
+                                         ≤-propositional))
+                 number-unique
       where
         number-unique : (x y : (f , p) ↓' a) → proj₁ x ≡ proj₁ y
         number-unique (m , p₁ , p₂) (n , q₁ , q₂) = ≤-antisymmetric (p₂ n (λ e → ⊎.inj₁≢inj₂ (trans (sym e) q₁)))
@@ -285,8 +291,11 @@ module evaluating-sequences {Aset : SET a} where
 
     -- now: the equivalences
     -- the easy directions are ↓' ⇒ ↓ ⇒ ∥↓∥. The hard implication is ∥↓∥ ⇒ ↓', which we do first:
-    ∥↓∥→↓' : {fp : Seq} → {a : A} → (fp ∥↓∥ a) → (fp ↓' a)
-    ∥↓∥→↓' {fp} {a} = ∥∥-rec {B = fp ↓' a} (↓'-is-prop fp a) (λ {(n , fn≡justₐ) → find-min n a fn≡justₐ}) where
+    ∥↓∥→↓' : Is-set A → {fp : Seq} → {a : A} → (fp ∥↓∥ a) → (fp ↓' a)
+    ∥↓∥→↓' A-set {fp} {a} =
+      ∥∥-rec {B = fp ↓' a}
+             (↓'-is-prop A-set fp a)
+             (λ {(n , fn≡justₐ) → find-min n a fn≡justₐ}) where
 
       f : ℕ → Maybe A
       f = proj₁ fp
@@ -311,21 +320,21 @@ module evaluating-sequences {Aset : SET a} where
 
 
     -- Now, the logical equivalence that we want is easy:
-    ↓⇔∥↓∥ : ∀ {fp} {a} → (fp ↓ a) ⇔ (fp ∥↓∥ a)
-    ↓⇔∥↓∥ {fp} {a} = record { to = ∣_∣ ;
+    ↓⇔∥↓∥ : Is-set A → ∀ {fp} {a} → (fp ↓ a) ⇔ (fp ∥↓∥ a)
+    ↓⇔∥↓∥ A-set {fp} {a} = record { to = ∣_∣ ;
                              from = ∥↓∥→↓
                            }
       where
         ∥↓∥→↓ : fp ∥↓∥ a → fp ↓ a
-        ∥↓∥→↓ fp∥↓∥a with ∥↓∥→↓' {fp} {a} fp∥↓∥a
+        ∥↓∥→↓ fp∥↓∥a with ∥↓∥→↓' A-set {fp} {a} fp∥↓∥a
         ∥↓∥→↓ fp∥↓∥a | n , fn≡justₐ , _ = n , fn≡justₐ
 
 
 -- A boring, straightforward construction.
-module completion-to-seq {Aset : SET a} where
+module completion-to-seq where
 
-  open monotone-sequences {Aset}
-  open evaluating-sequences {Aset}
+  open monotone-sequences
+  open evaluating-sequences
 
 
   -- If we have *any* function f : ℕ → Maybe such that
@@ -401,10 +410,10 @@ module completion-to-seq {Aset : SET a} where
             take-max (suc n) ∎
 
 
-module relation-on-Seq {Aset : SET a} where
+module relation-on-Seq where
 
-  open monotone-sequences {Aset}
-  open evaluating-sequences {Aset}
+  open monotone-sequences
+  open evaluating-sequences
 
   -- auxiliary relations that we will use to define the equivalence relation on sequences
 
@@ -428,14 +437,14 @@ module relation-on-Seq {Aset : SET a} where
 
 
 
-module monotone-to-QIIT {Aset : SET a} where
+module monotone-to-QIIT where
 
   open import Partiality-monad.Inductive
   open import Partiality-monad.Inductive.Properties
 
-  open monotone-sequences {Aset}
-  open evaluating-sequences {Aset}
-  open relation-on-Seq {Aset}
+  open monotone-sequences
+  open evaluating-sequences
+  open relation-on-Seq
 
 
   -- Our goal is to define the canonical function from Sequences to the QIIT-partiality monad
@@ -455,8 +464,9 @@ module monotone-to-QIIT {Aset : SET a} where
   canonical = ⨆ ∘ Seq→Increasing
 
   abstract
-    canonical-≲-⊑ : {fp gq : Seq} → fp ≲ gq → canonical fp ⊑ canonical gq
-    canonical-≲-⊑ {fp} {gq} fp≲gq =
+    canonical-≲-⊑ : Is-set A → {fp gq : Seq} →
+                    fp ≲ gq → canonical fp ⊑ canonical gq
+    canonical-≲-⊑ A-set {fp} {gq} fp≲gq =
       least-upper-bound (Seq→Increasing fp)
                         (canonical gq)
                         cgq-is-ub
@@ -468,7 +478,7 @@ module monotone-to-QIIT {Aset : SET a} where
                  cgq-is-ub n with inspect (f n)
                  cgq-is-ub n | nothing , fn≡nothing = subst (λ x → x ⊑ _) (cong aux (sym fn≡nothing)) (never⊑ _)
                  cgq-is-ub n | inj₂ a , fn≡justₐ =
-                   aux (f n)  ⊑⟨ ≡→⊑ {Aset = Aset} (cong aux (trans fn≡justₐ (sym gkₙ≡justₐ))) ⟩
+                   aux (f n)  ⊑⟨ ≡→⊑ (cong aux (trans fn≡justₐ (sym gkₙ≡justₐ))) ⟩
                    aux (g kₙ) ⊑⟨ upper-bound′ (Seq→Increasing gq) (⨆ (Seq→Increasing gq)) (⊑-refl _) kₙ ⟩■
                    ⨆ (Seq→Increasing gq) ■
                    where
@@ -479,35 +489,40 @@ module monotone-to-QIIT {Aset : SET a} where
                    gq∥↓∥a : gq ∥↓∥ a
                    gq∥↓∥a = fp≲gq a fp∥↓∥a
                    gq↓a : gq ↓ a
-                   gq↓a = _⇔_.from (↓⇔∥↓∥ {gq}) gq∥↓∥a
+                   gq↓a = _⇔_.from (↓⇔∥↓∥ A-set {gq}) gq∥↓∥a
                    kₙ : ℕ
                    kₙ = proj₁ gq↓a
                    gkₙ≡justₐ : g kₙ ≡ just a
                    gkₙ≡justₐ = proj₂ gq↓a
 
 
-    canonical-respects-~ : {fp gq : Seq} → fp ~ gq → canonical fp ≡ canonical gq
-    canonical-respects-~ (fp≲gq , gq≲fp) = antisymmetry (canonical-≲-⊑ fp≲gq) (canonical-≲-⊑ gq≲fp)
+    canonical-respects-~ : Is-set A → {fp gq : Seq} →
+                           fp ~ gq → canonical fp ≡ canonical gq
+    canonical-respects-~ A-set (fp≲gq , gq≲fp) =
+      antisymmetry (canonical-≲-⊑ A-set fp≲gq)
+                   (canonical-≲-⊑ A-set gq≲fp)
 
   -- Finally, we can extend the canonical function to the quotient.
-  canonical' : Seq/~ → A ⊥
-  canonical' = rec {P = A ⊥} canonical canonical-respects-~ ⊥-is-set
+  canonical' : Is-set A → Seq/~ → A ⊥
+  canonical' A-set = rec canonical (canonical-respects-~ A-set) ⊥-is-set
 
   -- ... and this is really an extension.
-  canonical'-is-extension : (fp : Seq) → canonical' (Quotient.HIT.[_] fp) ≡ canonical fp
-  canonical'-is-extension = elim-[]
+  canonical'-is-extension :
+    (A-set : Is-set A) (fp : Seq) →
+    canonical' A-set (Quotient.HIT.[_] fp) ≡ canonical fp
+  canonical'-is-extension _ = elim-[]
 
 
 
-module canonical-simple-properties {Aset : SET a} where
+module canonical-simple-properties where
 
   open import Partiality-monad.Inductive
   open import Partiality-monad.Inductive.Properties
   open import Partiality-monad.Inductive.Alternative-order
 
-  open monotone-sequences {Aset}
-  open monotone-to-QIIT {Aset}
-  open evaluating-sequences {Aset}
+  open monotone-sequences
+  open monotone-to-QIIT
+  open evaluating-sequences
 
 
   -- sequence constantly nothing
@@ -534,8 +549,9 @@ module canonical-simple-properties {Aset : SET a} where
                                          (upper-bound′ (Seq→Increasing (const-seq a)) (canonical (const-seq a)) (⊑-refl _) zero)
 
     -- An important lemma: _↓_ and canonical_⇓_ are equivalent (logically; the first is not propositional).
-    canonical⇓↓ : (a : A) → (seq : Seq) → canonical seq ⇓ a ⇔ (seq ↓ a)
-    canonical⇓↓ a seq =
+    canonical⇓↓ : Is-set A → Univalence a →
+                  (a : A) → (seq : Seq) → canonical seq ⇓ a ⇔ (seq ↓ a)
+    canonical⇓↓ A-set ua a seq =
       record { to = ⇓→↓ ;
                from = ↓→⇓
              }
@@ -546,7 +562,7 @@ module canonical-simple-properties {Aset : SET a} where
           f-mon = proj₂ seq
 
           ⇓→↓ : canonical seq ⇓ a → seq ↓ a
-          ⇓→↓ cs⇓a = _⇔_.from (↓⇔∥↓∥ {seq} {a}) (∥∥-map Σn,csₙ⇓a→seq↓a ∥Σn,csₙ⇓a∥ )
+          ⇓→↓ cs⇓a = _⇔_.from (↓⇔∥↓∥ A-set {seq} {a}) (∥∥-map Σn,csₙ⇓a→seq↓a ∥Σn,csₙ⇓a∥ )
             where
               ∥Σn,csₙ⇓a∥ : ∥ (Σ ℕ λ n → (Seq→Increasing seq) [ n ] ⇓ a) ∥
               ∥Σn,csₙ⇓a∥ = _≃_.to (⨆⇓≃∥∃⇓∥ ua (Seq→Increasing seq) {a}) cs⇓a
@@ -566,7 +582,7 @@ module canonical-simple-properties {Aset : SET a} where
                               aux (f n)                  ≡⟨ cong aux fₙ≡justb ⟩∎
                               now b ∎
                   a≡b : a ≡ b
-                  a≡b = now-injective {Aset} nowa≡nowb
+                  a≡b = now-injective A-set ua nowa≡nowb
 
           ↓→⇓ : seq ↓ a → canonical seq ⇓ a
           ↓→⇓ (n , fₙ≡justₐ) = terminating-element-is-⨆ ua (Seq→Increasing seq) {n = n} {x = a} (cong aux fₙ≡justₐ)
@@ -575,12 +591,11 @@ module canonical-simple-properties {Aset : SET a} where
 
 -- The goal of this module is to show that the canonical function
 -- (and thus the extended version of it) is surjective.
-module canonical'-surjective {Aset : SET a} where
+module canonical'-surjective where
 
   open import Partiality-monad.Inductive
   open import Partiality-monad.Inductive.Eliminators
   open import Preimage
-  open import Univalence-axiom equality-with-J
   open import Surjection equality-with-J
   open import Bijection equality-with-J
   open import Function-universe equality-with-J
@@ -589,19 +604,21 @@ module canonical'-surjective {Aset : SET a} where
   open import Partiality-monad.Inductive.Properties
 
 
-  open monotone-to-QIIT {Aset}
-  open monotone-sequences {Aset}
-  open canonical-simple-properties {Aset}
-  open completion-to-seq {Aset}
-  open evaluating-sequences {Aset}
+  open monotone-to-QIIT
+  open monotone-sequences
+  open canonical-simple-properties
+  open completion-to-seq
+  open evaluating-sequences
 
 
   -- TODO: THIS NEEDS TO BE RE-ORGANISED!
   -- by far too many nested 'where'.
   -- The whole module structures of the whole file need to be fixed.
 
-  canonical-surjective : (Axiom-of-countable-choice a) → Surjective canonical
-  canonical-surjective cc =
+  canonical-surjective :
+    Is-set A → Univalence a → Axiom-of-countable-choice a →
+    Surjective canonical
+  canonical-surjective A-set ua cc =
     ⊥-rec-⊥ {P = λ x → ∥ (Σ Seq λ fp → canonical fp ≡ x) ∥}
       (record { pe = ∣ const-nothing , canonical-nothing-never ∣ ;
                 po = λ a → ∣ const-seq a , canonical-const-now a ∣ ;
@@ -628,7 +645,7 @@ module canonical'-surjective {Aset : SET a} where
                                     → double-seq  m' k' ≡ just b
                                     → a ≡ b
               double-seq-unique-A a b m k m' k' mk↓a m'k'↓b =
-                termination-value-unique {Aset = Aset}
+                termination-value-unique A-set ua
                                          (⨆ s) a b
                                          (⨆s⇓c a m k mk↓a)
                                          (⨆s⇓c b m' k' m'k'↓b)
@@ -636,9 +653,9 @@ module canonical'-surjective {Aset : SET a} where
                   ⨆s⇓c : (c : A) → (l o : ℕ) → double-seq l o ≡ just c → ⨆ s ⇓ c
                   ⨆s⇓c c l o lo↓c =
                     terminating-element-is-⨆ ua s {n = l} {x = c}
-                                             (subst (λ z → z ⇓ c)
-                                                    (proj₂ (pw l))
-                                                    (_⇔_.from (canonical⇓↓ c (seq-at l)) (o , lo↓c)))
+                      (subst (λ z → z ⇓ c)
+                             (proj₂ (pw l))
+                             (_⇔_.from (canonical⇓↓ A-set ua c (seq-at l)) (o , lo↓c)))
 
               -- We are given a function ℕ → ℕ → Maybe A and want to make a function ℕ → Maybe A out of it.
               -- To do this, we use the lemma ℕ↔ℕ².
@@ -722,11 +739,10 @@ module canonical'-surjective {Aset : SET a} where
                     seq-at-m-k⊑seq k | nothing , seq-at-m-k≡nothing =
                       subst (λ z → aux z ⊑ canonical seq) (sym seq-at-m-k≡nothing) (never⊑ _)
                     seq-at-m-k⊑seq k | just a , seq-at-m-k≡justₐ    =
-                      ≡→⊑ {Aset = Aset}
-                          {x = Seq→Increasing (seq-at m) [ k ]}
+                      ≡→⊑ {x = Seq→Increasing (seq-at m) [ k ]}
                           {y = canonical seq}
                             (Seq→Increasing (seq-at m) [ k ] ≡⟨ cong aux seq-at-m-k≡justₐ ⟩
-                            now a ≡⟨ sym (_⇔_.from (canonical⇓↓ a seq) seq↓a) ⟩∎
+                            now a ≡⟨ sym (_⇔_.from (canonical⇓↓ A-set ua a seq) seq↓a) ⟩∎
                             canonical seq ∎)
                       where
                         n : ℕ
@@ -753,26 +769,27 @@ module canonical'-surjective {Aset : SET a} where
 
               ⨆s⊑csq : ⨆ s ⊑ canonical seq
               ⨆s⊑csq = least-upper-bound s (canonical seq) (λ n →
-                s [ n ]              ⊑⟨ ≡→⊑ {Aset = Aset} (sym (proj₂ (pw n))) ⟩
+                s [ n ]              ⊑⟨ ≡→⊑ (sym (proj₂ (pw n))) ⟩
                 canonical (seq-at n) ⊑⟨ seq-at⊑seq n ⟩■
                 canonical seq        ■)
 
               seq-correct : canonical seq ≡ ⨆ s
               seq-correct = antisymmetry {x = canonical seq} {y = ⨆ s} cseq⊑⨆s ⨆s⊑csq
 
-  canonical'-surjective : (Axiom-of-countable-choice a) → Surjective canonical'
-  canonical'-surjective cc z =
-    ∥∥-map (λ { (pre , can-pre≡z) → Quotient.HIT.[_] pre , trans (canonical'-is-extension pre) can-pre≡z })
-          (canonical-surjective cc z)
+  canonical'-surjective :
+    (A-set : Is-set A) → Univalence a → Axiom-of-countable-choice a →
+    Surjective (canonical' A-set)
+  canonical'-surjective A-set ua cc z =
+    ∥∥-map (λ { (pre , can-pre≡z) → Quotient.HIT.[_] pre , trans (canonical'-is-extension A-set pre) can-pre≡z })
+          (canonical-surjective A-set ua cc z)
 
 
 -- canonical' is injective
-module canonical'-injective {Aset : SET a} where
+module canonical'-injective where
 
   open import Partiality-monad.Inductive
   open import Partiality-monad.Inductive.Eliminators
   open import Preimage
-  open import Univalence-axiom equality-with-J
   open import Surjection equality-with-J
   open import Injection equality-with-J
 
@@ -780,57 +797,74 @@ module canonical'-injective {Aset : SET a} where
   open import Partiality-monad.Inductive.Properties
 
 
-  open monotone-to-QIIT {Aset}
-  open monotone-sequences {Aset}
-  open canonical-simple-properties {Aset}
-  open completion-to-seq {Aset}
-  open evaluating-sequences {Aset}
-  open relation-on-Seq {Aset}
+  open monotone-to-QIIT
+  open monotone-sequences
+  open canonical-simple-properties
+  open completion-to-seq
+  open evaluating-sequences
+  open relation-on-Seq
 
-  canonical-semi : {f g : Seq} → canonical f ⊑ canonical g → f ≲ g
-  canonical-semi {f} {g} cf⊑cg a ∥f↓a∥ = _⇔_.to (↓⇔∥↓∥ {fp = g}) (_⇔_.to (canonical⇓↓ a g) canonicalg⇓a)
+  canonical-semi :
+    Is-set A → Univalence a →
+    {f g : Seq} → canonical f ⊑ canonical g → f ≲ g
+  canonical-semi A-set ua {f} {g} cf⊑cg a ∥f↓a∥ =
+    _⇔_.to (↓⇔∥↓∥ A-set {fp = g}) (_⇔_.to (canonical⇓↓ A-set ua a g) canonicalg⇓a)
     where
       canonicalf⇓a : canonical f ⇓ a
-      canonicalf⇓a = _⇔_.from (canonical⇓↓ a f) (_⇔_.from (↓⇔∥↓∥ {fp = f}) ∥f↓a∥)
+      canonicalf⇓a = _⇔_.from (canonical⇓↓ A-set ua a f) (_⇔_.from (↓⇔∥↓∥ A-set {fp = f}) ∥f↓a∥)
       canonicalg⇓a : canonical g ⇓ a
       canonicalg⇓a = _≃_.from (⇓≃now⊑ ua {x = canonical g} {y = a}) (
-                              now a ⊑⟨ ≡→⊑ {Aset = Aset} (sym canonicalf⇓a) ⟩
+                              now a ⊑⟨ ≡→⊑ (sym canonicalf⇓a) ⟩
                               canonical f ⊑⟨ cf⊑cg ⟩■
                               canonical g ■)
 
-  ~←canonical≡ : {f g : Seq} → canonical f ≡ canonical g → f ~ g
-  ~←canonical≡ {f} {g} cf≡cg = (canonical-semi {f} {g} (≡→⊑ {Aset = Aset} cf≡cg ))
-                               ,
-                               (canonical-semi {g} {f} (≡→⊑ {Aset = Aset} (sym cf≡cg)))
+  ~←canonical≡ :
+    Is-set A → Univalence a →
+    {f g : Seq} → canonical f ≡ canonical g → f ~ g
+  ~←canonical≡ A-set ua {f} {g} cf≡cg =
+      (canonical-semi A-set ua {f} {g} (≡→⊑ cf≡cg ))
+    , (canonical-semi A-set ua {g} {f} (≡→⊑ (sym cf≡cg)))
 
   -- We do the "double-induction" in two steps.
   -- First auxiliary step:
-  can-inj-elim₁ : {f : Seq} → {g' : Seq/~} → canonical f ≡ canonical' g' → Quotient.HIT.[_] f ≡ g'
-  can-inj-elim₁ {f} {g'} =
+  can-inj-elim₁ :
+    (A-set : Is-set A) → Univalence a →
+    {f : Seq} {g' : Seq/~} →
+    canonical f ≡ canonical' A-set g' →
+    Quotient.HIT.[_] f ≡ g'
+  can-inj-elim₁ A-set ua {f} {g'} =
     quot-elim-prop
-      (λ g' → canonical f ≡ canonical' g' → Quotient.HIT.[_] f ≡ g')
-      (λ g → λ cfcg → []-respects-relation (~←canonical≡ (trans cfcg (canonical'-is-extension g))))
+      (λ g' → canonical f ≡ canonical' A-set g' → Quotient.HIT.[_] f ≡ g')
+      (λ g → λ cfcg → []-respects-relation
+                        (~←canonical≡ A-set ua (trans cfcg (canonical'-is-extension A-set g))))
       (λ _ → Π-closure ext 1 (λ _ → /-is-set _ _))
       g'
 
   -- Second step - this is what we want:
-  canonical'-injective : Injective canonical'
-  canonical'-injective {f'} {g'} =
+  canonical'-injective :
+    (A-set : Is-set A) → Univalence a →
+    Injective (canonical' A-set)
+  canonical'-injective A-set ua {f'} {g'} =
     quot-elim-prop
-      (λ f' → canonical' f' ≡ canonical' g' → f' ≡ g')
-      (λ f cfcg → can-inj-elim₁ (trans (sym (canonical'-is-extension f)) cfcg) )
+      (λ f' → canonical' A-set f' ≡ canonical' A-set g' → f' ≡ g')
+      (λ f cfcg → can-inj-elim₁ A-set ua (trans (sym (canonical'-is-extension A-set f)) cfcg) )
       (λ _ → Π-closure ext 1 (λ _ → /-is-set _ _))
       f'
 
 
 -- canonical' is an equivalence: needs a library lemma which (I think) is not there yet.
-module canonical'-equivalence {Aset : SET a} where
+module canonical'-equivalence where
 
-  open import Partiality-monad.Inductive.Properties {a} {proj₁ Aset}
-  open monotone-to-QIIT {Aset}
+  open monotone-to-QIIT
   open canonical'-surjective
   open canonical'-injective
 
-  canonical'-equiv : (Axiom-of-countable-choice a) → Is-equivalence (canonical')
-  canonical'-equiv cc = InjSurj→≃ {Yset = _ , ⊥-is-set} canonical' canonical'-injective (canonical'-surjective cc)
-
+  canonical'-equiv :
+    (A-set : Is-set A) → Univalence a → Axiom-of-countable-choice a →
+    Is-equivalence (canonical' A-set)
+  canonical'-equiv A-set ua cc =
+    InjSurj→≃
+      {Yset = _ , ⊥-is-set}
+      (canonical' A-set)
+      (canonical'-injective A-set ua)
+      (canonical'-surjective A-set ua cc)
