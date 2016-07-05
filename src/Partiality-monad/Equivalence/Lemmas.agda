@@ -13,7 +13,7 @@
 
 {-# OPTIONS --without-K #-}
 
-module Countchoice-equiv {a} {A : Set a} where
+module Partiality-monad.Equivalence.Lemmas {a} {A : Set a} where
 
 open import Equality.Propositional
 open import H-level equality-with-J

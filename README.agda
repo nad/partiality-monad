@@ -183,5 +183,5 @@ import Partiality-monad.Coinductive.Partial-order
 -- Partiality-monad.Coinductive are pointwise equivalent, for sets,
 -- assuming extensionality, univalence and countable choice.
 
-import Countchoice-equiv
+import Partiality-monad.Equivalence.Lemmas
 import Partiality-monad.Equivalence

@@ -20,12 +20,12 @@ open import Function-universe equality-with-J as F
 open import H-level equality-with-J
 open import Univalence-axiom equality-with-J
 
-import Countchoice-equiv as L
 import Delay-monad as D
 import Delay-monad.Alternative as A
 import Delay-monad.Strong-bisimilarity as Strong-bisimilarity
 import Delay-monad.Weak-bisimilarity as W
 import Partiality-monad.Coinductive as C
+import Partiality-monad.Equivalence.Lemmas as L
 import Partiality-monad.Inductive as I
 import Partiality-monad.Inductive.Properties as IP
 
