@@ -134,6 +134,24 @@ import Lambda.Partiality-monad.Inductive.Compiler-correctness
 import Lambda.Delay-monad.Compiler-correctness
 
 ------------------------------------------------------------------------
+-- A simplified example
+
+-- A simplified variant of the example above. The example above uses a
+-- well-scoped variant of the untyped λ-calculus with constants. This
+-- example does not use constants. This means that the interpreter
+-- cannot crash, so the type soundness result has been omitted.
+
+import Lambda.Simplified.Syntax
+import Lambda.Simplified.Virtual-machine
+import Lambda.Simplified.Compiler
+import Lambda.Simplified.Partiality-monad.Inductive.Interpreter
+import Lambda.Simplified.Delay-monad.Interpreter
+import Lambda.Simplified.Partiality-monad.Inductive.Virtual-machine
+import Lambda.Simplified.Delay-monad.Virtual-machine
+import Lambda.Simplified.Partiality-monad.Inductive.Compiler-correctness
+import Lambda.Simplified.Delay-monad.Compiler-correctness
+
+------------------------------------------------------------------------
 -- A variant of the delay monad with a sized type parameter
 
 -- The delay monad, defined coinductively, with a sized type
