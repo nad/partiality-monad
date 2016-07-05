@@ -2,16 +2,22 @@
 -- Fixpoint combinators
 ------------------------------------------------------------------------
 
-{-# OPTIONS --without-K #-}
+{-# OPTIONS --without-K --rewriting #-}
 
 module Partiality-monad.Inductive.Fixpoints where
 
 open import Equality.Propositional
 open import Interval using (ext)
+open import Logical-equivalence using (_⇔_)
 open import Prelude hiding (⊥)
 
 open import Bijection equality-with-J using (_↔_)
+import Equivalence equality-with-J as Eq
+open import Function-universe equality-with-J hiding (_∘_)
+open import H-level equality-with-J
+open import H-level.Closure equality-with-J
 open import Monad equality-with-J
+open import Univalence-axiom equality-with-J
 
 open import Partiality-monad.Inductive
 open import Partiality-monad.Inductive.Monad
@@ -198,3 +204,197 @@ module _ {a b} {A : Set a} {B : Set b} where
     ⨆ [ f $ fix→-sequence f at x ]-inc  ≡⟨ sym $ ω-cont (fix→-sequence f) x ⟩
     proj₁ f (⨆ ∘ fix→-sequence f) x     ≡⟨ refl ⟩∎
     proj₁ f (fix→ f) x                  ∎
+
+------------------------------------------------------------------------
+-- Some combinators that can be used to construct ω-continuous partial
+-- function transformers, for use with fix→
+
+-- A type used by these combinators.
+
+record Partial
+         {a b c}
+         (A : Set a) (B : Set b) (C : Set c) :
+         Set (a ⊔ b ⊔ lsuc c) where
+  field
+    -- A function that is allowed to make "recursive calls" of type
+    -- A → B ⊥.
+
+    function : (A → B ⊥) → C ⊥
+
+    -- The function must be monotone.
+
+    monotone : ∀ {rec₁ rec₂} →
+               (∀ x → rec₁ x ⊑ rec₂ x) →
+               function rec₁ ⊑ function rec₂
+
+  -- The function can be turned into an increasing sequence.
+
+  sequence : (A → Increasing-sequence B) → Increasing-sequence C
+  sequence recs =
+      (λ n → function (λ x → recs x [ n ]))
+    , (λ n → monotone (λ x → increasing (recs x) n))
+
+  field
+    -- The function must be ω-continuous in the following sense.
+    --
+    -- The proof can make use of univalence. This assumption is
+    -- included so that the monad instance can be defined without a
+    -- univalence assumption.
+
+    ω-continuous : Univalence c →
+                   (recs : A → Increasing-sequence B) →
+                   function (⨆ ∘ recs) ≡ ⨆ (sequence recs)
+
+open Partial
+
+-- The first two arguments of Partial specify the domain and codomain
+-- of "recursive calls".
+
+rec : ∀ {a b} {A : Set a} {B : Set b} → A → Partial A B B
+rec x = record
+  { function     = _$ x
+  ; monotone     = _$ x
+  ; ω-continuous = λ _ _ → refl
+  }
+
+-- Turns certain Partial-valued functions into monotone partial
+-- function transformers.
+
+transformer : ∀ {a b} {A : Set a} {B : Set b} →
+              (A → Partial A B B) → Trans-⊑ A B
+transformer f =
+    (λ g     x → function (f x) g)
+  , (λ g₁⊑g₂ x → monotone (f x) g₁⊑g₂)
+
+-- Turns certain Partial-valued functions into ω-continuous partial
+-- function transformers (assuming univalence).
+
+transformer-ω : ∀ {a b} {A : Set a} {B : Set b} →
+                Univalence b →
+                (A → Partial A B B) → Trans-ω A B
+transformer-ω univ f =
+    transformer f
+  , (λ s x → ω-continuous (f x) univ s)
+
+-- A fixpoint combinator.
+
+fixP : ∀ {a b} {A : Set a} {B : Set b} →
+       (A → Partial A B B) → (A → B ⊥)
+fixP {A = A} {B} =
+  (A → Partial A B B)  ↝⟨ transformer ⟩
+  Trans-⊑ A B          ↝⟨ fix→ ⟩□
+  (A → B ⊥)            □
+
+-- The fixpoint combinator produces fixpoints (assuming univalence).
+
+fixP-is-fixpoint-combinator :
+  ∀ {a b} {A : Set a} {B : Set b} →
+  Univalence b →
+  (f : A → Partial A B B) →
+  fixP f ≡ flip (function ∘ f) (fixP f)
+fixP-is-fixpoint-combinator univ =
+  fix→-is-fixpoint-combinator ∘ transformer-ω univ
+
+-- Equality characterisation lemma for Partial.
+
+equality-characterisation-Partial :
+  ∀ {a b c} {A : Set a} {B : Set b} {C : Set c}
+    {f g : Partial A B C} →
+  (∀ rec → function f rec ≡ function g rec) ↔
+  f ≡ g
+equality-characterisation-Partial {f = f} {g} =
+  (∀ rec → function f rec ≡ function g rec)  ↔⟨ Eq.extensionality-isomorphism ext ⟩
+  function f ≡ function g                    ↝⟨ ignore-propositional-component
+                                                  (Σ-closure 1
+                                                     (implicit-Π-closure ext 1 λ _ →
+                                                      implicit-Π-closure ext 1 λ _ →
+                                                      Π-closure          ext 1 λ _ →
+                                                      ⊑-propositional) λ _ →
+                                                     Π-closure ext 1 λ _ →
+                                                     Π-closure ext 1 λ _ →
+                                                     ⊥-is-set _ _) ⟩
+  (function f , _) ≡ (function g , _)        ↔⟨ Eq.≃-≡ (Eq.↔⇒≃ lemma) ⟩□
+  f ≡ g                                      □
+  where
+  lemma : Partial _ _ _
+            ↔
+          ∃ λ _ → ∃ λ (_ : ∀ {rec₁ rec₂} → _ → _) → _
+  lemma = record
+    { surjection = record
+      { logical-equivalence = record
+        { to   = λ x → function x , monotone x , ω-continuous x
+        ; from = λ { (f , m , ω) → record
+                      { function     = f
+                      ; monotone     = λ {rec₁ rec₂} → m {rec₁ = rec₁} {rec₂ = rec₂}
+                      ; ω-continuous = ω
+                      } }
+        }
+      ; right-inverse-of = λ _ → refl
+      }
+    ; left-inverse-of = λ _ → refl
+    }
+
+instance
+
+  -- Partial A B is a monad.
+
+  partial-monad : ∀ {a b c} {A : Set a} {B : Set b} →
+                  Monad (Partial {c = c} A B)
+  Raw-monad.return (Monad.raw-monad partial-monad) x = record
+    { function     = const (return x)
+    ; monotone     = const (return x ■)
+    ; ω-continuous = λ _ _ →
+        now x               ≡⟨ sym ⨆-const ⟩∎
+        ⨆ (constˢ (now x))  ∎
+    }
+
+  Raw-monad._>>=_ (Monad.raw-monad partial-monad) x f = record
+    { function     = λ rec →
+                       function x rec >>=′ λ y →
+                       function (f y) rec
+    ; monotone     = λ rec⊑rec →
+                       monotone x rec⊑rec >>=-mono λ y →
+                       monotone (f y) rec⊑rec
+    ; ω-continuous = λ univ recs →
+        (function x (⨆ ∘ recs) >>=′ λ y → function (f y) (⨆ ∘ recs))     ≡⟨ cong (_>>=′ _) $ ω-continuous x univ recs ⟩
+
+        (⨆ ( (λ n → function x (λ z → recs z [ n ]))
+           , (λ n → monotone x (λ z → increasing (recs z) n))
+           ) >>=′ λ y → function (f y) (⨆ ∘ recs))                       ≡⟨⟩
+
+        ⨆ ( (λ n → function x (λ z → recs z [ n ]) >>=′ λ y →
+                   function (f y) (⨆ ∘ recs))
+          , _
+          )                                                              ≡⟨ cong ⨆
+                                                                              (_↔_.to equality-characterisation-increasing λ n →
+                                                                                 cong (function x (λ z → recs z [ n ]) >>=′_) $ ext λ y →
+                                                                                   ω-continuous (f y) univ recs) ⟩
+        ⨆ ( (λ n →
+               function x (λ z → recs z [ n ]) >>=′ λ y →
+               ⨆ ( (λ n → function (f y) (λ x → recs x [ n ]))
+                 , (λ n → monotone (f y) (λ x → increasing (recs x) n))
+                 ))
+          , (λ n →
+               monotone x (λ z → increasing (recs z) n) >>=-mono λ y →
+               ⊑-refl _)
+          )                                                              ≡⟨ ⨆>>=⨆≡⨆>>= univ univ
+                                                                              ( (λ n → function x (λ z → recs z [ n ]))
+                                                                              , (λ n → monotone x (λ z → increasing (recs z) n))
+                                                                              ) _ ⟩∎
+        ⨆ ( (λ n → function x (λ z → recs z [ n ]) >>=′ λ y →
+                   function (f y) (λ z → recs z [ n ]))
+          , _
+          )                                                              ∎
+    }
+
+  Monad.left-identity partial-monad _ f =
+    _↔_.to equality-characterisation-Partial
+      (λ h → left-identity _ (λ y → function (f y) h))
+
+  Monad.right-identity partial-monad _ =
+    _↔_.to equality-characterisation-Partial
+      (λ _ → right-identity _)
+
+  Monad.associativity partial-monad x _ _ =
+    _↔_.to equality-characterisation-Partial
+      (λ h → associativity (function x h) _ _)
