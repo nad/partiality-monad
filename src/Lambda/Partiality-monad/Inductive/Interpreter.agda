@@ -68,7 +68,7 @@ module Interpreter₁ where
   -- This interpreter is defined as the least upper bound of a
   -- sequence of increasingly defined interpreters.
 
-  infix 10 _∙_ _∙ˢ_
+  infix 10 _∙_
 
   mutual
 
@@ -107,9 +107,6 @@ module Interpreter₁ where
   ⟦_⟧ˢ : ∀ {n} → Tm n → Env n → Increasing-sequence (Maybe Value)
   ⟦ t ⟧ˢ ρ = MaybeT.run ∘ ⟦ t ⟧′ ρ , ⟦⟧′-increasing t ρ
 
-  _∙ˢ_ : Value → Value → Increasing-sequence (Maybe Value)
-  v₁ ∙ˢ v₂ = MaybeT.run ∘ (v₁ ∙ v₂) , ∙-increasing v₁ v₂
-
   ⟦_⟧ : ∀ {n} → Tm n → Env n → M Value
   run (⟦ t ⟧ ρ) = ⨆ (⟦ t ⟧ˢ ρ)
 
@@ -120,51 +117,26 @@ module Interpreter₂ where
 
   -- This interpreter is defined using a fixpoint combinator.
 
-  module _ (rec : (∃ λ n → Tm n × Env n) → M Value) where
+  M′ : Set → Set₁
+  M′ = MaybeT (Partial (∃ λ n → Tm n × Env n) (Maybe Value))
 
-    infix 10 _∙_
+  infix 10 _∙_
 
-    _∙_ : Value → Value → M Value
-    con i  ∙ v₂ = fail
-    ƛ t₁ ρ ∙ v₂ = rec (_ , t₁ , snoc ρ v₂)
+  _∙_ : Value → Value → M′ Value
+  con i  ∙ v₂ = fail
+  ƛ t₁ ρ ∙ v₂ = wrap (rec (_ , t₁ , snoc ρ v₂))
 
-    ⟦_⟧′ : ∀ {n} → Tm n → Env n → M Value
-    ⟦ con i ⟧′   ρ = return (con i)
-    ⟦ var x ⟧′   ρ = return (ρ x)
-    ⟦ ƛ t ⟧′     ρ = return (ƛ t ρ)
-    ⟦ t₁ · t₂ ⟧′ ρ = ⟦ t₁ ⟧′ ρ >>= λ v₁ →
-                     ⟦ t₂ ⟧′ ρ >>= λ v₂ →
-                     v₁ ∙ v₂
-
-  ∙-mono : ∀ {rec₁ rec₂} →
-           (∀ x → rec₁ x ⊑M rec₂ x) →
-           ∀ v₁ v₂ → _∙_ rec₁ v₁ v₂ ⊑M _∙_ rec₂ v₁ v₂
-  ∙-mono rec₁⊑rec₂ (con i)  v₂ = run fail ■
-  ∙-mono rec₁⊑rec₂ (ƛ t₁ ρ) v₂ = rec₁⊑rec₂ (_ , t₁ , snoc ρ v₂)
-
-  ⟦⟧′-mono : ∀ {rec₁ rec₂} →
-             (∀ x → rec₁ x ⊑M rec₂ x) →
-             ∀ {n} (t : Tm n) ρ → ⟦_⟧′ rec₁ t ρ ⊑M ⟦_⟧′ rec₂ t ρ
-  ⟦⟧′-mono rec₁⊑rec₂ (con i)   ρ = MaybeT.run (return (con i)) ■
-  ⟦⟧′-mono rec₁⊑rec₂ (var x)   ρ = MaybeT.run (return (ρ x))   ■
-  ⟦⟧′-mono rec₁⊑rec₂ (ƛ t)     ρ = MaybeT.run (return (ƛ t ρ)) ■
-  ⟦⟧′-mono rec₁⊑rec₂ (t₁ · t₂) ρ =
-    ⟦⟧′-mono rec₁⊑rec₂ t₁ ρ >>=ᵐ-mono λ v₁ →
-    ⟦⟧′-mono rec₁⊑rec₂ t₂ ρ >>=ᵐ-mono λ v₂ →
-    ∙-mono rec₁⊑rec₂ v₁ v₂
-
-  step : ((∃ λ n → Tm n × Env n) → Maybe Value ⊥) →
-         ((∃ λ n → Tm n × Env n) → Maybe Value ⊥)
-  step rec (_ , t , ρ) = run (⟦_⟧′ (wrap ∘ rec) t ρ)
-
-  step-mono :
-    {rec₁ rec₂ : (∃ λ n → Tm n × Env n) → Maybe Value ⊥} →
-    (∀ x → rec₁ x ⊑ rec₂ x) →
-    ∀ x → step rec₁ x ⊑ step rec₂ x
-  step-mono rec₁⊑rec₂ (_ , t , ρ) = ⟦⟧′-mono rec₁⊑rec₂ t ρ
+  ⟦_⟧′ : ∀ {n} → Tm n → Env n → M′ Value
+  ⟦ con i ⟧′   ρ = return (con i)
+  ⟦ var x ⟧′   ρ = return (ρ x)
+  ⟦ ƛ t ⟧′     ρ = return (ƛ t ρ)
+  ⟦ t₁ · t₂ ⟧′ ρ = ⟦ t₁ ⟧′ ρ >>= λ v₁ →
+                   ⟦ t₂ ⟧′ ρ >>= λ v₂ →
+                   v₁ ∙ v₂
 
   ⟦_⟧ : ∀ {n} → Tm n → Env n → M Value
-  run (⟦ t ⟧ ρ) = fix→ (step , step-mono) (_ , t , ρ)
+  run (⟦ t ⟧ ρ) =
+    fixP (λ { (_ , t , ρ) → run (⟦ t ⟧′ ρ) }) (_ , t , ρ)
 
 ------------------------------------------------------------------------
 -- The two interpreters are pointwise equal
@@ -173,40 +145,43 @@ interpreters-equal :
   ∀ {n} (t : Tm n) ρ →
   Interpreter₁.⟦ t ⟧ ρ ≡ Interpreter₂.⟦ t ⟧ ρ
 interpreters-equal = λ t ρ →
-                                                                        $⟨ cong MaybeT.run ∘ ⟦⟧-lemma t ρ ⟩
+                                                           $⟨ ⟦⟧-lemma t ρ ⟩
   (∀ n → run (Interpreter₁.⟦ t ⟧′ ρ n) ≡
-         app Interpreter₂.step (suc n) (_ , t , ρ))                     ↝⟨ cong ⨆ ∘ _↔_.to equality-characterisation-increasing ⟩
+         app (proj₁ step₂) (suc n) (_ , t , ρ))            ↝⟨ cong ⨆ ∘ _↔_.to equality-characterisation-increasing ⟩
 
   ⨆ (Interpreter₁.⟦ t ⟧ˢ ρ) ≡
-  ⨆ (tailˢ (fix→-sequence (Interpreter₂.step , Interpreter₂.step-mono)
-                          (_ , t , ρ)))                                 ↝⟨ flip trans (⨆tail≡⨆ _) ⟩
+  ⨆ (tailˢ (fix→-sequence step₂ (_ , t , ρ)))              ↝⟨ flip trans (⨆tail≡⨆ _) ⟩
 
   ⨆ (Interpreter₁.⟦ t ⟧ˢ ρ) ≡
-  ⨆ (fix→-sequence (Interpreter₂.step , Interpreter₂.step-mono)
-                   (_ , t , ρ))                                         ↝⟨ id ⟩
+  ⨆ (fix→-sequence step₂ (_ , t , ρ))                      ↝⟨ id ⟩
 
-  run (Interpreter₁.⟦ t ⟧ ρ) ≡ run (Interpreter₂.⟦ t ⟧ ρ)               ↝⟨ cong wrap ⟩□
+  run (Interpreter₁.⟦ t ⟧ ρ) ≡ run (Interpreter₂.⟦ t ⟧ ρ)  ↝⟨ cong wrap ⟩□
 
-  Interpreter₁.⟦ t ⟧ ρ ≡ Interpreter₂.⟦ t ⟧ ρ                           □
+  Interpreter₁.⟦ t ⟧ ρ ≡ Interpreter₂.⟦ t ⟧ ρ              □
   where
+  open Partial
+
+  step₂ : Trans-⊑ (∃ λ n → Tm n × Env n) (Maybe Value)
+  step₂ = transformer λ { (_ , t , ρ) → run (Interpreter₂.⟦ t ⟧′ ρ) }
+
   mutual
 
     ⟦⟧-lemma :
       ∀ {n} (t : Tm n) ρ n →
-      Interpreter₁.⟦ t ⟧′ ρ n ≡
-      wrap (app Interpreter₂.step (suc n) (_ , t , ρ))
+      run (Interpreter₁.⟦ t ⟧′ ρ n) ≡
+      function (run (Interpreter₂.⟦ t ⟧′ ρ)) (app (proj₁ step₂) n)
     ⟦⟧-lemma (con i)   ρ n = refl
     ⟦⟧-lemma (var x)   ρ n = refl
     ⟦⟧-lemma (ƛ t)     ρ n = refl
     ⟦⟧-lemma (t₁ · t₂) ρ n =
-      cong₂ _>>=_ (⟦⟧-lemma t₁ ρ n) $ ext λ v₁ →
-      cong₂ _>>=_ (⟦⟧-lemma t₂ ρ n) $ ext λ v₂ →
+      cong₂ _>>=_ (⟦⟧-lemma t₁ ρ n) $ ext $ flip maybe refl λ v₁ →
+      cong₂ _>>=_ (⟦⟧-lemma t₂ ρ n) $ ext $ flip maybe refl λ v₂ →
       ∙-lemma v₁ v₂ n
 
     ∙-lemma :
       ∀ v₁ v₂ n →
-      Interpreter₁._∙_ v₁ v₂ n ≡
-      Interpreter₂._∙_ (wrap ∘ app Interpreter₂.step n) v₁ v₂
+      run ((v₁ Interpreter₁.∙ v₂) n) ≡
+      function (run (v₁ Interpreter₂.∙ v₂)) (app (proj₁ step₂) n)
     ∙-lemma (con i)  v₂ n       = refl
     ∙-lemma (ƛ t₁ ρ) v₂ zero    = refl
     ∙-lemma (ƛ t₁ ρ) v₂ (suc n) = ⟦⟧-lemma t₁ (snoc ρ v₂) n
