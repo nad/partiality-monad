@@ -18,6 +18,7 @@ open import Equivalence equality-with-J as Eq using (_≃_)
 open import Function-universe equality-with-J as F hiding (id; _∘_)
 open import H-level equality-with-J
 open import H-level.Closure equality-with-J
+open import Nat equality-with-J as Nat
 open import Univalence-axiom equality-with-J
 
 open import Partiality-monad.Inductive
@@ -264,3 +265,55 @@ map-∘ f g =
               (◇-f Py)
      })
   ◇-x
+
+-- Certain nested occurrences of ⨆ can be replaced by a single one
+-- (assuming univalence).
+
+⨆>>=⨆≡⨆>>= :
+  ∀ {a b} {A : Set a} {B : Set b} →
+  Univalence a →
+  Univalence b →
+  ∀ (s : Increasing-sequence A) (f : A → Increasing-sequence B)
+    {inc₁ inc₂} →
+  ⨆ ((λ n → s [ n ] >>=′ ⨆ ∘ f) , inc₁) ≡
+  ⨆ ((λ n → s [ n ] >>=′ λ y → f y [ n ]) , inc₂)
+⨆>>=⨆≡⨆>>= univ-a univ-b s f = antisymmetry
+  (least-upper-bound _ _ λ n →
+   _≃_.to (Alternative-order.≼≃⊑ univ-b) $ λ z →
+
+     s [ n ] >>=′ ⨆ ∘ f ⇓ z                                   ↔⟨ >>=-⇓ univ-a univ-b ⟩
+     ∥ (∃ λ y → s [ n ] ⇓ y × ⨆ (f y) ⇓ z) ∥                  ↔⟨ ∥∥-cong (∃-cong λ _ → F.id ×-cong Alternative-order.⨆⇓≃∥∃⇓∥ univ-b _) ⟩
+     ∥ (∃ λ y → s [ n ] ⇓ y × ∥ (∃ λ m → f y [ m ] ⇓ z) ∥) ∥  ↔⟨ Trunc.flatten′
+                                                                   (λ F → ∃ λ _ → _ × F (∃ λ _ → _ ⇓ _))
+                                                                   (λ f → Σ-map id (Σ-map id f))
+                                                                   (λ { (y , p , q) → ∥∥-map ((y ,_) ∘ (p ,_)) q }) ⟩
+     ∥ (∃ λ y → s [ n ] ⇓ y × ∃ λ m → f y [ m ] ⇓ z) ∥        ↔⟨ ∥∥-cong (∃-cong λ _ → ∃-comm) ⟩
+     ∥ (∃ λ y → ∃ λ m → s [ n ] ⇓ y × f y [ m ] ⇓ z) ∥        ↝⟨ ∥∥-map (Σ-map id lemma) ⟩
+     ∥ (∃ λ y → ∃ λ m → s [ m ] ⇓ y × f y [ m ] ⇓ z) ∥        ↔⟨ ∥∥-cong ∃-comm ⟩
+     ∥ (∃ λ m → ∃ λ y → s [ m ] ⇓ y × f y [ m ] ⇓ z) ∥        ↔⟨ inverse $ Trunc.flatten′
+                                                                   (λ F → ∃ λ _ → F (∃ λ _ → _ × _))
+                                                                   (λ f → Σ-map id f)
+                                                                   (λ { (m , p) → ∥∥-map (m ,_) p }) ⟩
+     ∥ (∃ λ m → ∥ (∃ λ y → s [ m ] ⇓ y × f y [ m ] ⇓ z) ∥) ∥  ↔⟨ ∥∥-cong (∃-cong λ _ → inverse $ >>=-⇓ univ-a univ-b) ⟩
+     ∥ (∃ λ m → (s [ m ] >>=′ λ y → f y [ m ]) ⇓ z) ∥         ↔⟨ inverse $ Alternative-order.⨆⇓≃∥∃⇓∥ univ-b _ ⟩□
+     ⨆ ((λ m → s [ m ] >>=′ λ y → f y [ m ]) , _) ⇓ z         □)
+
+  (⨆-mono λ n →
+
+    (s [ n ] >>=′ λ y → f y [ n ])  ⊑⟨ ⊑-refl (s [ n ]) >>=-mono (λ y → upper-bound (f y) n) ⟩■
+    (s [ n ] >>=′ ⨆ ∘ f)            ■)
+
+  where
+  lemma :
+    ∀ {n y z} →
+    (∃ λ m → s [ n ] ⇓ y × f y [ m ] ⇓ z) →
+    (∃ λ m → s [ m ] ⇓ y × f y [ m ] ⇓ z)
+  lemma {n} (m , p , q) with Nat.total m n
+  ... | inj₁ m≤n = n
+                 , p
+                 , _≃_.from (Alternative-order.≼≃⊑ univ-b)
+                     (later-larger (f _) m≤n) _ q
+  ... | inj₂ n≤m = m
+                 , _≃_.from (Alternative-order.≼≃⊑ univ-a)
+                     (later-larger s n≤m) _ p
+                 , q
