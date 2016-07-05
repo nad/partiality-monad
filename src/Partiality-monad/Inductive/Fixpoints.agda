@@ -13,7 +13,7 @@ open import Prelude hiding (⊥)
 
 open import Bijection equality-with-J using (_↔_)
 import Equivalence equality-with-J as Eq
-open import Function-universe equality-with-J hiding (_∘_)
+open import Function-universe equality-with-J hiding (id; _∘_)
 open import H-level equality-with-J
 open import H-level.Closure equality-with-J
 open import Monad equality-with-J
@@ -122,6 +122,71 @@ module _ {a} {A : Set a} where
     fix (proj₁ (f ∗))        ≡⟨ fix-is-fixpoint-combinator (f ∗) ⟩∎
     fix (proj₁ (f ∗)) >>= f  ∎
 
+-- N-ary Scott induction.
+
+module _ {a p} n
+  (As : Fin n → Set a)
+  (P : (∀ i → As i ⊥) → Set p)
+  (P⊥ : P (λ _ → never))
+  (P⨆ : ∀ ss → (∀ n → P (λ i → ss i [ n ])) → P (⨆ ∘ ss))
+  where
+
+  fix-induction :
+    (fs : ∀ i → [ As i ⊥→ As i ⊥]⊑) →
+    (∀ xs → P xs → P (λ i → proj₁ (fs i) (xs i))) →
+    P (fix ∘ fs)
+  fix-induction fs⊑ step =
+                                                    $⟨ lemma ⟩
+    (∀ n → P (λ i → proj₁ (comp (fs⊑ i) n) never))  ↝⟨ P⨆ _ ⟩
+    P (⨆ ∘ fix-sequence ∘ fs⊑)                      ↝⟨ id ⟩□
+    P (fix ∘ fs⊑)                                   □
+    where
+    fs : ∀ i → As i ⊥ → As i ⊥
+    fs = proj₁ ∘ fs⊑
+
+    lemma : ∀ n → P (λ i → proj₁ (comp (fs⊑ i) n) never)
+    lemma zero    = P⊥
+    lemma (suc n) =
+                                                     $⟨ lemma n ⟩
+      P (λ i → proj₁ (comp (fs⊑ i) n) never)         ↝⟨ step _ ⟩
+      P (λ i → fs i (proj₁ (comp (fs⊑ i) n) never))  ↝⟨ ≡⇒↝ implication (cong P $ sym $ ext λ i → pre≡post (fs⊑ i) n) ⟩□
+      P (λ i → proj₁ (comp (fs⊑ i) n) (fs i never))  □
+
+  fix′-induction :
+    (fs : ∀ i → As i → As i ⊥) →
+    (∀ xs → P xs → P (λ i → xs i >>= fs i)) →
+    P (fix′ ∘ fs)
+  fix′-induction fs = fix-induction (λ i → proj₁ (fs i ∗))
+
+-- Unary Scott induction.
+
+module _ {a p}
+  {A : Set a}
+  (P : A ⊥ → Set p)
+  (P⊥ : P never)
+  (P⨆ : ∀ s → (∀ n → P (s [ n ])) → P (⨆ s))
+  where
+
+  fix-induction₁ :
+    (f : [ A ⊥→ A ⊥]⊑) →
+    (∀ x → P x → P (proj₁ f x)) →
+    P (fix f)
+  fix-induction₁ f step =
+    fix-induction
+      1
+      [ const A , ⊥-elim ]
+      (P ∘ (_$ fzero))
+      P⊥
+      (P⨆ ∘ (_$ fzero))
+      [ const f , (λ x → ⊥-elim x) ]
+      (step ∘ (_$ fzero))
+
+  fix′-induction₁ :
+    (f : A → A ⊥) →
+    (∀ x → P x → P (x >>= f)) →
+    P (fix′ f)
+  fix′-induction₁ f = fix-induction₁ (proj₁ (f ∗))
+
 ------------------------------------------------------------------------
 -- Another fixpoint combinator
 
@@ -204,6 +269,60 @@ module _ {a b} {A : Set a} {B : Set b} where
     ⨆ [ f $ fix→-sequence f at x ]-inc  ≡⟨ sym $ ω-cont (fix→-sequence f) x ⟩
     proj₁ f (⨆ ∘ fix→-sequence f) x     ≡⟨ refl ⟩∎
     proj₁ f (fix→ f) x                  ∎
+
+-- N-ary Scott induction.
+
+fix→-induction :
+  ∀ {a b p} n
+  (As : Fin n → Set a)
+  (Bs : Fin n → Set b)
+  (P : (∀ i → As i → Bs i ⊥) → Set p) →
+  P (λ _ _ → never) →
+  ((ss : ∀ i → As i → Increasing-sequence (Bs i)) →
+   (∀ n → P (λ i xs → ss i xs [ n ])) →
+   P (λ i xs → ⨆ (ss i xs))) →
+  (fs : ∀ i → Trans-⊑ (As i) (Bs i)) →
+  ((gs : ∀ i → As i → Bs i ⊥) →
+   P gs → P (λ i → proj₁ (fs i) (gs i))) →
+  P (λ i → fix→ (fs i))
+fix→-induction _ As Bs P P⊥ P⨆ fs⊑ step =
+                                    $⟨ lemma ⟩
+  (∀ n → P (λ i → app (fs i) n))    ↝⟨ P⨆ _ ⟩
+  P ((⨆ ∘_) ∘ fix→-sequence ∘ fs⊑)  ↝⟨ id ⟩□
+  P (fix→ ∘ fs⊑)                    □
+  where
+  fs : ∀ i → Trans (As i) (Bs i)
+  fs = proj₁ ∘ fs⊑
+
+  lemma : ∀ n → P (λ i → app (fs i) n)
+  lemma zero    = P⊥
+  lemma (suc n) =
+                                         $⟨ lemma n ⟩
+    P (λ i xs → app (fs i) n xs)         ↝⟨ step _ ⟩□
+    P (λ i xs → fs i (app (fs i) n) xs)  □
+
+-- Unary Scott induction.
+
+fix→-induction₁ :
+  ∀ {a b p} {A : Set a} {B : Set b}
+  (P : (A → B ⊥) → Set p) →
+  P (const never) →
+  ((s : A → Increasing-sequence B) →
+   (∀ n → P (λ x → s x [ n ])) →
+   P (λ x → ⨆ (s x))) →
+  (f : Trans-⊑ A B) →
+  (∀ g → P g → P (proj₁ f g)) →
+  P (fix→ f)
+fix→-induction₁ P P⊥ P⨆ f step =
+  fix→-induction
+    1
+    [ const _ , ⊥-elim ]
+    [ const _ , ⊥-elim ]
+    (P ∘ (_$ fzero))
+    P⊥
+    (P⨆ ∘ (_$ fzero))
+    [ const f , (λ x → ⊥-elim x) ]
+    (step ∘ (_$ fzero))
 
 ------------------------------------------------------------------------
 -- Some combinators that can be used to construct ω-continuous partial
@@ -294,6 +413,39 @@ fixP-is-fixpoint-combinator :
   fixP f ≡ flip (function ∘ f) (fixP f)
 fixP-is-fixpoint-combinator univ =
   fix→-is-fixpoint-combinator ∘ transformer-ω univ
+
+-- N-ary Scott induction.
+
+fixP-induction :
+  ∀ {a b p} n
+  (As : Fin n → Set a)
+  (Bs : Fin n → Set b)
+  (P : (∀ i → As i → Bs i ⊥) → Set p) →
+  P (λ _ _ → never) →
+  ((ss : ∀ i → As i → Increasing-sequence (Bs i)) →
+   (∀ n → P (λ i xs → ss i xs [ n ])) →
+   P (λ i xs → ⨆ (ss i xs))) →
+  (fs : ∀ i → As i → Partial (As i) (Bs i) (Bs i)) →
+  ((gs : ∀ i → As i → Bs i ⊥) →
+   P gs → P (λ i xs → function (fs i xs) (gs i))) →
+  P (λ i → fixP (fs i))
+fixP-induction n As Bs P P⊥ P⨆ fs =
+  fix→-induction n As Bs P P⊥ P⨆ (transformer ∘ fs)
+
+-- Unary Scott induction.
+
+fixP-induction₁ :
+  ∀ {a b p} {A : Set a} {B : Set b}
+  (P : (A → B ⊥) → Set p) →
+  P (const never) →
+  ((s : A → Increasing-sequence B) →
+   (∀ n → P (λ x → s x [ n ])) →
+   P (λ x → ⨆ (s x))) →
+  (f : A → Partial A B B) →
+  (∀ g → P g → P (λ x → function (f x) g)) →
+  P (fixP f)
+fixP-induction₁ P P⊥ P⨆ f =
+  fix→-induction₁ P P⊥ P⨆ (transformer f)
 
 -- Equality characterisation lemma for Partial.
 
