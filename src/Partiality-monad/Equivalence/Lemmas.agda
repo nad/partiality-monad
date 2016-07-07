@@ -2,8 +2,7 @@
   TODO:
   1. fix the module structure
   2. avoid nested 'where's
-  3. fill in the gaps, obviously
-  4. look at other TODOs below
+  3. look at other TODOs below
 -}
 
 
