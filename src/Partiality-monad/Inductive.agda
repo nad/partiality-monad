@@ -7,7 +7,7 @@
 
 {-# OPTIONS --without-K --rewriting #-}
 
-module Partiality-monad.Inductive where
+module Partiality-monad.Inductive {a} where
 
 open import Equality.Propositional
 open import Prelude hiding (⊥)
@@ -19,18 +19,18 @@ infix 10 _⊥
 infix  4 _⊑_ _⊒_
 
 postulate
-  _⊥  : ∀ {a} → Set a → Set a
-  _⊑_ : ∀ {a} {A : Set a} → A ⊥ → A ⊥ → Set a
+  _⊥  : Set a → Set a
+  _⊑_ : {A : Set a} → A ⊥ → A ⊥ → Set a
 
-_⊒_ : ∀ {a} {A : Set a} → A ⊥ → A ⊥ → Set a
+_⊒_ : {A : Set a} → A ⊥ → A ⊥ → Set a
 x ⊒ y = y ⊑ x
 
 -- Increasing sequences.
 
-Increasing-sequence : ∀ {a} → Set a → Set a
+Increasing-sequence : Set a → Set a
 Increasing-sequence A = ∃ λ (f : ℕ → A ⊥) → ∀ n → f n ⊑ f (suc n)
 
-module _ {a} {A : Set a} where
+module _ {A : Set a} where
 
   -- Projection functions for Increasing-sequence.
 
@@ -85,7 +85,7 @@ module _ {a} {A : Set a} where
 -- Record wrapping up the eliminators' arguments.
 
 record Rec-args
-         {a p q} {A : Set a}
+         {p q} {A : Set a}
          (P : A ⊥ → Set p)
          (Q : ∀ {x y} → P x → P y → x ⊑ y → Set q) :
          Set (a ⊔ p ⊔ q) where
@@ -110,7 +110,7 @@ record Rec-args
 
 -- The eliminators.
 
-module _ {a p q} {A : Set a}
+module _ {p q} {A : Set a}
          {P : A ⊥ → Set p}
          {Q : ∀ {x y} → P x → P y → x ⊑ y → Set q}
          (args : Rec-args P Q) where
