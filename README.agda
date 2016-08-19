@@ -208,3 +208,29 @@ import Partiality-monad.Coinductive.Alternative
 -- assuming extensionality, univalence and countable choice.
 
 import Partiality-monad.Equivalence
+
+------------------------------------------------------------------------
+-- ω-CPOs
+
+-- Pointed and non-pointed ω-CPOs.
+
+import Omega-CPO
+
+-- The code in the following three modules is based on a suggestion
+-- from Paolo Capriotti.
+
+-- A partial inductive-recursive definition of the lifting
+-- construction on ω-CPOs, without path or truncation constructors, in
+-- order to get the basics right.
+
+import Lifting.Preliminary-sketch
+
+-- A higher inductive-inductive definition of the lifting construction
+-- on ω-CPOs.
+
+import Lifting
+
+-- An alternative but equivalent definition of the partiality monad,
+-- based on the lifting construction in Lifting.
+
+import Lifting.Partiality-monad
