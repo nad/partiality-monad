@@ -13,8 +13,9 @@ module README where
 -- The code is heavily inspired by the section on Cauchy reals in the
 -- HoTT book (first edition).
 
--- A partial inductive definition of the partiality monad, without
--- path or truncation constructors, in order to get the basics right.
+-- A partial inductive-recursive definition of the partiality monad,
+-- without path or truncation constructors, in order to get the basics
+-- right.
 
 import Partiality-monad.Inductive.Preliminary-sketch
 

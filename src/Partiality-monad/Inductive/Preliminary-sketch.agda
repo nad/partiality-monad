@@ -1,6 +1,7 @@
 ------------------------------------------------------------------------
--- A partial inductive definition of the partiality monad, without
--- path or truncation constructors, in order to get the basics right
+-- A partial inductive-recursive definition of the partiality monad,
+-- without path or truncation constructors, in order to get the basics
+-- right
 ------------------------------------------------------------------------
 
 {-# OPTIONS --without-K #-}
