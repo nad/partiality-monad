@@ -194,6 +194,11 @@ import Partiality-monad.Coinductive
 
 import Partiality-monad.Coinductive.Partial-order
 
+-- An alternative definition of the partiality monad: a variant of the
+-- delay monad quotiented by a notion of weak bisimilarity.
+
+import Partiality-monad.Coinductive.Alternative
+
 ------------------------------------------------------------------------
 -- A proof of equivalence
 
@@ -201,5 +206,4 @@ import Partiality-monad.Coinductive.Partial-order
 -- Partiality-monad.Coinductive are pointwise equivalent, for sets,
 -- assuming extensionality, univalence and countable choice.
 
-import Partiality-monad.Equivalence.Lemmas
 import Partiality-monad.Equivalence
