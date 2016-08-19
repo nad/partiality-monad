@@ -78,9 +78,9 @@ module _ {A : Set a} where
 --
 -- I (NAD) have tried to follow the spirit of the rules for HITs
 -- specified in the HoTT-Agda library
--- (https://github.com/HoTT/HoTT-Agda/blob/master/lib/types/HIT_README.txt).
--- However, at the time of writing those rules don't apply to
--- indexed types.
+-- (https://github.com/HoTT/HoTT-Agda/blob/master/core/lib/types/HIT_README.txt).
+-- However, at the time of writing those rules don't apply to indexed
+-- types.
 
 -- Record wrapping up the eliminators' arguments.
 
