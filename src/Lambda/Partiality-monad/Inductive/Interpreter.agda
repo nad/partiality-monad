@@ -145,21 +145,22 @@ interpreters-equal :
   ∀ {n} (t : Tm n) ρ →
   Interpreter₁.⟦ t ⟧ ρ ≡ Interpreter₂.⟦ t ⟧ ρ
 interpreters-equal = λ t ρ →
-                                                           $⟨ ⟦⟧-lemma t ρ ⟩
+                                                            $⟨ ⟦⟧-lemma t ρ ⟩
   (∀ n → run (Interpreter₁.⟦ t ⟧′ ρ n) ≡
-         app (proj₁ step₂) (suc n) (_ , t , ρ))            ↝⟨ cong ⨆ ∘ _↔_.to equality-characterisation-increasing ⟩
+         app (Trans-⊑.function step₂) (suc n) (_ , t , ρ))  ↝⟨ cong ⨆ ∘ _↔_.to equality-characterisation-increasing ⟩
 
   ⨆ (Interpreter₁.⟦ t ⟧ˢ ρ) ≡
-  ⨆ (tailˢ (fix→-sequence step₂ (_ , t , ρ)))              ↝⟨ flip trans (⨆tail≡⨆ _) ⟩
+  ⨆ (tailˢ (fix→-sequence step₂ (_ , t , ρ)))               ↝⟨ flip trans (⨆tail≡⨆ _) ⟩
 
   ⨆ (Interpreter₁.⟦ t ⟧ˢ ρ) ≡
-  ⨆ (fix→-sequence step₂ (_ , t , ρ))                      ↝⟨ id ⟩
+  ⨆ (fix→-sequence step₂ (_ , t , ρ))                       ↝⟨ id ⟩
 
-  run (Interpreter₁.⟦ t ⟧ ρ) ≡ run (Interpreter₂.⟦ t ⟧ ρ)  ↝⟨ cong wrap ⟩□
+  run (Interpreter₁.⟦ t ⟧ ρ) ≡ run (Interpreter₂.⟦ t ⟧ ρ)   ↝⟨ cong wrap ⟩□
 
-  Interpreter₁.⟦ t ⟧ ρ ≡ Interpreter₂.⟦ t ⟧ ρ              □
+  Interpreter₁.⟦ t ⟧ ρ ≡ Interpreter₂.⟦ t ⟧ ρ               □
   where
   open Partial
+  open Trans-⊑
 
   step₂ : Trans-⊑ (∃ λ n → Tm n × Env n) (Maybe Value)
   step₂ = transformer λ { (_ , t , ρ) → run (Interpreter₂.⟦ t ⟧′ ρ) }
@@ -169,7 +170,7 @@ interpreters-equal = λ t ρ →
     ⟦⟧-lemma :
       ∀ {n} (t : Tm n) ρ n →
       run (Interpreter₁.⟦ t ⟧′ ρ n) ≡
-      function (run (Interpreter₂.⟦ t ⟧′ ρ)) (app (proj₁ step₂) n)
+      function (run (Interpreter₂.⟦ t ⟧′ ρ)) (app (function step₂) n)
     ⟦⟧-lemma (con i)   ρ n = refl
     ⟦⟧-lemma (var x)   ρ n = refl
     ⟦⟧-lemma (ƛ t)     ρ n = refl
@@ -181,7 +182,7 @@ interpreters-equal = λ t ρ →
     ∙-lemma :
       ∀ v₁ v₂ n →
       run ((v₁ Interpreter₁.∙ v₂) n) ≡
-      function (run (v₁ Interpreter₂.∙ v₂)) (app (proj₁ step₂) n)
+      function (run (v₁ Interpreter₂.∙ v₂)) (app (function step₂) n)
     ∙-lemma (con i)  v₂ n       = refl
     ∙-lemma (ƛ t₁ ρ) v₂ zero    = refl
     ∙-lemma (ƛ t₁ ρ) v₂ (suc n) = ⟦⟧-lemma t₁ (snoc ρ v₂) n

@@ -200,9 +200,12 @@ Trans A B = (A → B ⊥) → (A → B ⊥)
 
 -- Monotone partial function transformers.
 
-Trans-⊑ : ∀ {a b} → Set a → Set b → Set (a ⊔ b)
-Trans-⊑ A B = ∃ λ (f : (A → B ⊥) → (A → B ⊥)) →
-            ∀ {g₁ g₂} → (∀ x → g₁ x ⊑ g₂ x) → ∀ x → f g₁ x ⊑ f g₂ x
+record Trans-⊑ {a b} (A : Set a) (B : Set b) : Set (a ⊔ b) where
+  field
+    function : (A → B ⊥) → (A → B ⊥)
+    monotone : ∀ {g₁ g₂} →
+               (∀ x → g₁ x ⊑ g₂ x) →
+               ∀ x → function g₁ x ⊑ function g₂ x
 
 -- Monotone partial function transformers can be turned into
 -- parametrised increasing sequence transformers.
@@ -212,15 +215,22 @@ Trans-⊑ A B = ∃ λ (f : (A → B ⊥) → (A → B ⊥)) →
   Trans-⊑ A B →
   (A → Increasing-sequence B) → (A → Increasing-sequence B)
 [ f $ s at x ]-inc =
-    (λ n → proj₁ f (λ x → s x [ n ]) x)
-  , (λ n → proj₂ f (λ x → increasing (s x) n) x)
+    (λ n → function f (λ x → s x [ n ]) x)
+  , (λ n → monotone f (λ x → increasing (s x) n) x)
+  where
+  open Trans-⊑
 
 -- Partial function transformers that are ω-continuous.
 
-Trans-ω : ∀ {a b} → Set a → Set b → Set (a ⊔ b)
-Trans-ω A B = ∃ λ (f : Trans-⊑ A B) →
-                (s : A → Increasing-sequence B) (x : A) →
-                proj₁ f (⨆ ∘ s) x ≡ ⨆ [ f $ s at x ]-inc
+record Trans-ω {a b} (A : Set a) (B : Set b) : Set (a ⊔ b) where
+  field
+    transformer : Trans-⊑ A B
+
+  open Trans-⊑ transformer public
+
+  field
+    ω-continuous : (s : A → Increasing-sequence B) (x : A) →
+                   function (⨆ ∘ s) x ≡ ⨆ [ transformer $ s at x ]-inc
 
 module _ {a b} {A : Set a} {B : Set b} where
 
@@ -235,15 +245,17 @@ module _ {a b} {A : Set a} {B : Set b} where
 
   fix→-sequence : (f : Trans-⊑ A B) → A → Increasing-sequence B
   fix→-sequence f x =
-      (λ n → app (proj₁ f) n x)
+      (λ n → app (function f) n x)
     , (λ n →
-         app (proj₁ f) n       x  ⊑⟨ app-increasing n x ⟩■
-         app (proj₁ f) (suc n) x  ■)
+         app (function f) n       x  ⊑⟨ app-increasing n x ⟩■
+         app (function f) (suc n) x  ■)
     where
+    open Trans-⊑
+
     app-increasing :
-      ∀ n x → app (proj₁ f) n x ⊑ app (proj₁ f) (suc n) x
-    app-increasing zero    = never⊑ ∘ proj₁ f (const never)
-    app-increasing (suc n) = proj₂ f (app-increasing n)
+      ∀ n x → app (function f) n x ⊑ app (function f) (suc n) x
+    app-increasing zero    = never⊑ ∘ function f (const never)
+    app-increasing (suc n) = monotone f (app-increasing n)
 
   -- A fixpoint combinator.
 
@@ -254,21 +266,18 @@ module _ {a b} {A : Set a} {B : Set b} where
   -- arguments.
 
   fix→-is-fixpoint-combinator :
-    (fω : Trans-ω A B) →
-    let f⊑ : Trans-⊑ A B
-        f⊑ = proj₁ fω
-
-        f : Trans A B
-        f = proj₁ f⊑
-    in
-    fix→ f⊑ ≡ f (fix→ f⊑)
-  fix→-is-fixpoint-combinator (f , ω-cont) = ext λ x →
-    fix→ f x                            ≡⟨⟩
-    ⨆ (fix→-sequence f x)               ≡⟨ sym $ ⨆tail≡⨆ _ ⟩
-    ⨆ (tailˢ (fix→-sequence f x))       ≡⟨ cong ⨆ (_↔_.to equality-characterisation-increasing (λ _ → refl)) ⟩
-    ⨆ [ f $ fix→-sequence f at x ]-inc  ≡⟨ sym $ ω-cont (fix→-sequence f) x ⟩
-    proj₁ f (⨆ ∘ fix→-sequence f) x     ≡⟨ refl ⟩∎
-    proj₁ f (fix→ f) x                  ∎
+    (f : Trans-ω A B) →
+    fix→ (Trans-ω.transformer f) ≡
+    Trans-ω.function f (fix→ (Trans-ω.transformer f))
+  fix→-is-fixpoint-combinator f = ext λ x →
+    fix→ (transformer f) x                                        ≡⟨⟩
+    ⨆ (fix→-sequence (transformer f) x)                           ≡⟨ sym $ ⨆tail≡⨆ _ ⟩
+    ⨆ (tailˢ (fix→-sequence (transformer f) x))                   ≡⟨ cong ⨆ (_↔_.to equality-characterisation-increasing (λ _ → refl)) ⟩
+    ⨆ [ transformer f $ fix→-sequence (transformer f) at x ]-inc  ≡⟨ sym $ ω-continuous f (fix→-sequence (transformer f)) x ⟩
+    function f (⨆ ∘ fix→-sequence (transformer f)) x              ≡⟨ refl ⟩∎
+    function f (fix→ (transformer f)) x                           ∎
+    where
+    open Trans-ω
 
 -- N-ary Scott induction.
 
@@ -283,7 +292,7 @@ fix→-induction :
    P (λ i xs → ⨆ (ss i xs))) →
   (fs : ∀ i → Trans-⊑ (As i) (Bs i)) →
   ((gs : ∀ i → As i → Bs i ⊥) →
-   P gs → P (λ i → proj₁ (fs i) (gs i))) →
+   P gs → P (λ i → Trans-⊑.function (fs i) (gs i))) →
   P (λ i → fix→ (fs i))
 fix→-induction _ As Bs P P⊥ P⨆ fs⊑ step =
                                     $⟨ lemma ⟩
@@ -291,8 +300,10 @@ fix→-induction _ As Bs P P⊥ P⨆ fs⊑ step =
   P ((⨆ ∘_) ∘ fix→-sequence ∘ fs⊑)  ↝⟨ id ⟩□
   P (fix→ ∘ fs⊑)                    □
   where
+  open Trans-⊑
+
   fs : ∀ i → Trans (As i) (Bs i)
-  fs = proj₁ ∘ fs⊑
+  fs = function ∘ fs⊑
 
   lemma : ∀ n → P (λ i → app (fs i) n)
   lemma zero    = P⊥
@@ -311,7 +322,7 @@ fix→-induction₁ :
    (∀ n → P (λ x → s x [ n ])) →
    P (λ x → ⨆ (s x))) →
   (f : Trans-⊑ A B) →
-  (∀ g → P g → P (proj₁ f g)) →
+  (∀ g → P g → P (Trans-⊑.function f g)) →
   P (fix→ f)
 fix→-induction₁ P P⊥ P⨆ f step =
   fix→-induction
@@ -364,8 +375,6 @@ record Partial
                    (recs : A → Increasing-sequence B) →
                    function (⨆ ∘ recs) ≡ ⨆ (sequence recs)
 
-open Partial
-
 -- The first two arguments of Partial specify the domain and codomain
 -- of "recursive calls".
 
@@ -381,9 +390,12 @@ rec x = record
 
 transformer : ∀ {a b} {A : Set a} {B : Set b} →
               (A → Partial A B B) → Trans-⊑ A B
-transformer f =
-    (λ g     x → function (f x) g)
-  , (λ g₁⊑g₂ x → monotone (f x) g₁⊑g₂)
+transformer f = record
+  { function = λ g     x → function (f x) g
+  ; monotone = λ g₁⊑g₂ x → monotone (f x) g₁⊑g₂
+  }
+  where
+  open Partial
 
 -- Turns certain Partial-valued functions into ω-continuous partial
 -- function transformers (assuming univalence).
@@ -391,9 +403,12 @@ transformer f =
 transformer-ω : ∀ {a b} {A : Set a} {B : Set b} →
                 Univalence b →
                 (A → Partial A B B) → Trans-ω A B
-transformer-ω univ f =
-    transformer f
-  , (λ s x → ω-continuous (f x) univ s)
+transformer-ω univ f = record
+  { transformer  = transformer f
+  ; ω-continuous = λ s x → ω-continuous (f x) univ s
+  }
+  where
+  open Partial
 
 -- A fixpoint combinator.
 
@@ -410,7 +425,7 @@ fixP-is-fixpoint-combinator :
   ∀ {a b} {A : Set a} {B : Set b} →
   Univalence b →
   (f : A → Partial A B B) →
-  fixP f ≡ flip (function ∘ f) (fixP f)
+  fixP f ≡ flip (Partial.function ∘ f) (fixP f)
 fixP-is-fixpoint-combinator univ =
   fix→-is-fixpoint-combinator ∘ transformer-ω univ
 
@@ -427,7 +442,7 @@ fixP-induction :
    P (λ i xs → ⨆ (ss i xs))) →
   (fs : ∀ i → As i → Partial (As i) (Bs i) (Bs i)) →
   ((gs : ∀ i → As i → Bs i ⊥) →
-   P gs → P (λ i xs → function (fs i xs) (gs i))) →
+   P gs → P (λ i xs → Partial.function (fs i xs) (gs i))) →
   P (λ i → fixP (fs i))
 fixP-induction n As Bs P P⊥ P⨆ fs =
   fix→-induction n As Bs P P⊥ P⨆ (transformer ∘ fs)
@@ -442,7 +457,7 @@ fixP-induction₁ :
    (∀ n → P (λ x → s x [ n ])) →
    P (λ x → ⨆ (s x))) →
   (f : A → Partial A B B) →
-  (∀ g → P g → P (λ x → function (f x) g)) →
+  (∀ g → P g → P (λ x → Partial.function (f x) g)) →
   P (fixP f)
 fixP-induction₁ P P⊥ P⨆ f =
   fix→-induction₁ P P⊥ P⨆ (transformer f)
@@ -452,7 +467,7 @@ fixP-induction₁ P P⊥ P⨆ f =
 equality-characterisation-Partial :
   ∀ {a b c} {A : Set a} {B : Set b} {C : Set c}
     {f g : Partial A B C} →
-  (∀ rec → function f rec ≡ function g rec) ↔
+  (∀ rec → Partial.function f rec ≡ Partial.function g rec) ↔
   f ≡ g
 equality-characterisation-Partial {f = f} {g} =
   (∀ rec → function f rec ≡ function g rec)  ↔⟨ Eq.extensionality-isomorphism ext ⟩
@@ -468,6 +483,8 @@ equality-characterisation-Partial {f = f} {g} =
   (function f , _) ≡ (function g , _)        ↔⟨ Eq.≃-≡ (Eq.↔⇒≃ lemma) ⟩□
   f ≡ g                                      □
   where
+  open Partial
+
   lemma : Partial _ _ _
             ↔
           ∃ λ _ → ∃ λ (_ : ∀ {rec₁ rec₂} → _ → _) → _
@@ -538,10 +555,12 @@ instance
           , _
           )                                                              ∎
     }
+    where
+    open Partial
 
   Monad.left-identity partial-monad _ f =
     _↔_.to equality-characterisation-Partial
-      (λ h → left-identity _ (λ y → function (f y) h))
+      (λ h → left-identity _ (λ y → Partial.function (f y) h))
 
   Monad.right-identity partial-monad _ =
     _↔_.to equality-characterisation-Partial
@@ -549,4 +568,4 @@ instance
 
   Monad.associativity partial-monad x _ _ =
     _↔_.to equality-characterisation-Partial
-      (λ h → associativity (function x h) _ _)
+      (λ h → associativity (Partial.function x h) _ _)
