@@ -525,31 +525,16 @@ instance
                        monotone x rec⊑rec >>=-mono λ y →
                        monotone (f y) rec⊑rec
     ; ω-continuous = λ univ recs →
-        (function x (⨆ ∘ recs) >>=′ λ y → function (f y) (⨆ ∘ recs))     ≡⟨ cong (_>>=′ _) $ ω-continuous x univ recs ⟩
+        (function x (⨆ ∘ recs) >>=′ λ y → function (f y) (⨆ ∘ recs))     ≡⟨ cong₂ _>>=′_ (ω-continuous x univ recs)
+                                                                                         (ext λ y → ω-continuous (f y) univ recs) ⟩
+        (⨆ (sequence x recs) >>=′ λ y → ⨆ (sequence (f y) recs))         ≡⟨⟩
 
-        (⨆ ( (λ n → function x (λ z → recs z [ n ]))
-           , (λ n → monotone x (λ z → increasing (recs z) n))
-           ) >>=′ λ y → function (f y) (⨆ ∘ recs))                       ≡⟨⟩
-
-        ⨆ ( (λ n → function x (λ z → recs z [ n ]) >>=′ λ y →
-                   function (f y) (⨆ ∘ recs))
-          , _
-          )                                                              ≡⟨ cong ⨆
-                                                                              (_↔_.to equality-characterisation-increasing λ n →
-                                                                                 cong (function x (λ z → recs z [ n ]) >>=′_) $ ext λ y →
-                                                                                   ω-continuous (f y) univ recs) ⟩
         ⨆ ( (λ n →
                function x (λ z → recs z [ n ]) >>=′ λ y →
-               ⨆ ( (λ n → function (f y) (λ x → recs x [ n ]))
-                 , (λ n → monotone (f y) (λ x → increasing (recs x) n))
-                 ))
-          , (λ n →
-               monotone x (λ z → increasing (recs z) n) >>=-mono λ y →
-               ⊑-refl _)
-          )                                                              ≡⟨ ⨆>>=⨆≡⨆>>= univ univ
-                                                                              ( (λ n → function x (λ z → recs z [ n ]))
-                                                                              , (λ n → monotone x (λ z → increasing (recs z) n))
-                                                                              ) _ ⟩∎
+               ⨆ (sequence (f y) recs))
+          , _
+          )                                                              ≡⟨ ⨆>>=⨆≡⨆>>= univ univ (sequence x recs)
+                                                                                                 (λ y → sequence (f y) recs) ⟩∎
         ⨆ ( (λ n → function x (λ z → recs z [ n ]) >>=′ λ y →
                    function (f y) (λ z → recs z [ n ]))
           , _
