@@ -158,7 +158,7 @@ snoc-wf ρ-wf v-wf (fsuc x) = ρ-wf x
   σ : ∞Ty
   force σ = σ ⇾ [ τ ]
 
--- A call-by-value fix-point combinator.
+-- A call-by-value fixpoint combinator.
 
 Z : Tm 0
 Z = ƛ (t · t)
@@ -168,11 +168,11 @@ Z = ƛ (t · t)
 
 -- This combinator is also well-typed.
 
-fix-well-typed :
+Z-well-typed :
   ∀ {σ τ} →
   empty ⊢ Z ∈ [ [ [ σ ] ⇾ [ τ ] ] ⇾ [ [ σ ] ⇾ [ τ ] ] ] ⇾
               [ [ σ ] ⇾ [ τ ] ]
-fix-well-typed {σ = σ} {τ = τ} =
+Z-well-typed {σ = σ} {τ = τ} =
   ƛ (_·_ {σ = υ} {τ = [ _ ]}
          (ƛ (var · ƛ (var · var · var)))
          (ƛ (var · ƛ (var · var · var))))

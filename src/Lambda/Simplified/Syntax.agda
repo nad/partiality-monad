@@ -54,7 +54,7 @@ module Closure (Tm : ℕ → Set) where
 Ω : Tm 0
 Ω = ω · ω
 
--- A call-by-value fix-point combinator.
+-- A call-by-value fixpoint combinator.
 
 Z : Tm 0
 Z = ƛ (t · t)
