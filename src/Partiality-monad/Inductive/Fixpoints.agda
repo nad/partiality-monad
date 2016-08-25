@@ -503,19 +503,28 @@ equality-characterisation-Partial {f = f} {g} =
     ; left-inverse-of = λ _ → refl
     }
 
+-- "Non-recursive" computations can be converted into possibly
+-- recursive ones.
+
+non-recursive :
+  ∀ {a b c} {A : Set a} {B : Set b} {C : Set c} →
+  C ⊥ → Partial A B C
+non-recursive x = record
+  { function     = const x
+  ; monotone     = const (x ■)
+  ; ω-continuous = λ _ _ →
+      x             ≡⟨ sym ⨆-const ⟩∎
+      ⨆ (constˢ x)  ∎
+  }
+
 instance
 
   -- Partial A B is a monad.
 
   partial-monad : ∀ {a b c} {A : Set a} {B : Set b} →
                   Monad (Partial {c = c} A B)
-  Raw-monad.return (Monad.raw-monad partial-monad) x = record
-    { function     = const (return x)
-    ; monotone     = const (return x ■)
-    ; ω-continuous = λ _ _ →
-        now x               ≡⟨ sym ⨆-const ⟩∎
-        ⨆ (constˢ (now x))  ∎
-    }
+  Raw-monad.return (Monad.raw-monad partial-monad) x =
+    non-recursive (return x)
 
   Raw-monad._>>=_ (Monad.raw-monad partial-monad) x f = record
     { function     = λ rec →
