@@ -239,7 +239,7 @@ approximate x n = ⊥-rec-⊥
 -- are equal
 
 -- For an example of how these combinators can be used, see
--- Lambda.Compiler.
+-- Lambda.Partiality-monad.Inductive.Compiler-correctness.
 
 -- A relation between sequences.
 
