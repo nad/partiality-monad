@@ -236,26 +236,26 @@ module _ {a b} {A : Set a} {B : Set b} where
 
   -- Repeated application of a partial function transformer to never.
 
-  app : Trans A B → ℕ → (A → B ⊥)
-  app f zero    = const never
-  app f (suc n) = f (app f n)
+  app→ : Trans A B → ℕ → (A → B ⊥)
+  app→ f zero    = const never
+  app→ f (suc n) = f (app→ f n)
 
   -- An increasing sequence consisting of repeated applications of the
   -- given partial function transformer to never.
 
   fix→-sequence : (f : Trans-⊑ A B) → A → Increasing-sequence B
   fix→-sequence f x =
-      (λ n → app (function f) n x)
+      (λ n → app→ (function f) n x)
     , (λ n →
-         app (function f) n       x  ⊑⟨ app-increasing n x ⟩■
-         app (function f) (suc n) x  ■)
+         app→ (function f) n       x  ⊑⟨ app→-increasing n x ⟩■
+         app→ (function f) (suc n) x  ■)
     where
     open Trans-⊑
 
-    app-increasing :
-      ∀ n x → app (function f) n x ⊑ app (function f) (suc n) x
-    app-increasing zero    = never⊑ ∘ function f (const never)
-    app-increasing (suc n) = monotone f (app-increasing n)
+    app→-increasing :
+      ∀ n x → app→ (function f) n x ⊑ app→ (function f) (suc n) x
+    app→-increasing zero    = never⊑ ∘ function f (const never)
+    app→-increasing (suc n) = monotone f (app→-increasing n)
 
   -- A fixpoint combinator.
 
@@ -296,7 +296,7 @@ fix→-induction :
   P (λ i → fix→ (fs i))
 fix→-induction _ As Bs P P⊥ P⨆ fs⊑ step =
                                     $⟨ lemma ⟩
-  (∀ n → P (λ i → app (fs i) n))    ↝⟨ P⨆ _ ⟩
+  (∀ n → P (λ i → app→ (fs i) n))   ↝⟨ P⨆ _ ⟩
   P ((⨆ ∘_) ∘ fix→-sequence ∘ fs⊑)  ↝⟨ id ⟩□
   P (fix→ ∘ fs⊑)                    □
   where
@@ -305,12 +305,12 @@ fix→-induction _ As Bs P P⊥ P⨆ fs⊑ step =
   fs : ∀ i → Trans (As i) (Bs i)
   fs = function ∘ fs⊑
 
-  lemma : ∀ n → P (λ i → app (fs i) n)
+  lemma : ∀ n → P (λ i → app→ (fs i) n)
   lemma zero    = P⊥
   lemma (suc n) =
-                                         $⟨ lemma n ⟩
-    P (λ i xs → app (fs i) n xs)         ↝⟨ step _ ⟩□
-    P (λ i xs → fs i (app (fs i) n) xs)  □
+                                          $⟨ lemma n ⟩
+    P (λ i xs → app→ (fs i) n xs)         ↝⟨ step _ ⟩□
+    P (λ i xs → fs i (app→ (fs i) n) xs)  □
 
 -- Unary Scott induction.
 
