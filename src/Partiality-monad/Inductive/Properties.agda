@@ -304,8 +304,8 @@ trans-≡≳ : ∀ {n} s₁ {s₂ s₃}
            s₁ ≳[ n ] s₃
 trans-≡≳ _ s₂≳s₃ s₁≡s₂ = _ ≳⟨ wrap (0 , s₁≡s₂) ⟩ s₂≳s₃
 
-trans-≡≳∀ : ∀ {n} s₁ {s₂ s₃}
-            (s₂≳s₃ : s₂ ≳[ n ] s₃) →
+trans-≡≳∀ : ∀ {n} s₁ {s₂ s₃} →
+            s₂ ≳[ n ] s₃ →
             (∀ n → s₁ n ≡ s₂ n) →
             s₁ ≳[ n ] s₃
 trans-≡≳∀ _ s₂≳s₃ s₁≡s₂ = trans-≡≳ _ s₂≳s₃ (s₁≡s₂ _)
