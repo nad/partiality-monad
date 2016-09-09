@@ -7,9 +7,13 @@
 module Lambda.Simplified.Partiality-monad.Inductive.Virtual-machine
   where
 
+open import Equality.Propositional
 open import Prelude hiding (⊥)
 
+open import Monad equality-with-J
+
 open import Partiality-monad.Inductive
+open import Partiality-monad.Inductive.Fixpoints
 
 open import Lambda.Simplified.Syntax
 open import Lambda.Simplified.Virtual-machine
@@ -18,22 +22,11 @@ open Closure Code
 
 -- A functional semantics for the VM.
 
-steps : State → ℕ → Maybe Value ⊥
-steps s n       with step s
-steps s zero    | continue s′ = never
-steps s (suc n) | continue s′ = steps s′ n
-steps s n       | done v      = now (just v)
-steps s n       | crash       = now nothing
-
-steps-increasing : ∀ s n → steps s n ⊑ steps s (suc n)
-steps-increasing s n       with step s
-steps-increasing s zero    | continue s′ = never⊑ _
-steps-increasing s (suc n) | continue s′ = steps-increasing s′ n
-steps-increasing s n       | done v      = ⊑-refl _
-steps-increasing s n       | crash       = ⊑-refl _
-
-stepsˢ : State → Increasing-sequence (Maybe Value)
-stepsˢ s = (steps s , steps-increasing s)
+execP : State → Partial State (Maybe Value) (Maybe Value)
+execP s with step s
+... | continue s′ = rec s′
+... | done v      = return (just v)
+... | crash       = return nothing
 
 exec : State → Maybe Value ⊥
-exec s = ⨆ (stepsˢ s)
+exec s = fixP execP s
