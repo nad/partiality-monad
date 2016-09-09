@@ -240,8 +240,9 @@ module _ {a b} {A : Set a} {B : Set b} where
   app→ f zero    = const never
   app→ f (suc n) = f (app→ f n)
 
-  -- An increasing sequence consisting of repeated applications of the
-  -- given partial function transformer to never.
+  -- The increasing sequence fix→-sequence f x consists of the
+  -- elements never, function f (const never) x,
+  -- function f (function f (const never)) x, and so on.
 
   fix→-sequence : (f : Trans-⊑ A B) → A → Increasing-sequence B
   fix→-sequence f x =
