@@ -234,11 +234,24 @@ record Trans-ω {a b} (A : Set a) (B : Set b) : Set (a ⊔ b) where
 
 module _ {a b} {A : Set a} {B : Set b} where
 
-  -- Repeated application of a partial function transformer to never.
+  -- Repeated composition of a partial function transformer with
+  -- itself.
+
+  comp→ : Trans A B → ℕ → Trans A B
+  comp→ f zero    = id
+  comp→ f (suc n) = f ∘ comp→ f n
+
+  -- The function comp→ f is homomorphic with respect to _+_/_∘_.
+
+  comp→-+∘ : ∀ f m n → comp→ f (m + n) ≡ comp→ f m ∘ comp→ f n
+  comp→-+∘ f zero    n = refl
+  comp→-+∘ f (suc m) n = cong (f ∘_) (comp→-+∘ f m n)
+
+  -- Repeated application of a partial function transformer to
+  -- const never.
 
   app→ : Trans A B → ℕ → (A → B ⊥)
-  app→ f zero    = const never
-  app→ f (suc n) = f (app→ f n)
+  app→ f n = comp→ f n (const never)
 
   -- The increasing sequence fix→-sequence f x consists of the
   -- elements never, function f (const never) x,
