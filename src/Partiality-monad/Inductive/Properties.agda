@@ -255,22 +255,26 @@ open _≳[_]_ public
 steps-≳ : ∀ {s₁ n s₂} → s₁ ≳[ n ] s₂ → ℕ
 steps-≳ = proj₁ ∘ run
 
--- If two increasing sequences are universally related, then their
--- least upper bounds are equal.
+-- If two increasing sequences are related in a certain way, then
+-- their least upper bounds are equal.
 
-≳→⨆≡⨆ : ∀ {s₁ s₂} → (∀ {n} → proj₁ s₁ ≳[ n ] proj₁ s₂) → ⨆ s₁ ≡ ⨆ s₂
-≳→⨆≡⨆ {s₁} {s₂} s₁≳s₂ = antisymmetry
-  (⨆-mono λ n →
-     let k , s₁[k+n]≡s₂[n] = run s₁≳s₂ in
+≳→⨆≡⨆ : ∀ {s₁ s₂} k →
+        (∀ {n} → proj₁ s₁ ≳[ n ] proj₁ s₂ ∘ (k +_)) →
+        ⨆ s₁ ≡ ⨆ s₂
+≳→⨆≡⨆ {s₁} {s₂} k s₁≳s₂ = antisymmetry
+  (least-upper-bound _ _ λ n →
+     let m , s₁[m+n]≡s₂[k+n] = run s₁≳s₂ in
 
-     s₁ [     n ]  ⊑⟨ later-larger s₁ (m≤n+m n k) ⟩
-     s₁ [ k + n ]  ⊑⟨ s₁[k+n]≡s₂[n] ⟩≡
-     s₂ [     n ]  ■)
-  (least-upper-bound s₂ (⨆ s₁) λ n →
-     let k , s₁[k+n]≡s₂[n] = run s₁≳s₂ in
+     s₁ [ n ]      ⊑⟨ later-larger s₁ (m≤n+m _ m) ⟩
+     s₁ [ m + n ]  ⊑⟨ s₁[m+n]≡s₂[k+n] ⟩≡
+     s₂ [ k + n ]  ⊑⟨ upper-bound _ _ ⟩■
+     ⨆ s₂          ■)
+  (least-upper-bound _ _ λ n →
+     let m , s₁[m+n]≡s₂[k+n] = run s₁≳s₂ in
 
-     s₂ [ n ]      ⊑⟨ sym s₁[k+n]≡s₂[n] ⟩≡
-     s₁ [ k + n ]  ⊑⟨ upper-bound s₁ (k + n) ⟩■
+     s₂ [ n ]      ⊑⟨ later-larger s₂ (m≤n+m _ k) ⟩
+     s₂ [ k + n ]  ⊑⟨ sym s₁[m+n]≡s₂[k+n] ⟩≡
+     s₁ [ m + n ]  ⊑⟨ upper-bound _ _ ⟩■
      ⨆ s₁          ■)
 
 -- Preorder-like reasoning combinators.

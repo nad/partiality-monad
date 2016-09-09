@@ -142,8 +142,8 @@ correct t =
 
   wrap (exec ⟨ comp t [] , [] , comp-env empty ⟩)         ≡⟨⟩
 
-  wrap (⨆ (stepsˢ ⟨ comp t [] , [] , comp-env empty ⟩))   ≡⟨ cong wrap (≳→⨆≡⨆ $ ⟦⟧-correct t λ v →
-                                                                                  const (MaybeT.run (return (comp-val v))) ∎≳) ⟩
+  wrap (⨆ (stepsˢ ⟨ comp t [] , [] , comp-env empty ⟩))   ≡⟨ cong wrap (≳→⨆≡⨆ 0 $ ⟦⟧-correct t λ v →
+                                                                                    const (MaybeT.run (return (comp-val v))) ∎≳) ⟩
   wrap (⨆ (⟦ t ⟧ˢ empty >>=ˢ λ v →
            constˢ (MaybeT.run (return (comp-val v)))))    ≡⟨ cong (λ s → wrap (⨆ s))
                                                                   (_↔_.to equality-characterisation-increasing (λ _ → refl)) ⟩∎

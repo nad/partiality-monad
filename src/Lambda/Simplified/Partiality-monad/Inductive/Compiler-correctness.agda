@@ -124,5 +124,5 @@ correct :
 correct t =
   exec ⟨ comp t [] , [] , empty ⟩                     ≡⟨ cong (λ ρ → exec ⟨ comp t [] , [] , ρ ⟩) (ext λ ()) ⟩
   exec ⟨ comp t [] , [] , comp-env empty ⟩            ≡⟨⟩
-  ⨆ (stepsˢ ⟨ comp t [] , [] , comp-env empty ⟩)      ≡⟨ ≳→⨆≡⨆ (⟦⟧-correct t λ v → const (return (just (comp-val v))) ∎≳) ⟩∎
+  ⨆ (stepsˢ ⟨ comp t [] , [] , comp-env empty ⟩)      ≡⟨ ≳→⨆≡⨆ 0 (⟦⟧-correct t λ v → const (return (just (comp-val v))) ∎≳) ⟩∎
   (⟦ t ⟧ empty >>= λ v → return (just (comp-val v)))  ∎
