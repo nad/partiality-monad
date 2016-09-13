@@ -54,6 +54,16 @@ equality-characterisation-strict {f = f} {g} =
   proj₁ f ≡ proj₁ g                                              ↝⟨ ignore-propositional-component (⊥-is-set _ _) ⟩□
   f ≡ g                                                          □
 
+-- Composition is associative.
+
+∘-strict-assoc :
+  ∀ {a b c d} {A : Set a} {B : Set b} {C : Set c} {D : Set d}
+  (f : [ C ⊥→ D ⊥]-strict) (g : [ B ⊥→ C ⊥]-strict)
+  (h : [ A ⊥→ B ⊥]-strict) →
+  f ∘-strict (g ∘-strict h) ≡ (f ∘-strict g) ∘-strict h
+∘-strict-assoc _ _ _ =
+  _↔_.to equality-characterisation-strict λ _ → refl
+
 -- Strict ω-continuous functions satisfy an extra monad law.
 
 >>=-∘-return :

@@ -37,21 +37,29 @@ _∘⊑_ : ∀ {a b c} {A : Set a} {B : Set b} {C : Set c} →
 f ∘⊑ g = proj₁ f ∘ proj₁ g
        , proj₂ f ∘ proj₂ g
 
+-- Equality characterisation lemma for monotone functions.
+
+equality-characterisation-monotone :
+  ∀ {a b} {A : Set a} {B : Set b} {f g : [ A ⊥→ B ⊥]⊑} →
+  (∀ x → proj₁ f x ≡ proj₁ g x) ↔ f ≡ g
+equality-characterisation-monotone {f = f} {g} =
+  (∀ x → proj₁ f x ≡ proj₁ g x)  ↔⟨ Eq.extensionality-isomorphism ext ⟩
+  proj₁ f ≡ proj₁ g              ↝⟨ ignore-propositional-component
+                                      (implicit-Π-closure ext 1 λ _ →
+                                       implicit-Π-closure ext 1 λ _ →
+                                       Π-closure          ext 1 λ _ →
+                                       ⊑-propositional) ⟩□
+  f ≡ g                          □
+
+-- Composition is associative.
+
+∘⊑-assoc : ∀ {a b c d} {A : Set a} {B : Set b} {C : Set c} {D : Set d}
+           (f : [ C ⊥→ D ⊥]⊑) (g : [ B ⊥→ C ⊥]⊑) {h : [ A ⊥→ B ⊥]⊑} →
+           f ∘⊑ (g ∘⊑ h) ≡ (f ∘⊑ g) ∘⊑ h
+∘⊑-assoc _ _ =
+  _↔_.to equality-characterisation-monotone λ _ → refl
+
 module _ {a b} {A : Set a} {B : Set b} where
-
-  -- Equality characterisation lemma for monotone functions.
-
-  equality-characterisation-monotone :
-    {f g : [ A ⊥→ B ⊥]⊑} →
-    (∀ x → proj₁ f x ≡ proj₁ g x) ↔ f ≡ g
-  equality-characterisation-monotone {f} {g} =
-    (∀ x → proj₁ f x ≡ proj₁ g x)  ↔⟨ Eq.extensionality-isomorphism ext ⟩
-    proj₁ f ≡ proj₁ g              ↝⟨ ignore-propositional-component
-                                        (implicit-Π-closure ext 1 λ _ →
-                                         implicit-Π-closure ext 1 λ _ →
-                                         Π-closure          ext 1 λ _ →
-                                         ⊑-propositional) ⟩□
-    f ≡ g                          □
 
   -- If a monotone function is applied to an increasing sequence,
   -- then the result is another increasing sequence.

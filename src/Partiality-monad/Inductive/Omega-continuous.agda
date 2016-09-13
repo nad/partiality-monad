@@ -51,3 +51,11 @@ equality-characterisation-continuous {f = f} {g} =
                                                       (Π-closure ext 1 λ _ →
                                                        ⊥-is-set _ _) ⟩□
   f ≡ g                                          □
+
+-- Composition is associative.
+
+∘ω-assoc : ∀ {a b c d} {A : Set a} {B : Set b} {C : Set c} {D : Set d}
+           (f : [ C ⊥→ D ⊥]) (g : [ B ⊥→ C ⊥]) (h : [ A ⊥→ B ⊥]) →
+           f ∘ω (g ∘ω h) ≡ (f ∘ω g) ∘ω h
+∘ω-assoc _ _ _ =
+  _↔_.to equality-characterisation-continuous λ _ → refl
