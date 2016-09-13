@@ -28,6 +28,9 @@ open import Partiality-monad.Inductive.Properties
 ------------------------------------------------------------------------
 -- A fixpoint combinator
 
+-- The development below, up to fix-is-least, is (very similar to)
+-- Kleene's fixed-point theorem.
+
 module _ {a} {A : Set a} where
 
   -- Repeated composition of a monotone function with itself.
@@ -107,12 +110,29 @@ module _ {a} {A : Set a} where
     f : A ⊥ → A ⊥
     f = proj₁ f⊑
 
+  -- The result of the fixpoint combinator is smaller than or equal to
+  -- every post-fixpoint.
+
+  fix-is-least :
+    (f : [ A ⊥→ A ⊥]⊑) →
+    ∀ x → proj₁ f x ⊑ x → fix f ⊑ x
+  fix-is-least f x fx⊑x = least-upper-bound _ _ lemma
+    where
+    lemma : ∀ n → proj₁ (comp f n) never ⊑ x
+    lemma zero    = never⊑ x
+    lemma (suc n) =
+      proj₁ (comp f n ∘⊑ f) never       ⊑⟨ pre≡post f n ⟩≡
+      proj₁ (f ∘⊑ comp f n) never       ⊑⟨⟩
+      proj₁ f (proj₁ (comp f n) never)  ⊑⟨ proj₂ f (lemma n) ⟩
+      proj₁ f x                         ⊑⟨ fx⊑x ⟩■
+      x                                 ■
+
   -- A variant of fix.
 
   fix′ : (A → A ⊥) → A ⊥
   fix′ f = fix (proj₁ (f ∗))
 
-  -- This variant also produces a kind of fixpoint.
+  -- This variant also produces a kind of least fixpoint.
 
   fix′-is-fixpoint-combinator :
     (f : A → A ⊥) →
@@ -121,6 +141,11 @@ module _ {a} {A : Set a} where
     fix′ f                   ≡⟨⟩
     fix (proj₁ (f ∗))        ≡⟨ fix-is-fixpoint-combinator (f ∗) ⟩∎
     fix (proj₁ (f ∗)) >>= f  ∎
+
+  fix′-is-least :
+    (f : A → A ⊥) →
+    ∀ x → x >>= f ⊑ x → fix′ f ⊑ x
+  fix′-is-least f = fix-is-least (proj₁ (f ∗))
 
 -- N-ary Scott induction.
 
@@ -293,6 +318,24 @@ module _ {a b} {A : Set a} {B : Set b} where
     where
     open Trans-ω
 
+  -- The result of the fixpoint combinator is pointwise smaller than
+  -- or equal to every "pointwise post-fixpoint".
+
+  fix→-is-least :
+    (f : Trans-⊑ A B) →
+    ∀ g → (∀ x → Trans-⊑.function f g x ⊑ g x) →
+      ∀ x → fix→ f x ⊑ g x
+  fix→-is-least f g fg⊑g = least-upper-bound _ _ ∘ lemma
+    where
+    open Trans-⊑
+
+    lemma : ∀ x n → comp→ (function f) n (const never) x ⊑ g x
+    lemma x zero    = never⊑ (g x)
+    lemma x (suc n) =
+      function f (comp→ (function f) n (const never)) x  ⊑⟨ monotone f (λ x → lemma x n) x ⟩
+      function f g x                                     ⊑⟨ fg⊑g x ⟩■
+      g x                                                ■
+
 -- N-ary Scott induction.
 
 fix→-induction :
@@ -442,6 +485,16 @@ fixP-is-fixpoint-combinator :
   fixP f ≡ flip (Partial.function ∘ f) (fixP f)
 fixP-is-fixpoint-combinator univ =
   fix→-is-fixpoint-combinator ∘ transformer-ω univ
+
+-- The result of the fixpoint combinator is pointwise smaller than
+-- or equal to every "pointwise post-fixpoint".
+
+fixP-is-least :
+  ∀ {a b} {A : Set a} {B : Set b}
+  (f : A → Partial A B B) →
+  ∀ g → (∀ x → Partial.function (f x) g ⊑ g x) →
+    ∀ x → fixP f x ⊑ g x
+fixP-is-least = fix→-is-least ∘ transformer
 
 -- N-ary Scott induction.
 
