@@ -42,9 +42,9 @@ module _ {a b} {A : Set a} {B : Set b} where
   -- Equality characterisation lemma for monotone functions.
 
   equality-characterisation-monotone :
-    ∀ {a b} {A : Set a} {B : Set b} {f g : [ A ⊥→ B ⊥]⊑} →
+    {f g : [ A ⊥→ B ⊥]⊑} →
     (∀ x → proj₁ f x ≡ proj₁ g x) ↔ f ≡ g
-  equality-characterisation-monotone {a} {f = f} {g} =
+  equality-characterisation-monotone {f} {g} =
     (∀ x → proj₁ f x ≡ proj₁ g x)  ↔⟨ Eq.extensionality-isomorphism ext ⟩
     proj₁ f ≡ proj₁ g              ↝⟨ ignore-propositional-component
                                         (implicit-Π-closure ext 1 λ _ →

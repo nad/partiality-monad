@@ -45,8 +45,8 @@ f ∘ω g = proj₁ f ∘⊑ proj₁ g , λ s →
 equality-characterisation-continuous :
   ∀ {a b} {A : Set a} {B : Set b} {f g : [ A ⊥→ B ⊥]} →
   (∀ x → proj₁ (proj₁ f) x ≡ proj₁ (proj₁ g) x) ↔ f ≡ g
-equality-characterisation-continuous {a} {A = A} {B} {f} {g} =
-  (∀ x → proj₁ (proj₁ f) x ≡ proj₁ (proj₁ g) x)  ↝⟨ equality-characterisation-monotone {A = A} {B = B} ⟩
+equality-characterisation-continuous {f = f} {g} =
+  (∀ x → proj₁ (proj₁ f) x ≡ proj₁ (proj₁ g) x)  ↝⟨ equality-characterisation-monotone ⟩
   proj₁ f ≡ proj₁ g                              ↝⟨ ignore-propositional-component
                                                       (Π-closure ext 1 λ _ →
                                                        ⊥-is-set _ _) ⟩□
