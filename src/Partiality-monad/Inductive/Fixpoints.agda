@@ -127,6 +127,55 @@ module _ {a} {A : Set a} where
       proj₁ f x                         ⊑⟨ fx⊑x ⟩■
       x                                 ■
 
+  -- The function flip comp n is homomorphic with respect to _∘⊑_.
+
+  comp-∘ : ∀ f n → comp (f ∘⊑ f) n ≡ comp f n ∘⊑ comp f n
+  comp-∘ f zero    = id⊑  ∎
+  comp-∘ f (suc n) =
+    comp (f ∘⊑ f) n ∘⊑ (f ∘⊑ f)         ≡⟨ cong (_∘⊑ _) (comp-∘ f n) ⟩
+    (comp f n ∘⊑ comp f n) ∘⊑ (f ∘⊑ f)  ≡⟨ lemma (comp f n) (comp f n) f _ ⟩
+    comp f n ∘⊑ ((comp f n ∘⊑ f) ∘⊑ f)  ≡⟨ cong ((comp f n ∘⊑_) ∘ (_∘⊑ f)) {x = comp f n ∘⊑ f} {y = f ∘⊑ comp f n} (
+                                             _↔_.to equality-characterisation-monotone $ λ _ →
+                                               pre≡post f n) ⟩
+    comp f n ∘⊑ ((f ∘⊑ comp f n) ∘⊑ f)  ≡⟨ sym $ lemma (comp f n) f (comp f n) _ ⟩∎
+    (comp f n ∘⊑ f) ∘⊑ (comp f n ∘⊑ f)  ∎
+    where
+    lemma : (f g h k : [ A ⊥→ A ⊥]⊑) →
+            (f ∘⊑ g) ∘⊑ (h ∘⊑ k) ≡ f ∘⊑ ((g ∘⊑ h) ∘⊑ k)
+    lemma f g h k =
+      (f ∘⊑ g) ∘⊑ (h ∘⊑ k)  ≡⟨ ∘⊑-assoc f g ⟩
+      f ∘⊑ (g ∘⊑ (h ∘⊑ k))  ≡⟨ cong (f ∘⊑_) $ ∘⊑-assoc g h ⟩∎
+      f ∘⊑ ((g ∘⊑ h) ∘⊑ k)  ∎
+
+  -- The function comp f is homomorphic with respect to _+_/_∘⊑_.
+
+  comp-+∘ : ∀ f m {n} → comp f (m + n) ≡ comp f m ∘⊑ comp f n
+  comp-+∘ f zero    {n} = comp f n  ∎
+  comp-+∘ f (suc m) {n} =
+    comp f (m + n) ∘⊑ f          ≡⟨ cong (_∘⊑ _) $ comp-+∘ f m ⟩
+    (comp f m ∘⊑ comp f n) ∘⊑ f  ≡⟨ ∘⊑-assoc (comp f m) (comp f n) ⟩
+    comp f m ∘⊑ (comp f n ∘⊑ f)  ≡⟨ cong (comp f m ∘⊑_)
+                                      (_↔_.to equality-characterisation-monotone $ λ _ →
+                                         pre≡post f n) ⟩
+    comp f m ∘⊑ (f ∘⊑ comp f n)  ≡⟨ sym $ ∘⊑-assoc (comp f m) f ⟩∎
+    (comp f m ∘⊑ f) ∘⊑ comp f n  ∎
+
+  -- Taking steps that are "twice as large" does not affect the end
+  -- result.
+
+  fix-∘ : (f : [ A ⊥→ A ⊥]⊑) → fix (f ∘⊑ f) ≡ fix f
+  fix-∘ f = antisymmetry
+    (least-upper-bound _ _ λ n →
+       proj₁ (comp (f ∘⊑ f) n) never       ⊑⟨ cong (λ f → proj₁ f never) $ comp-∘ f n ⟩≡
+       proj₁ (comp f n ∘⊑ comp f n) never  ⊑⟨ cong (λ f → proj₁ f never) $ sym $ comp-+∘ f n ⟩≡
+       proj₁ (comp f (n + n)) never        ⊑⟨ upper-bound (fix-sequence f) (n + n) ⟩■
+       ⨆ (fix-sequence f)                  ■)
+    (⨆-mono λ n →
+       proj₁ (comp f n) never                     ⊑⟨ proj₂ (comp f n) (never⊑ _) ⟩
+       proj₁ (comp f n) (proj₁ (comp f n) never)  ⊑⟨⟩
+       proj₁ (comp f n ∘⊑ comp f n) never         ⊑⟨ cong (λ f → proj₁ f never) $ sym $ comp-∘ f n ⟩≡
+       proj₁ (comp (f ∘⊑ f) n) never              ■)
+
   -- A variant of fix.
 
   fix′ : (A → A ⊥) → A ⊥
@@ -146,6 +195,22 @@ module _ {a} {A : Set a} where
     (f : A → A ⊥) →
     ∀ x → x >>= f ⊑ x → fix′ f ⊑ x
   fix′-is-least f = fix-is-least (proj₁ (f ∗))
+
+  -- Taking steps that are "twice as large" does not affect the end
+  -- result.
+
+  fix′-∘ : (f : A → A ⊥) → fix′ (λ x → f x >>= f) ≡ fix′ f
+  fix′-∘ f =
+    fix′ (λ x → f x >>= f)             ≡⟨⟩
+
+    fix (proj₁ ((λ x → f x >>= f) ∗))  ≡⟨ cong fix (_↔_.to equality-characterisation-monotone λ x →
+
+        (x >>= λ y → f y >>= f)             ≡⟨ associativity x f f ⟩∎
+        x >>= f >>= f                       ∎) ⟩
+
+    fix (proj₁ (f ∗) ∘⊑ proj₁ (f ∗))   ≡⟨ fix-∘ (proj₁ (f ∗)) ⟩∎
+
+    fix′ f                             ∎
 
 -- N-ary Scott induction.
 
@@ -266,6 +331,39 @@ module _ {a b} {A : Set a} {B : Set b} where
   comp→ f zero    = id
   comp→ f (suc n) = f ∘ comp→ f n
 
+  -- If the function f is a monotone partial function transformer,
+  -- then comp→ f n is monotone.
+
+  comp→-mono :
+    ∀ (f : Trans-⊑ A B) n {g h : A → B ⊥} →
+    (∀ x → g x ⊑ h x) →
+    ∀ x → comp→ (Trans-⊑.function f) n g x ⊑
+          comp→ (Trans-⊑.function f) n h x
+  comp→-mono f zero            g⊑h x = g⊑h x
+  comp→-mono f (suc n) {g} {h} g⊑h x =
+    function f (comp→ (function f) n g) x  ⊑⟨ monotone f (comp→-mono f n g⊑h) x ⟩
+    function f (comp→ (function f) n h) x  ■
+    where
+    open Trans-⊑
+
+  -- Pre-composition with the partial function transformer is equal to
+  -- post-composition.
+
+  pre≡post→ : ∀ f n → comp→ f n ∘ f ≡ f ∘ comp→ f n
+  pre≡post→ f zero    = f  ∎
+  pre≡post→ f (suc n) =
+    f ∘ comp→ f n ∘ f  ≡⟨ cong (f ∘_) (pre≡post→ f n) ⟩
+    f ∘ f ∘ comp→ f n  ∎
+
+  -- The function flip comp n is homomorphic with respect to _∘_.
+
+  comp→-∘ : ∀ f n → comp→ (f ∘ f) n ≡ comp→ f n ∘ comp→ f n
+  comp→-∘ f zero    = id  ∎
+  comp→-∘ f (suc n) =
+    f ∘ f ∘ comp→ (f ∘ f) n        ≡⟨ cong ((f ∘ f) ∘_) (comp→-∘ f n) ⟩
+    f ∘ f ∘ comp→ f n ∘ comp→ f n  ≡⟨ cong ((_∘ comp→ f n) ∘ (f ∘_)) $ sym $ pre≡post→ f n ⟩
+    f ∘ comp→ f n ∘ f ∘ comp→ f n  ∎
+
   -- The function comp→ f is homomorphic with respect to _+_/_∘_.
 
   comp→-+∘ : ∀ f m n → comp→ f (m + n) ≡ comp→ f m ∘ comp→ f n
@@ -335,6 +433,32 @@ module _ {a b} {A : Set a} {B : Set b} where
       function f (comp→ (function f) n (const never)) x  ⊑⟨ monotone f (λ x → lemma x n) x ⟩
       function f g x                                     ⊑⟨ fg⊑g x ⟩■
       g x                                                ■
+
+  -- Composition of partial function transformers.
+
+  infixr 40 _∘T_
+
+  _∘T_ : Trans-⊑ A B → Trans-⊑ A B → Trans-⊑ A B
+  Trans-⊑.function (f ∘T g) = Trans-⊑.function f ∘ Trans-⊑.function g
+  Trans-⊑.monotone (f ∘T g) = Trans-⊑.monotone f ∘ Trans-⊑.monotone g
+
+  -- Taking steps that are "twice as large" does not affect the end
+  -- result.
+
+  fix→-∘ : (f : Trans-⊑ A B) → fix→ (f ∘T f) ≡ fix→ f
+  fix→-∘ f⊑ = ext λ x → antisymmetry
+    (least-upper-bound _ _ λ n →
+       comp→ (f ∘ f) n (const never) x          ⊑⟨ cong (λ g → g _ _) $ comp→-∘ f n ⟩≡
+       (comp→ f n ∘ comp→ f n) (const never) x  ⊑⟨ cong (λ f → f (const never) x) $ sym $ comp→-+∘ f n n ⟩≡
+       comp→ f (n + n) (const never) x          ⊑⟨ upper-bound (fix→-sequence f⊑ x) (n + n) ⟩■
+       ⨆ (fix→-sequence f⊑ x)                   ■)
+    (⨆-mono λ n →
+       comp→ f n (const never) x                ⊑⟨ comp→-mono f⊑ n (λ _ → never⊑ _) x ⟩
+       comp→ f n (comp→ f n (const never)) x    ⊑⟨⟩
+       (comp→ f n ∘ comp→ f n) (const never) x  ⊑⟨ cong (λ g → g _ _) $ sym $ comp→-∘ f n ⟩≡
+       comp→ (f ∘ f) n (const never) x          ■)
+    where
+    f = Trans-⊑.function f⊑
 
 -- N-ary Scott induction.
 
@@ -495,6 +619,36 @@ fixP-is-least :
   ∀ g → (∀ x → Partial.function (f x) g ⊑ g x) →
     ∀ x → fixP f x ⊑ g x
 fixP-is-least = fix→-is-least ∘ transformer
+
+-- Composition of certain Partial-valued functions.
+
+infixr 40 _∘P_
+
+_∘P_ :
+  ∀ {a b} {A : Set a} {B : Set b} →
+  (A → Partial A B B) → (A → Partial A B B) → (A → Partial A B B)
+Partial.function     ((f ∘P g) x) = λ h →
+                                      Partial.function (f x) λ y →
+                                      Partial.function (g y) h
+Partial.monotone     ((f ∘P g) x) = λ hyp →
+                                      Partial.monotone (f x) λ y →
+                                      Partial.monotone (g y) hyp
+Partial.ω-continuous ((f ∘P g) x) = λ univ recs →
+  function (f x) (λ y → function (g y) (⨆ ∘ recs))  ≡⟨ cong (function (f x)) (ext λ y → ω-continuous (g y) univ recs) ⟩
+  function (f x) (λ y → ⨆ (sequence (g y) recs))    ≡⟨ ω-continuous (f x) univ (λ y → sequence (g y) recs) ⟩∎
+  ⨆ (sequence (f x) λ y → sequence (g y) recs)      ∎
+  where
+  open Partial
+
+-- Taking steps that are "twice as large" does not affect the end
+-- result.
+
+fixP-∘ : ∀ {a b} {A : Set a} {B : Set b}
+         (f : A → Partial A B B) → fixP (f ∘P f) ≡ fixP f
+fixP-∘ f =
+  fix→ (transformer (f ∘P f))            ≡⟨⟩
+  fix→ (transformer f ∘T transformer f)  ≡⟨ fix→-∘ (transformer f) ⟩∎
+  fix→ (transformer f)                   ∎
 
 -- N-ary Scott induction.
 
