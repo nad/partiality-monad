@@ -39,15 +39,15 @@ module _ {a} {A : Set a} where
   comp f zero    = id⊑
   comp f (suc n) = f ∘⊑ comp f n
 
-  -- Pre-composition with the function is pointwise equal to
-  -- post-composition with the function.
+  -- Pre-composition with the function is equal to post-composition
+  -- with the function.
 
-  pre≡post : ∀ f n {x} →
-             proj₁ (comp f n ∘⊑ f) x ≡ proj₁ (f ∘⊑ comp f n) x
-  pre≡post f zero        = refl
-  pre≡post f (suc n) {x} =
-    proj₁ f (proj₁ (comp f n ∘⊑ f) x)  ≡⟨ cong (proj₁ f) (pre≡post f n) ⟩∎
-    proj₁ f (proj₁ (f ∘⊑ comp f n) x)  ∎
+  pre≡post : ∀ f n → comp f n ∘⊑ f ≡ f ∘⊑ comp f n
+  pre≡post f zero    = f  ∎
+  pre≡post f (suc n) =
+    (f ∘⊑ comp f n) ∘⊑ f  ≡⟨ ∘⊑-assoc f (comp f n) ⟩
+    f ∘⊑ (comp f n ∘⊑ f)  ≡⟨ cong (f ∘⊑_) $ pre≡post f n ⟩∎
+    f ∘⊑ (f ∘⊑ comp f n)  ∎
 
   -- An increasing sequence consisting of repeated applications of the
   -- given monotone function to never.
@@ -55,10 +55,16 @@ module _ {a} {A : Set a} where
   fix-sequence : [ A ⊥→ A ⊥]⊑ → Increasing-sequence A
   fix-sequence f =
       (λ n → proj₁ (comp f n) never)
-    , (λ n → proj₁ (comp f n) never            ⊑⟨ proj₂ (comp f n) (never⊑ (proj₁ f never)) ⟩
-             proj₁ (comp f n) (proj₁ f never)  ⊑⟨⟩
-             proj₁ (comp f n ∘⊑ f) never       ⊑⟨ pre≡post f n ⟩≡
-             proj₁ (f ∘⊑ comp f n) never       ■)
+    , fix-sequence-increasing
+    where
+    abstract
+      fix-sequence-increasing :
+        ∀ n → proj₁ (comp f n) never ⊑ proj₁ (f ∘⊑ comp f n) never
+      fix-sequence-increasing n =
+        proj₁ (comp f n) never            ⊑⟨ proj₂ (comp f n) (never⊑ (proj₁ f never)) ⟩
+        proj₁ (comp f n) (proj₁ f never)  ⊑⟨⟩
+        proj₁ (comp f n ∘⊑ f) never       ⊑⟨ cong (λ g → proj₁ g never) $ pre≡post f n ⟩≡
+        proj₁ (f ∘⊑ comp f n) never       ■
 
   -- Taking the tail of this sequence amounts to the same thing as
   -- applying the function to each element in the sequence.
@@ -132,9 +138,7 @@ module _ {a} {A : Set a} where
   comp-∘ f (suc n) =
     (f ∘⊑ f) ∘⊑ comp (f ∘⊑ f) n         ≡⟨ cong ((f ∘⊑ f) ∘⊑_) (comp-∘ f n) ⟩
     (f ∘⊑ f) ∘⊑ (comp f n ∘⊑ comp f n)  ≡⟨ lemma f f (comp f n) _ ⟩
-    f ∘⊑ ((f ∘⊑ comp f n) ∘⊑ comp f n)  ≡⟨ cong ((_∘⊑ comp f n) ∘ (f ∘⊑_)) {x = f ∘⊑ comp f n} {y = comp f n ∘⊑ f} (
-                                             _↔_.to equality-characterisation-monotone $ λ _ →
-                                               sym $ pre≡post f n) ⟩
+    f ∘⊑ ((f ∘⊑ comp f n) ∘⊑ comp f n)  ≡⟨ cong ((_∘⊑ comp f n) ∘ (f ∘⊑_)) $ sym $ pre≡post f n ⟩
     f ∘⊑ ((comp f n ∘⊑ f) ∘⊑ comp f n)  ≡⟨ sym $ lemma f (comp f n) f _ ⟩∎
     (f ∘⊑ comp f n) ∘⊑ (f ∘⊑ comp f n)  ∎
     where
