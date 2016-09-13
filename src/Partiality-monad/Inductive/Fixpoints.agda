@@ -37,7 +37,7 @@ module _ {a} {A : Set a} where
 
   comp : [ A ⊥→ A ⊥]⊑ → ℕ → [ A ⊥→ A ⊥]⊑
   comp f zero    = id⊑
-  comp f (suc n) = comp f n ∘⊑ f
+  comp f (suc n) = f ∘⊑ comp f n
 
   -- Pre-composition with the function is pointwise equal to
   -- post-composition with the function.
@@ -46,8 +46,8 @@ module _ {a} {A : Set a} where
              proj₁ (comp f n ∘⊑ f) x ≡ proj₁ (f ∘⊑ comp f n) x
   pre≡post f zero        = refl
   pre≡post f (suc n) {x} =
-    proj₁ (comp f n ∘⊑ f) (proj₁ f x)  ≡⟨ pre≡post f n ⟩∎
-    proj₁ (f ∘⊑ comp f n) (proj₁ f x)  ∎
+    proj₁ f (proj₁ (comp f n ∘⊑ f) x)  ≡⟨ cong (proj₁ f) (pre≡post f n) ⟩∎
+    proj₁ f (proj₁ (f ∘⊑ comp f n) x)  ∎
 
   -- An increasing sequence consisting of repeated applications of the
   -- given monotone function to never.
@@ -55,9 +55,10 @@ module _ {a} {A : Set a} where
   fix-sequence : [ A ⊥→ A ⊥]⊑ → Increasing-sequence A
   fix-sequence f =
       (λ n → proj₁ (comp f n) never)
-    , (λ n →
-         proj₁ (comp f n) never            ⊑⟨ proj₂ (comp f n) (never⊑ (proj₁ f never)) ⟩■
-         proj₁ (comp f n) (proj₁ f never)  ■)
+    , (λ n → proj₁ (comp f n) never            ⊑⟨ proj₂ (comp f n) (never⊑ (proj₁ f never)) ⟩
+             proj₁ (comp f n) (proj₁ f never)  ⊑⟨⟩
+             proj₁ (comp f n ∘⊑ f) never       ⊑⟨ pre≡post f n ⟩≡
+             proj₁ (f ∘⊑ comp f n) never       ■)
 
   -- Taking the tail of this sequence amounts to the same thing as
   -- applying the function to each element in the sequence.
@@ -66,9 +67,7 @@ module _ {a} {A : Set a} where
     (f : [ A ⊥→ A ⊥]⊑) →
     tailˢ (fix-sequence f) ≡ [ f $ fix-sequence f ]-inc
   tailˢ-fix-sequence f =
-    _↔_.to equality-characterisation-increasing λ n →
-      proj₁ (comp f n ∘⊑ f) never  ≡⟨ pre≡post f n ⟩∎
-      proj₁ (f ∘⊑ comp f n) never  ∎
+    _↔_.to equality-characterisation-increasing λ _ → refl
 
   -- The sequence has the same least upper bound as the sequence you
   -- get if you apply the function to each element of the sequence.
@@ -121,7 +120,6 @@ module _ {a} {A : Set a} where
     lemma : ∀ n → proj₁ (comp f n) never ⊑ x
     lemma zero    = never⊑ x
     lemma (suc n) =
-      proj₁ (comp f n ∘⊑ f) never       ⊑⟨ pre≡post f n ⟩≡
       proj₁ (f ∘⊑ comp f n) never       ⊑⟨⟩
       proj₁ f (proj₁ (comp f n) never)  ⊑⟨ proj₂ f (lemma n) ⟩
       proj₁ f x                         ⊑⟨ fx⊑x ⟩■
@@ -132,13 +130,13 @@ module _ {a} {A : Set a} where
   comp-∘ : ∀ f n → comp (f ∘⊑ f) n ≡ comp f n ∘⊑ comp f n
   comp-∘ f zero    = id⊑  ∎
   comp-∘ f (suc n) =
-    comp (f ∘⊑ f) n ∘⊑ (f ∘⊑ f)         ≡⟨ cong (_∘⊑ _) (comp-∘ f n) ⟩
-    (comp f n ∘⊑ comp f n) ∘⊑ (f ∘⊑ f)  ≡⟨ lemma (comp f n) (comp f n) f _ ⟩
-    comp f n ∘⊑ ((comp f n ∘⊑ f) ∘⊑ f)  ≡⟨ cong ((comp f n ∘⊑_) ∘ (_∘⊑ f)) {x = comp f n ∘⊑ f} {y = f ∘⊑ comp f n} (
+    (f ∘⊑ f) ∘⊑ comp (f ∘⊑ f) n         ≡⟨ cong ((f ∘⊑ f) ∘⊑_) (comp-∘ f n) ⟩
+    (f ∘⊑ f) ∘⊑ (comp f n ∘⊑ comp f n)  ≡⟨ lemma f f (comp f n) _ ⟩
+    f ∘⊑ ((f ∘⊑ comp f n) ∘⊑ comp f n)  ≡⟨ cong ((_∘⊑ comp f n) ∘ (f ∘⊑_)) {x = f ∘⊑ comp f n} {y = comp f n ∘⊑ f} (
                                              _↔_.to equality-characterisation-monotone $ λ _ →
-                                               pre≡post f n) ⟩
-    comp f n ∘⊑ ((f ∘⊑ comp f n) ∘⊑ f)  ≡⟨ sym $ lemma (comp f n) f (comp f n) _ ⟩∎
-    (comp f n ∘⊑ f) ∘⊑ (comp f n ∘⊑ f)  ∎
+                                               sym $ pre≡post f n) ⟩
+    f ∘⊑ ((comp f n ∘⊑ f) ∘⊑ comp f n)  ≡⟨ sym $ lemma f (comp f n) f _ ⟩∎
+    (f ∘⊑ comp f n) ∘⊑ (f ∘⊑ comp f n)  ∎
     where
     lemma : (f g h k : [ A ⊥→ A ⊥]⊑) →
             (f ∘⊑ g) ∘⊑ (h ∘⊑ k) ≡ f ∘⊑ ((g ∘⊑ h) ∘⊑ k)
@@ -152,13 +150,9 @@ module _ {a} {A : Set a} where
   comp-+∘ : ∀ f m {n} → comp f (m + n) ≡ comp f m ∘⊑ comp f n
   comp-+∘ f zero    {n} = comp f n  ∎
   comp-+∘ f (suc m) {n} =
-    comp f (m + n) ∘⊑ f          ≡⟨ cong (_∘⊑ _) $ comp-+∘ f m ⟩
-    (comp f m ∘⊑ comp f n) ∘⊑ f  ≡⟨ ∘⊑-assoc (comp f m) (comp f n) ⟩
-    comp f m ∘⊑ (comp f n ∘⊑ f)  ≡⟨ cong (comp f m ∘⊑_)
-                                      (_↔_.to equality-characterisation-monotone $ λ _ →
-                                         pre≡post f n) ⟩
-    comp f m ∘⊑ (f ∘⊑ comp f n)  ≡⟨ sym $ ∘⊑-assoc (comp f m) f ⟩∎
-    (comp f m ∘⊑ f) ∘⊑ comp f n  ∎
+    f ∘⊑ comp f (m + n)          ≡⟨ cong (f ∘⊑_) $ comp-+∘ f m ⟩
+    f ∘⊑ (comp f m ∘⊑ comp f n)  ≡⟨ ∘⊑-assoc f (comp f m) ⟩∎
+    (f ∘⊑ comp f m) ∘⊑ comp f n  ∎
 
   -- Taking steps that are "twice as large" does not affect the end
   -- result.
@@ -238,9 +232,8 @@ module _ {a p} n
     lemma zero    = P⊥
     lemma (suc n) =
                                                      $⟨ lemma n ⟩
-      P (λ i → proj₁ (comp (fs⊑ i) n) never)         ↝⟨ step _ ⟩
-      P (λ i → fs i (proj₁ (comp (fs⊑ i) n) never))  ↝⟨ ≡⇒↝ implication (cong P $ sym $ ext λ i → pre≡post (fs⊑ i) n) ⟩□
-      P (λ i → proj₁ (comp (fs⊑ i) n) (fs i never))  □
+      P (λ i → proj₁ (comp (fs⊑ i) n) never)         ↝⟨ step _ ⟩□
+      P (λ i → fs i (proj₁ (comp (fs⊑ i) n) never))  □
 
   fix′-induction :
     (fs : ∀ i → As i → As i ⊥) →
