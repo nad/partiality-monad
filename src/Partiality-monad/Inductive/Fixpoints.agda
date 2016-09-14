@@ -459,36 +459,46 @@ module _ {a b} {A : Set a} {B : Set b} where
 
 -- N-ary Scott induction.
 
-fix→-induction :
-  ∀ {a b p} n
+module _
+  {a b p} n
   (As : Fin n → Set a)
   (Bs : Fin n → Set b)
-  (P : (∀ i → As i → Bs i ⊥) → Set p) →
-  P (λ _ _ → never) →
-  ((ss : ∀ i → As i → Increasing-sequence (Bs i)) →
-   (∀ n → P (λ i xs → ss i xs [ n ])) →
-   P (λ i xs → ⨆ (ss i xs))) →
-  (fs : ∀ i → Trans-⊑ (As i) (Bs i)) →
-  ((gs : ∀ i → As i → Bs i ⊥) →
-   P gs → P (λ i → Trans-⊑.function (fs i) (gs i))) →
-  P (λ i → fix→ (fs i))
-fix→-induction _ As Bs P P⊥ P⨆ fs⊑ step =
-                                    $⟨ lemma ⟩
-  (∀ n → P (λ i → app→ (fs i) n))   ↝⟨ P⨆ _ ⟩
-  P ((⨆ ∘_) ∘ fix→-sequence ∘ fs⊑)  ↝⟨ id ⟩□
-  P (fix→ ∘ fs⊑)                    □
-  where
-  open Trans-⊑
+  (P : (∀ i → As i → Bs i ⊥) → Set p)
+  (P⊥ : P (λ _ _ → never))
+  (P⨆ : (ss : ∀ i → As i → Increasing-sequence (Bs i)) →
+        (∀ n → P (λ i xs → ss i xs [ n ])) →
+        P (λ i xs → ⨆ (ss i xs)))
+  (fs : ∀ i → Trans-⊑ (As i) (Bs i)) where
 
-  fs : ∀ i → Trans (As i) (Bs i)
-  fs = function ∘ fs⊑
+  -- Generalised.
 
-  lemma : ∀ n → P (λ i → app→ (fs i) n)
-  lemma zero    = P⊥
-  lemma (suc n) =
-                                          $⟨ lemma n ⟩
-    P (λ i xs → app→ (fs i) n xs)         ↝⟨ step _ ⟩□
-    P (λ i xs → fs i (app→ (fs i) n) xs)  □
+  fix→-induction′ :
+    (∀ n → P (λ i → app→ (Trans-⊑.function (fs i)) n) →
+           P (λ i → app→ (Trans-⊑.function (fs i)) (suc n))) →
+    P (λ i → fix→ (fs i))
+  fix→-induction′ step =              $⟨ lemma ⟩
+    (∀ n → P (λ i → app→ (ffs i) n))  ↝⟨ P⨆ _ ⟩
+    P ((⨆ ∘_) ∘ fix→-sequence ∘ fs)   ↝⟨ id ⟩□
+    P (fix→ ∘ fs)                     □
+    where
+    open Trans-⊑
+
+    ffs : ∀ i → Trans (As i) (Bs i)
+    ffs = function ∘ fs
+
+    lemma : ∀ n → P (λ i → app→ (ffs i) n)
+    lemma zero    = P⊥
+    lemma (suc n) =                           $⟨ lemma n ⟩
+      P (λ i xs → app→ (ffs i) n xs)          ↝⟨ step n ⟩□
+      P (λ i xs → ffs i (app→ (ffs i) n) xs)  □
+
+  -- Basic.
+
+  fix→-induction :
+    ((gs : ∀ i → As i → Bs i ⊥) →
+     P gs → P (λ i → Trans-⊑.function (fs i) (gs i))) →
+    P (λ i → fix→ (fs i))
+  fix→-induction step = fix→-induction′ (λ _ → step _)
 
 -- Unary Scott induction.
 
@@ -649,21 +659,34 @@ fixP-∘ f =
 
 -- N-ary Scott induction.
 
-fixP-induction :
-  ∀ {a b p} n
+module _
+  {a b p} n
   (As : Fin n → Set a)
   (Bs : Fin n → Set b)
-  (P : (∀ i → As i → Bs i ⊥) → Set p) →
-  P (λ _ _ → never) →
-  ((ss : ∀ i → As i → Increasing-sequence (Bs i)) →
-   (∀ n → P (λ i xs → ss i xs [ n ])) →
-   P (λ i xs → ⨆ (ss i xs))) →
-  (fs : ∀ i → As i → Partial (As i) (Bs i) (Bs i)) →
-  ((gs : ∀ i → As i → Bs i ⊥) →
-   P gs → P (λ i xs → Partial.function (fs i xs) (gs i))) →
-  P (λ i → fixP (fs i))
-fixP-induction n As Bs P P⊥ P⨆ fs =
-  fix→-induction n As Bs P P⊥ P⨆ (transformer ∘ fs)
+  (P : (∀ i → As i → Bs i ⊥) → Set p)
+  (P⊥ : P (λ _ _ → never))
+  (P⨆ : (ss : ∀ i → As i → Increasing-sequence (Bs i)) →
+        (∀ n → P (λ i xs → ss i xs [ n ])) →
+        P (λ i xs → ⨆ (ss i xs)))
+  (fs : ∀ i → As i → Partial (As i) (Bs i) (Bs i)) where
+
+  -- Generalised.
+
+  fixP-induction′ :
+    (∀ n → P (λ i → app→ (flip (Partial.function ∘ fs i)) n) →
+           P (λ i → app→ (flip (Partial.function ∘ fs i)) (suc n))) →
+    P (λ i → fixP (fs i))
+  fixP-induction′ =
+    fix→-induction′ n As Bs P P⊥ P⨆ (transformer ∘ fs)
+
+  -- Basic.
+
+  fixP-induction :
+    ((gs : ∀ i → As i → Bs i ⊥) →
+     P gs → P (λ i xs → Partial.function (fs i xs) (gs i))) →
+    P (λ i → fixP (fs i))
+  fixP-induction =
+    fix→-induction n As Bs P P⊥ P⨆ (transformer ∘ fs)
 
 -- Unary Scott induction.
 
