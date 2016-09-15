@@ -282,14 +282,14 @@ module _ {a p}
 
 -- Partial function transformers.
 
-Trans : ∀ {a b} → Set a → Set b → Set (a ⊔ b)
-Trans A B = (A → B ⊥) → (A → B ⊥)
+Trans : ∀ {a b} (A : Set a) → (A → Set b) → Set (a ⊔ b)
+Trans A B = ((x : A) → B x ⊥) → ((x : A) → B x ⊥)
 
 -- Monotone partial function transformers.
 
-record Trans-⊑ {a b} (A : Set a) (B : Set b) : Set (a ⊔ b) where
+record Trans-⊑ {a b} (A : Set a) (B : A → Set b) : Set (a ⊔ b) where
   field
-    function : (A → B ⊥) → (A → B ⊥)
+    function : Trans A B
     monotone : ∀ {g₁ g₂} →
                (∀ x → g₁ x ⊑ g₂ x) →
                ∀ x → function g₁ x ⊑ function g₂ x
@@ -298,9 +298,10 @@ record Trans-⊑ {a b} (A : Set a) (B : Set b) : Set (a ⊔ b) where
 -- parametrised increasing sequence transformers.
 
 [_$_at_]-inc :
-  ∀ {a b} {A : Set a} {B : Set b} →
+  ∀ {a b} {A : Set a} {B : A → Set b} →
   Trans-⊑ A B →
-  (A → Increasing-sequence B) → (A → Increasing-sequence B)
+  ((x : A) → Increasing-sequence (B x)) →
+  ((x : A) → Increasing-sequence (B x))
 [ f $ s at x ]-inc =
     (λ n → function f (λ x → s x [ n ]) x)
   , (λ n → monotone f (λ x → increasing (s x) n) x)
@@ -309,17 +310,17 @@ record Trans-⊑ {a b} (A : Set a) (B : Set b) : Set (a ⊔ b) where
 
 -- Partial function transformers that are ω-continuous.
 
-record Trans-ω {a b} (A : Set a) (B : Set b) : Set (a ⊔ b) where
+record Trans-ω {a b} (A : Set a) (B : A → Set b) : Set (a ⊔ b) where
   field
     transformer : Trans-⊑ A B
 
   open Trans-⊑ transformer public
 
   field
-    ω-continuous : (s : A → Increasing-sequence B) (x : A) →
+    ω-continuous : (s : (x : A) → Increasing-sequence (B x)) (x : A) →
                    function (⨆ ∘ s) x ≡ ⨆ [ transformer $ s at x ]-inc
 
-module _ {a b} {A : Set a} {B : Set b} where
+module _ {a b} {A : Set a} {B : A → Set b} where
 
   -- Repeated composition of a partial function transformer with
   -- itself.
@@ -332,7 +333,7 @@ module _ {a b} {A : Set a} {B : Set b} where
   -- then comp→ f n is monotone.
 
   comp→-mono :
-    ∀ (f : Trans-⊑ A B) n {g h : A → B ⊥} →
+    ∀ (f : Trans-⊑ A B) n {g h : (x : A) → B x ⊥} →
     (∀ x → g x ⊑ h x) →
     ∀ x → comp→ (Trans-⊑.function f) n g x ⊑
           comp→ (Trans-⊑.function f) n h x
@@ -370,14 +371,15 @@ module _ {a b} {A : Set a} {B : Set b} where
   -- Repeated application of a partial function transformer to
   -- const never.
 
-  app→ : Trans A B → ℕ → (A → B ⊥)
-  app→ f n = comp→ f n (const never)
+  app→ : Trans A B → ℕ → ((x : A) → B x ⊥)
+  app→ f n = comp→ f n (λ _ → never)
 
   -- The increasing sequence fix→-sequence f x consists of the
   -- elements never, function f (const never) x,
   -- function f (function f (const never)) x, and so on.
 
-  fix→-sequence : (f : Trans-⊑ A B) → A → Increasing-sequence B
+  fix→-sequence : (f : Trans-⊑ A B) →
+                  (x : A) → Increasing-sequence (B x)
   fix→-sequence f x =
       (λ n → app→ (function f) n x)
     , (λ n →
@@ -388,12 +390,12 @@ module _ {a b} {A : Set a} {B : Set b} where
 
     app→-increasing :
       ∀ n x → app→ (function f) n x ⊑ app→ (function f) (suc n) x
-    app→-increasing zero    = never⊑ ∘ function f (const never)
+    app→-increasing zero    = never⊑ ∘ function f (λ _ → never)
     app→-increasing (suc n) = monotone f (app→-increasing n)
 
   -- A fixpoint combinator.
 
-  fix→ : Trans-⊑ A B → (A → B ⊥)
+  fix→ : Trans-⊑ A B → ((x : A) → B x ⊥)
   fix→ f x = ⨆ (fix→-sequence f x)
 
   -- The fixpoint combinator produces fixpoints for ω-continuous
@@ -424,10 +426,10 @@ module _ {a b} {A : Set a} {B : Set b} where
     where
     open Trans-⊑
 
-    lemma : ∀ x n → comp→ (function f) n (const never) x ⊑ g x
+    lemma : ∀ x n → comp→ (function f) n (λ _ → never) x ⊑ g x
     lemma x zero    = never⊑ (g x)
     lemma x (suc n) =
-      function f (comp→ (function f) n (const never)) x  ⊑⟨ monotone f (λ x → lemma x n) x ⟩
+      function f (comp→ (function f) n (λ _ → never)) x  ⊑⟨ monotone f (λ x → lemma x n) x ⟩
       function f g x                                     ⊑⟨ fg⊑g x ⟩■
       g x                                                ■
 
@@ -445,15 +447,15 @@ module _ {a b} {A : Set a} {B : Set b} where
   fix→-∘ : (f : Trans-⊑ A B) → fix→ (f ∘T f) ≡ fix→ f
   fix→-∘ f⊑ = ext λ x → antisymmetry
     (least-upper-bound _ _ λ n →
-       comp→ (f ∘ f) n (const never) x          ⊑⟨ cong (λ g → g _ _) $ comp→-∘ f n ⟩≡
-       (comp→ f n ∘ comp→ f n) (const never) x  ⊑⟨ cong (λ f → f (const never) x) $ sym $ comp→-+∘ f n n ⟩≡
-       comp→ f (n + n) (const never) x          ⊑⟨ upper-bound (fix→-sequence f⊑ x) (n + n) ⟩■
+       comp→ (f ∘ f) n (λ _ → never) x          ⊑⟨ cong (λ g → g _ _) $ comp→-∘ f n ⟩≡
+       (comp→ f n ∘ comp→ f n) (λ _ → never) x  ⊑⟨ cong (λ f → f (λ _ → never) x) $ sym $ comp→-+∘ f n n ⟩≡
+       comp→ f (n + n) (λ _ → never) x          ⊑⟨ upper-bound (fix→-sequence f⊑ x) (n + n) ⟩■
        ⨆ (fix→-sequence f⊑ x)                   ■)
     (⨆-mono λ n →
-       comp→ f n (const never) x                ⊑⟨ comp→-mono f⊑ n (λ _ → never⊑ _) x ⟩
-       comp→ f n (comp→ f n (const never)) x    ⊑⟨⟩
-       (comp→ f n ∘ comp→ f n) (const never) x  ⊑⟨ cong (λ g → g _ _) $ sym $ comp→-∘ f n ⟩≡
-       comp→ (f ∘ f) n (const never) x          ■)
+       comp→ f n (λ _ → never) x                ⊑⟨ comp→-mono f⊑ n (λ _ → never⊑ _) x ⟩
+       comp→ f n (comp→ f n (λ _ → never)) x    ⊑⟨⟩
+       (comp→ f n ∘ comp→ f n) (λ _ → never) x  ⊑⟨ cong (λ g → g _ _) $ sym $ comp→-∘ f n ⟩≡
+       comp→ (f ∘ f) n (λ _ → never) x          ■)
     where
     f = Trans-⊑.function f⊑
 
@@ -462,10 +464,10 @@ module _ {a b} {A : Set a} {B : Set b} where
 module _
   {a b p} n
   (As : Fin n → Set a)
-  (Bs : Fin n → Set b)
-  (P : (∀ i → As i → Bs i ⊥) → Set p)
+  (Bs : (i : Fin n) → As i → Set b)
+  (P : (∀ i → (x : As i) → Bs i x ⊥) → Set p)
   (P⊥ : P (λ _ _ → never))
-  (P⨆ : (ss : ∀ i → As i → Increasing-sequence (Bs i)) →
+  (P⨆ : (ss : ∀ i (x : As i) → Increasing-sequence (Bs i x)) →
         (∀ n → P (λ i xs → ss i xs [ n ])) →
         P (λ i xs → ⨆ (ss i xs)))
   (fs : ∀ i → Trans-⊑ (As i) (Bs i)) where
@@ -495,7 +497,7 @@ module _
   -- Basic.
 
   fix→-induction :
-    ((gs : ∀ i → As i → Bs i ⊥) →
+    ((gs : ∀ i (x : As i) → Bs i x ⊥) →
      P gs → P (λ i → Trans-⊑.function (fs i) (gs i))) →
     P (λ i → fix→ (fs i))
   fix→-induction step = fix→-induction′ (λ _ → step _)
@@ -503,10 +505,10 @@ module _
 -- Unary Scott induction.
 
 fix→-induction₁ :
-  ∀ {a b p} {A : Set a} {B : Set b}
-  (P : (A → B ⊥) → Set p) →
-  P (const never) →
-  ((s : A → Increasing-sequence B) →
+  ∀ {a b p} {A : Set a} {B : A → Set b}
+  (P : ((x : A) → B x ⊥) → Set p) →
+  P (λ _ → never) →
+  ((s : (x : A) → Increasing-sequence (B x)) →
    (∀ n → P (λ x → s x [ n ])) →
    P (λ x → ⨆ (s x))) →
   (f : Trans-⊑ A B) →
@@ -516,7 +518,7 @@ fix→-induction₁ P P⊥ P⨆ f step =
   fix→-induction
     1
     [ const _ , ⊥-elim ]
-    [ const _ , ⊥-elim ]
+    [ const _ , (λ x → ⊥-elim x) ]
     (P ∘ (_$ fzero))
     P⊥
     (P⨆ ∘ (_$ fzero))
@@ -531,13 +533,13 @@ fix→-induction₁ P P⊥ P⨆ f step =
 
 record Partial
          {a b c}
-         (A : Set a) (B : Set b) (C : Set c) :
+         (A : Set a) (B : A → Set b) (C : Set c) :
          Set (a ⊔ b ⊔ lsuc c) where
   field
     -- A function that is allowed to make "recursive calls" of type
-    -- A → B ⊥.
+    -- (x : A) → B x ⊥.
 
-    function : (A → B ⊥) → C ⊥
+    function : ((x : A) → B x ⊥) → C ⊥
 
     -- The function must be monotone.
 
@@ -547,7 +549,8 @@ record Partial
 
   -- The function can be turned into an increasing sequence.
 
-  sequence : (A → Increasing-sequence B) → Increasing-sequence C
+  sequence : ((x : A) → Increasing-sequence (B x)) →
+             Increasing-sequence C
   sequence recs =
       (λ n → function (λ x → recs x [ n ]))
     , (λ n → monotone (λ x → increasing (recs x) n))
@@ -560,13 +563,14 @@ record Partial
     -- univalence assumption.
 
     ω-continuous : Univalence c →
-                   (recs : A → Increasing-sequence B) →
+                   (recs : (x : A) → Increasing-sequence (B x)) →
                    function (⨆ ∘ recs) ≡ ⨆ (sequence recs)
 
 -- The first two arguments of Partial specify the domain and codomain
 -- of "recursive calls".
 
-rec : ∀ {a b} {A : Set a} {B : Set b} → A → Partial A B B
+rec : ∀ {a b} {A : Set a} {B : A → Set b} →
+      (x : A) → Partial A B (B x)
 rec x = record
   { function     = _$ x
   ; monotone     = _$ x
@@ -576,8 +580,8 @@ rec x = record
 -- Turns certain Partial-valued functions into monotone partial
 -- function transformers.
 
-transformer : ∀ {a b} {A : Set a} {B : Set b} →
-              (A → Partial A B B) → Trans-⊑ A B
+transformer : ∀ {a b} {A : Set a} {B : A → Set b} →
+              ((x : A) → Partial A B (B x)) → Trans-⊑ A B
 transformer f = record
   { function = λ g     x → function (f x) g
   ; monotone = λ g₁⊑g₂ x → monotone (f x) g₁⊑g₂
@@ -588,9 +592,9 @@ transformer f = record
 -- Turns certain Partial-valued functions into ω-continuous partial
 -- function transformers (assuming univalence).
 
-transformer-ω : ∀ {a b} {A : Set a} {B : Set b} →
+transformer-ω : ∀ {a b} {A : Set a} {B : A → Set b} →
                 Univalence b →
-                (A → Partial A B B) → Trans-ω A B
+                ((x : A) → Partial A B (B x)) → Trans-ω A B
 transformer-ω univ f = record
   { transformer  = transformer f
   ; ω-continuous = λ s x → ω-continuous (f x) univ s
@@ -600,19 +604,19 @@ transformer-ω univ f = record
 
 -- A fixpoint combinator.
 
-fixP : ∀ {a b} {A : Set a} {B : Set b} →
-       (A → Partial A B B) → (A → B ⊥)
+fixP : ∀ {a b} {A : Set a} {B : A → Set b} →
+       ((x : A) → Partial A B (B x)) → ((x : A) → B x ⊥)
 fixP {A = A} {B} =
-  (A → Partial A B B)  ↝⟨ transformer ⟩
-  Trans-⊑ A B          ↝⟨ fix→ ⟩□
-  (A → B ⊥)            □
+  ((x : A) → Partial A B (B x))  ↝⟨ transformer ⟩
+  Trans-⊑ A B                    ↝⟨ fix→ ⟩□
+  ((x : A) → B x ⊥)              □
 
 -- The fixpoint combinator produces fixpoints (assuming univalence).
 
 fixP-is-fixpoint-combinator :
-  ∀ {a b} {A : Set a} {B : Set b} →
+  ∀ {a b} {A : Set a} {B : A → Set b} →
   Univalence b →
-  (f : A → Partial A B B) →
+  (f : (x : A) → Partial A B (B x)) →
   fixP f ≡ flip (Partial.function ∘ f) (fixP f)
 fixP-is-fixpoint-combinator univ =
   fix→-is-fixpoint-combinator ∘ transformer-ω univ
@@ -621,8 +625,8 @@ fixP-is-fixpoint-combinator univ =
 -- or equal to every "pointwise post-fixpoint".
 
 fixP-is-least :
-  ∀ {a b} {A : Set a} {B : Set b}
-  (f : A → Partial A B B) →
+  ∀ {a b} {A : Set a} {B : A → Set b}
+  (f : (x : A) → Partial A B (B x)) →
   ∀ g → (∀ x → Partial.function (f x) g ⊑ g x) →
     ∀ x → fixP f x ⊑ g x
 fixP-is-least = fix→-is-least ∘ transformer
@@ -632,8 +636,10 @@ fixP-is-least = fix→-is-least ∘ transformer
 infixr 40 _∘P_
 
 _∘P_ :
-  ∀ {a b} {A : Set a} {B : Set b} →
-  (A → Partial A B B) → (A → Partial A B B) → (A → Partial A B B)
+  ∀ {a b} {A : Set a} {B : A → Set b} →
+  ((x : A) → Partial A B (B x)) →
+  ((x : A) → Partial A B (B x)) →
+  ((x : A) → Partial A B (B x))
 Partial.function     ((f ∘P g) x) = λ h →
                                       Partial.function (f x) λ y →
                                       Partial.function (g y) h
@@ -650,8 +656,9 @@ Partial.ω-continuous ((f ∘P g) x) = λ univ recs →
 -- Taking steps that are "twice as large" does not affect the end
 -- result.
 
-fixP-∘ : ∀ {a b} {A : Set a} {B : Set b}
-         (f : A → Partial A B B) → fixP (f ∘P f) ≡ fixP f
+fixP-∘ : ∀ {a b} {A : Set a} {B : A → Set b}
+         (f : (x : A) → Partial A B (B x)) →
+         fixP (f ∘P f) ≡ fixP f
 fixP-∘ f =
   fix→ (transformer (f ∘P f))            ≡⟨⟩
   fix→ (transformer f ∘T transformer f)  ≡⟨ fix→-∘ (transformer f) ⟩∎
@@ -662,13 +669,13 @@ fixP-∘ f =
 module _
   {a b p} n
   (As : Fin n → Set a)
-  (Bs : Fin n → Set b)
-  (P : (∀ i → As i → Bs i ⊥) → Set p)
+  (Bs : (i : Fin n) → As i → Set b)
+  (P : (∀ i (x : As i) → Bs i x ⊥) → Set p)
   (P⊥ : P (λ _ _ → never))
-  (P⨆ : (ss : ∀ i → As i → Increasing-sequence (Bs i)) →
+  (P⨆ : (ss : ∀ i (x : As i) → Increasing-sequence (Bs i x)) →
         (∀ n → P (λ i xs → ss i xs [ n ])) →
         P (λ i xs → ⨆ (ss i xs)))
-  (fs : ∀ i → As i → Partial (As i) (Bs i) (Bs i)) where
+  (fs : ∀ i (x : As i) → Partial (As i) (Bs i) (Bs i x)) where
 
   -- Generalised.
 
@@ -682,7 +689,7 @@ module _
   -- Basic.
 
   fixP-induction :
-    ((gs : ∀ i → As i → Bs i ⊥) →
+    ((gs : ∀ i (x : As i) → Bs i x ⊥) →
      P gs → P (λ i xs → Partial.function (fs i xs) (gs i))) →
     P (λ i → fixP (fs i))
   fixP-induction =
@@ -691,13 +698,13 @@ module _
 -- Unary Scott induction.
 
 fixP-induction₁ :
-  ∀ {a b p} {A : Set a} {B : Set b}
-  (P : (A → B ⊥) → Set p) →
-  P (const never) →
-  ((s : A → Increasing-sequence B) →
+  ∀ {a b p} {A : Set a} {B : A → Set b}
+  (P : ((x : A) → B x ⊥) → Set p) →
+  P (λ _ → never) →
+  ((s : (x : A) → Increasing-sequence (B x)) →
    (∀ n → P (λ x → s x [ n ])) →
    P (λ x → ⨆ (s x))) →
-  (f : A → Partial A B B) →
+  (f : (x : A) → Partial A B (B x)) →
   (∀ g → P g → P (λ x → Partial.function (f x) g)) →
   P (fixP f)
 fixP-induction₁ P P⊥ P⨆ f =
@@ -706,7 +713,7 @@ fixP-induction₁ P P⊥ P⨆ f =
 -- Equality characterisation lemma for Partial.
 
 equality-characterisation-Partial :
-  ∀ {a b c} {A : Set a} {B : Set b} {C : Set c}
+  ∀ {a b c} {A : Set a} {B : A → Set b} {C : Set c}
     {f g : Partial A B C} →
   (∀ rec → Partial.function f rec ≡ Partial.function g rec) ↔
   f ≡ g
@@ -748,7 +755,7 @@ equality-characterisation-Partial {f = f} {g} =
 -- recursive ones.
 
 non-recursive :
-  ∀ {a b c} {A : Set a} {B : Set b} {C : Set c} →
+  ∀ {a b c} {A : Set a} {B : A → Set b} {C : Set c} →
   C ⊥ → Partial A B C
 non-recursive x = record
   { function     = const x
@@ -762,7 +769,7 @@ instance
 
   -- Partial A B is a monad.
 
-  partial-monad : ∀ {a b c} {A : Set a} {B : Set b} →
+  partial-monad : ∀ {a b c} {A : Set a} {B : A → Set b} →
                   Monad (Partial {c = c} A B)
   Raw-monad.return (Monad.raw-monad partial-monad) x =
     non-recursive (return x)

@@ -78,7 +78,7 @@ module Interpreter₂ where
   -- This interpreter is defined using a fixpoint combinator.
 
   M : Set → Set₁
-  M = Partial (∃ λ n → Tm n × Env n) Value
+  M = Partial (∃ λ n → Tm n × Env n) (λ _ → Value)
 
   infix 10 _∙_
 
@@ -95,7 +95,7 @@ module Interpreter₂ where
   evalP : (∃ λ n → Tm n × Env n) → M Value
   evalP (_ , t , ρ) = ⟦ t ⟧′ ρ
 
-  eval : Trans-⊑ (∃ λ n → Tm n × Env n) Value
+  eval : Trans-⊑ (∃ λ n → Tm n × Env n) (λ _ → Value)
   eval = transformer evalP
 
   ⟦_⟧ : ∀ {n} → Tm n → Env n → Value ⊥

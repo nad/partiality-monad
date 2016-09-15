@@ -22,7 +22,7 @@ open Closure Code
 
 -- A functional semantics for the VM.
 
-execP : State → Partial State (Maybe Value) (Maybe Value)
+execP : State → Partial State (λ _ → Maybe Value) (Maybe Value)
 execP s with step s
 ... | continue s′ = rec s′
 ... | done v      = return (just v)

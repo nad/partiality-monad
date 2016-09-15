@@ -118,7 +118,7 @@ module Interpreter₂ where
   -- This interpreter is defined using a fixpoint combinator.
 
   M′ : Set → Set₁
-  M′ = MaybeT (Partial (∃ λ n → Tm n × Env n) (Maybe Value))
+  M′ = MaybeT (Partial (∃ λ n → Tm n × Env n) (λ _ → Maybe Value))
 
   infix 10 _∙_
 
@@ -162,7 +162,7 @@ interpreters-equal = λ t ρ →
   open Partial
   open Trans-⊑
 
-  step₂ : Trans-⊑ (∃ λ n → Tm n × Env n) (Maybe Value)
+  step₂ : Trans-⊑ (∃ λ n → Tm n × Env n) (λ _ → Maybe Value)
   step₂ = transformer λ { (_ , t , ρ) → run (Interpreter₂.⟦ t ⟧′ ρ) }
 
   mutual
