@@ -13,7 +13,7 @@ open import Prelude hiding (⊥)
 
 open import Monad equality-with-J
 
-open import Partiality-monad.Inductive hiding (_[_])
+open import Partiality-monad.Inductive
 open import Partiality-monad.Inductive.Fixpoints hiding (comp)
 open import Partiality-monad.Inductive.Monad
 open import Partiality-monad.Inductive.Properties
@@ -110,7 +110,7 @@ mutual
           , ret c (comp-env ρ) ∷ s
           , snoc (comp-env ρ₁) (comp-val v₂)
           ⟩                                                     ≳⟨ (λ n → cong (λ ρ′ → execⁿ ⟨ comp t₁ (ret ∷ []) , ret c (comp-env ρ) ∷ s , ρ′ ⟩ n)
-                                                                               (ext [ (λ _ → refl) , (λ _ → refl) ])) ⟩≡∀
+                                                                               (sym comp-snoc)) ⟩≡∀
     execⁿ ⟨ comp t₁ (ret ∷ [])
           , ret c (comp-env ρ) ∷ s
           , comp-env (snoc ρ₁ v₂)
@@ -138,7 +138,7 @@ correct :
   exec ⟨ comp t [] , [] , empty ⟩ ≡
   (⟦ t ⟧ empty >>= λ v → return (just (comp-val v)))
 correct t =
-  exec ⟨ comp t [] , [] , empty ⟩                            ≡⟨ cong (λ ρ → exec ⟨ comp t [] , [] , ρ ⟩) (ext λ ()) ⟩
+  exec ⟨ comp t [] , [] , empty ⟩                            ≡⟨ cong (λ ρ → exec ⟨ comp t [] , [] , ρ ⟩) $ sym comp-empty ⟩
 
   exec ⟨ comp t [] , [] , comp-env empty ⟩                   ≡⟨⟩
 

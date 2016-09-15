@@ -6,9 +6,11 @@
 
 module Lambda.Compiler where
 
+open import Equality.Propositional
+open import Interval using (ext)
 open import Prelude
 
-open import Lambda.Syntax
+open import Lambda.Syntax hiding ([_])
 open import Lambda.Virtual-machine
 
 private
@@ -33,3 +35,14 @@ mutual
   comp-val : T.Value → C.Value
   comp-val (T.con i) = C.con i
   comp-val (T.ƛ t ρ) = C.ƛ (comp t (ret ∷ [])) (comp-env ρ)
+
+-- Compilation takes empty environments to empty environments.
+
+comp-empty : comp-env empty ≡ empty
+comp-empty = ext (λ ())
+
+-- Compilation commutes with snoc.
+
+comp-snoc : ∀ {n} {ρ : T.Env n} {v} →
+            comp-env (snoc ρ v) ≡ snoc (comp-env ρ) (comp-val v)
+comp-snoc = ext [ (λ _ → refl) , (λ _ → refl) ]

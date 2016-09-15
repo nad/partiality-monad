@@ -109,8 +109,8 @@ mutual
     steps ⟨ comp t₁ (ret ∷ [])
           , ret c (comp-env ρ) ∷ s
           , snoc (comp-env ρ₁) (comp-val v₂)
-          ⟩                                               ≳⟨ (λ n → cong (λ ρ′ → steps ⟨ comp t₁ (ret ∷ []) , ret c (comp-env ρ) ∷ s , ρ′ ⟩ n)
-                                                                         (ext (maybe (λ _ → refl) refl))) ⟩≡∀
+          ⟩                                               ≳⟨ (λ n → cong (λ ρ′ → steps ⟨ comp t₁ (ret ∷ []) , ret c (comp-env ρ) ∷ s , ρ′ ⟩ n) $
+                                                                         sym comp-snoc) ⟩≡∀
     steps ⟨ comp t₁ (ret ∷ [])
           , ret c (comp-env ρ) ∷ s
           , comp-env (snoc ρ₁ v₂)
@@ -138,7 +138,7 @@ correct :
   wrap (exec ⟨ comp t [] , [] , empty ⟩) ≡
   (⟦ t ⟧ empty >>= λ v → return (comp-val v))
 correct t =
-  wrap (exec ⟨ comp t [] , [] , empty ⟩)                  ≡⟨ cong (λ ρ → wrap (exec ⟨ comp t [] , [] , ρ ⟩)) (ext λ ()) ⟩
+  wrap (exec ⟨ comp t [] , [] , empty ⟩)                  ≡⟨ cong (λ ρ → wrap (exec ⟨ comp t [] , [] , ρ ⟩)) $ sym comp-empty ⟩
 
   wrap (exec ⟨ comp t [] , [] , comp-env empty ⟩)         ≡⟨⟩
 

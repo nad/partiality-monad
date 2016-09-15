@@ -7,7 +7,6 @@
 module Lambda.Simplified.Delay-monad.Compiler-correctness where
 
 open import Equality.Propositional
-open import Interval using (ext)
 open import Prelude
 
 open import Monad equality-with-J
@@ -84,8 +83,8 @@ mutual
            , ret c (comp-env ρ) ∷ s
            , snoc (comp-env ρ₁) (comp-val v₂)
            ⟩                                                        ≡⟨ cong (λ ρ′ →
-                                                                               exec ⟨ comp t₁ (ret ∷ []) , ret c (comp-env ρ) ∷ s , ρ′ ⟩)
-                                                                            (ext [ (λ _ → refl) , (λ _ → refl) ]) ⟩∞≈
+                                                                               exec ⟨ comp t₁ (ret ∷ []) , ret c (comp-env ρ) ∷ s , ρ′ ⟩) $
+                                                                            sym comp-snoc ⟩∞≈
       exec ⟨ comp t₁ (ret ∷ [])
            , ret c (comp-env ρ) ∷ s
            , comp-env (snoc ρ₁ v₂)
@@ -122,6 +121,6 @@ correct :
   exec ⟨ comp t [] , [] , empty ⟩ ≈
   ⟦ t ⟧ empty >>= λ v → return (just (comp-val v))
 correct t =
-  exec ⟨ comp t [] , [] , empty ⟩                     ≡⟨ cong (λ ρ → exec ⟨ comp t [] , [] , ρ ⟩) (ext λ()) ⟩≈
+  exec ⟨ comp t [] , [] , empty ⟩                     ≡⟨ cong (λ ρ → exec ⟨ comp t [] , [] , ρ ⟩) $ sym comp-empty ⟩≈
   exec ⟨ comp t [] , [] , comp-env empty ⟩            ≈⟨ ⟦⟧-correct t (λ v → return (just (comp-val v)) ∎≈) ⟩∎
   (⟦ t ⟧ empty >>= λ v → return (just (comp-val v)))  ∎
