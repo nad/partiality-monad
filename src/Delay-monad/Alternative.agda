@@ -112,6 +112,32 @@ module _ {a} {A : Set a} where
          ; (just x) → inj₂ (refl , ⊎.inj₁≢inj₂ ∘ sym)
          })
 
+  -- If A is a set, then LE is a family of propositions.
+
+  LE-propositional :
+    Is-set A → {x y : Maybe A} → Is-proposition (LE x y)
+  LE-propositional A-set = _⇔_.from propositional⇔irrelevant (irr _ _)
+    where
+    irr : ∀ x y → Proof-irrelevant (LE x y)
+    irr nothing _ = _⇔_.to propositional⇔irrelevant $
+                      mono₁ 0 LE-nothing-contractible
+
+    irr (just x) (just y) (inj₁ p) (inj₁ q) = cong inj₁ $
+      _⇔_.to set⇔UIP (Maybe-closure 0 A-set) p q
+
+    irr (just _) (just _) (inj₂ (() , _))
+    irr (just _) (just _) _ (inj₂ (() , _))
+    irr (just _) nothing  (inj₁ ())
+    irr (just _) nothing  (inj₂ (() , _))
+
+  -- If A is a set, then Increasing is a family of propositions.
+
+  Increasing-propositional :
+    Is-set A → {f : ℕ → Maybe A} → Is-proposition (Increasing f)
+  Increasing-propositional A-set =
+    Π-closure ext 1 λ _ →
+    LE-propositional A-set
+
 ------------------------------------------------------------------------
 -- Various properties relating _↓_, _↑ and the usual ordering of the
 -- natural numbers
