@@ -23,6 +23,7 @@ open import H-level equality-with-J as H-level
 open import H-level.Closure equality-with-J
 open import Injection equality-with-J using (Injective)
 import Nat equality-with-J as N
+open import Surjection equality-with-J using (_↠_)
 
 open import Delay-monad as D hiding (Delay)
 import Delay-monad.Partial-order as PO
@@ -293,26 +294,36 @@ module _ {a} {A : Set a} where
        just x   ∎)
 
 ------------------------------------------------------------------------
--- Theorems relating the two definitions of the delay monad
-
--- The two definitions are logically equivalent.
+-- Theorems relating the two definitions of the delay monad to each
+-- other and to another definition
 
 private
 
+  -- Building blocks used in the theorems below.
+
   module LE {a} {A : Set a} where
+
+    -- The function to₁ is basically π from Section 7.1 of
+    -- "Quotienting the Delay Monad by Weak Bisimilarity" by Chapman,
+    -- Uustalu and Veltri, but the function proj₁ ∘ from is different
+    -- from their function ε, which is defined so that (with the
+    -- terminology used here) ε (now x) (suc n) = nothing.
 
     mutual
 
-      to : Delay A → D.Delay A ∞
-      to (f , increasing) = to′ (f 0)
+      to₁ : (ℕ → Maybe A) → D.Delay A ∞
+      to₁ f = to′ (f 0)
         module To where
         to′ : Maybe A → D.Delay A ∞
         to′ (just x) = now x
         to′ nothing  =
-          later (∞to (f ∘ suc , increasing ∘ suc))
+          later (∞to₁ (f ∘ suc))
 
-      ∞to : Delay A → D.∞Delay A ∞
-      force (∞to x) = to x
+      ∞to₁ : (ℕ → Maybe A) → D.∞Delay A ∞
+      force (∞to₁ x) = to₁ x
+
+    to : Delay A → D.Delay A ∞
+    to = to₁ ∘ proj₁
 
     from : D.Delay A ∞ → Delay A
     from = λ x → f x , f-increasing x
@@ -329,64 +340,53 @@ private
 
 module _ {a} {A : Set a} where
 
+  -- The two definitions are logically equivalent.
+
   Delay⇔Delay : Delay A ⇔ D.Delay A ∞
   Delay⇔Delay = record { to = LE.to; from = LE.from }
 
-  -- The two definitions are isomorphic (assuming extensionality).
+  -- There is a split surjection from D.Delay A ∞ to Delay A.
 
-  Delay↔Delay : Strong-bisimilarity.Extensionality a →
-                Delay A ↔ D.Delay A ∞
-  Delay↔Delay delay-ext = record
-    { surjection = record
-      { logical-equivalence = Delay⇔Delay
-      ; right-inverse-of    = delay-ext ∘ to∘from
-      }
-    ; left-inverse-of = from∘to
+  Delay↠Delay : D.Delay A ∞ ↠ Delay A
+  Delay↠Delay = record
+    { logical-equivalence = inverse Delay⇔Delay
+    ; right-inverse-of    = from∘to
     }
     where
     open LE
 
-    -- The function from is a right inverse of to.
-
-    mutual
-
-      to∘from : ∀ x → to (from x) ∼ x
-      to∘from (now x)   = now-cong
-      to∘from (later x) = later-cong (∞to∘from (force x))
-
-      ∞to∘from : ∀ x → to (from x) ∞∼ x
-      force (∞to∘from x) = to∘from x
-
-    -- The proof showing that from is a left inverse of to is more
-    -- complicated.
-
     from∘to : ∀ x → from (to x) ≡ x
-    from∘to (g , g-inc) = Σ-≡,≡→≡
-      (ext (proj₁∘from∘to g g-inc _ refl))
+    from∘to x = Σ-≡,≡→≡
+      (ext (proj₁∘from∘to x))
       (ext λ n →
 
          subst Increasing
-               (ext (proj₁∘from∘to g g-inc _ refl))
-               (proj₂ (from (to (g , g-inc))))
-               n                                        ≡⟨ sym $ push-subst-application (ext (proj₁∘from∘to g g-inc _ refl)) Increasing-at ⟩
+               (ext (proj₁∘from∘to x))
+               (proj₂ (from (to x)))
+               n                        ≡⟨ sym $ push-subst-application (ext (proj₁∘from∘to x)) Increasing-at ⟩
 
          subst (Increasing-at n)
-               (ext (proj₁∘from∘to g g-inc _ refl))
-               (proj₂ (from (to (g , g-inc))) n)        ≡⟨ proj₂∘from∘to g g-inc n _ refl ⟩∎
+               (ext (proj₁∘from∘to x))
+               (proj₂ (from (to x)) n)  ≡⟨ uncurry proj₂∘from∘to x n _ refl ⟩∎
 
-         g-inc n                                        ∎)
+         proj₂ x n                      ∎)
 
       where
 
-      proj₁∘from∘to :
+      proj₁∘from∘to′ :
         (g : ℕ → Maybe A) →
-        (g-increasing : Increasing g) →
+        Increasing g →
         ∀ x → g 0 ≡ x → ∀ n →
-        proj₁ (from (To.to′ g g-increasing x)) n ≡ g n
-      proj₁∘from∘to g g-inc (just x) g0↓x n       = sym $ ↓-upwards-closed₀ g-inc g0↓x n
-      proj₁∘from∘to g g-inc nothing  g0↑  zero    = sym g0↑
-      proj₁∘from∘to g g-inc nothing  g0↑  (suc n) =
-          proj₁∘from∘to (g ∘ suc) (g-inc ∘ suc) _ refl n
+        proj₁ (from (To.to′ g x)) n ≡ g n
+      proj₁∘from∘to′ g g-inc (just x) g0↓x n       = sym $ ↓-upwards-closed₀ g-inc g0↓x n
+      proj₁∘from∘to′ g g-inc nothing  g0↑  zero    = sym g0↑
+      proj₁∘from∘to′ g g-inc nothing  g0↑  (suc n) =
+          proj₁∘from∘to′ (g ∘ suc) (g-inc ∘ suc) _ refl n
+
+      proj₁∘from∘to :
+        (x : Delay A) →
+        ∀ n → proj₁ (from (to x)) n ≡ proj₁ x n
+      proj₁∘from∘to (g , g-inc) = proj₁∘from∘to′ g g-inc (g 0) refl
 
       ↓-lemma :
         (g : ℕ → Maybe A) →
@@ -493,8 +493,8 @@ module _ {a} {A : Set a} where
         ∀ n y (g0≡y : g 0 ≡ y) →
 
         subst (Increasing-at n)
-              (ext (proj₁∘from∘to g g-increasing y g0≡y))
-              (proj₂ (from (To.to′ g g-increasing y)) n)
+              (ext (proj₁∘from∘to′ g g-increasing y g0≡y))
+              (proj₂ (from (To.to′ g y)) n)
           ≡
         g-increasing n
 
@@ -511,26 +511,77 @@ module _ {a} {A : Set a} where
       proj₂∘from∘to g g-inc (suc n) nothing g0↑ =
 
         subst (Increasing-at (suc n))
-              (ext (proj₁∘from∘to g g-inc nothing g0↑))
+              (ext (proj₁∘from∘to′ g g-inc nothing g0↑))
               (proj₂ (from (to (g ∘ suc , g-inc ∘ suc))) n)              ≡⟨⟩
 
         subst (Increasing-at n ∘ (_∘ suc))
-              (ext (proj₁∘from∘to g g-inc nothing g0↑))
+              (ext (proj₁∘from∘to′ g g-inc nothing g0↑))
               (proj₂ (from (to (g ∘ suc , g-inc ∘ suc))) n)              ≡⟨ subst-∘ (Increasing-at n) (_∘ suc)
-                                                                                    (ext (proj₁∘from∘to g g-inc nothing g0↑)) ⟩
+                                                                                    (ext (proj₁∘from∘to′ g g-inc nothing g0↑)) ⟩
         subst (Increasing-at n)
-              (cong (_∘ suc) (ext (proj₁∘from∘to g g-inc nothing g0↑)))
+              (cong (_∘ suc) (ext (proj₁∘from∘to′ g g-inc nothing g0↑)))
               (proj₂ (from (to (g ∘ suc , g-inc ∘ suc))) n)              ≡⟨ cong (λ eq → subst (Increasing-at n) eq _) $
-                                                                              cong-∘-ext (proj₁∘from∘to g g-inc nothing g0↑) ⟩
+                                                                              cong-∘-ext (proj₁∘from∘to′ g g-inc nothing g0↑) ⟩
         subst (Increasing-at n)
-              (ext (proj₁∘from∘to g g-inc nothing g0↑ ∘ suc))
+              (ext (proj₁∘from∘to′ g g-inc nothing g0↑ ∘ suc))
               (proj₂ (from (to (g ∘ suc , g-inc ∘ suc))) n)              ≡⟨⟩
 
         subst (Increasing-at n)
-              (ext (proj₁∘from∘to (g ∘ suc) (g-inc ∘ suc) _ refl))
+              (ext (proj₁∘from∘to′ (g ∘ suc) (g-inc ∘ suc) _ refl))
               (proj₂ (from (to (g ∘ suc , g-inc ∘ suc))) n)              ≡⟨ proj₂∘from∘to (g ∘ suc) (g-inc ∘ suc) n _ refl ⟩∎
 
         g-inc (suc n)                                                    ∎
+
+  -- The two definitions are isomorphic (assuming extensionality).
+
+  Delay↔Delay : Strong-bisimilarity.Extensionality a →
+                Delay A ↔ D.Delay A ∞
+  Delay↔Delay delay-ext = record
+    { surjection = record
+      { logical-equivalence = Delay⇔Delay
+      ; right-inverse-of    = delay-ext ∘ to∘from
+      }
+    ; left-inverse-of = _↠_.right-inverse-of Delay↠Delay
+    }
+    where
+    open LE
+
+    mutual
+
+      to∘from : ∀ x → to (from x) ∼ x
+      to∘from (now x)   = now-cong
+      to∘from (later x) = later-cong (∞to∘from (force x))
+
+      ∞to∘from : ∀ x → to (from x) ∞∼ x
+      force (∞to∘from x) = to∘from x
+
+  -- There is a split surjection from ℕ → Maybe A (without any
+  -- requirement that the sequences are increasing) to D.Delay A ∞
+  -- (assuming extensionality).
+  --
+  -- Chapman, Uustalu and Veltri prove this result in "Quotienting the
+  -- Delay Monad by Weak Bisimilarity".
+
+  →↠Delay-coinductive : Strong-bisimilarity.Extensionality a →
+                        (ℕ → Maybe A) ↠ D.Delay A ∞
+  →↠Delay-coinductive delay-ext = record
+    { logical-equivalence = record
+      { to   = LE.to₁
+      ; from = proj₁ ∘ LE.from
+      }
+    ; right-inverse-of = _↔_.right-inverse-of (Delay↔Delay delay-ext)
+    }
+
+  -- There is also a split surjection from ℕ → Maybe A to Delay A.
+
+  →↠Delay-function : (ℕ → Maybe A) ↠ Delay A
+  →↠Delay-function = record
+    { logical-equivalence = record
+      { to   = LE.from ∘ LE.to₁
+      ; from = proj₁
+      }
+    ; right-inverse-of = _↠_.right-inverse-of Delay↠Delay
+    }
 
 ------------------------------------------------------------------------
 -- Termination predicates
@@ -641,21 +692,25 @@ module _ {a} {A : Set a} where
   -- (via Delay⇔Delay) to the one defined for the coinductive delay
   -- monad.
 
-  ⇓⇔⇓ : ∀ {x y} → x ⇓ y ⇔ _⇔_.to Delay⇔Delay x W.⇓ y
-  ⇓⇔⇓ = record
-    { to   = λ { (n , fn↓y) → to n _ refl fn↓y }
+  ⇓⇔⇓ : ∀ x {y} → x ⇓ y ⇔ _⇔_.to Delay⇔Delay x W.⇓ y
+  ⇓⇔⇓ x = record
+    { to   = λ { (n , fn↓y) → to n _ (proj₂ x) refl fn↓y }
     ; from = from _ refl
     }
     where
-    to : ∀ {f : ℕ → Maybe A} {f-inc} n x {y} →
-         x ≡ f 0 → f n ↓ y → LE.To.to′ f f-inc x W.⇓ y
-    to     (suc n) nothing     f0↑ fn↓y = W.laterʳ (to n _ refl fn↓y)
-    to {f} zero    nothing {y} f0↑ fn↓y =
+    to : ∀ {f : ℕ → Maybe A} n x {y} →
+         Increasing f →
+         x ≡ f 0 → f n ↓ y → LE.To.to′ f x W.⇓ y
+    to (suc n) nothing f-inc f0↑ fn↓y =
+      W.laterʳ (to n _ (f-inc ∘ suc) refl fn↓y)
+
+    to {f} zero nothing {y} _ f0↑ fn↓y =
       ⊥-elim $ ⊎.inj₁≢inj₂ (
         nothing  ≡⟨ f0↑ ⟩
         f 0      ≡⟨ fn↓y ⟩∎
         just y   ∎)
-    to {f} {f-inc} n (just x) {y} f0↓x fn↓y =
+
+    to {f} n (just x) {y} f-inc f0↓x fn↓y =
       subst (_ W.⇓_)
             (⊎.cancel-inj₂ {A = ⊤}
                (just x  ≡⟨ sym $ ↓-upwards-closed₀ f-inc (sym f0↓x) n ⟩
@@ -663,8 +718,8 @@ module _ {a} {A : Set a} where
                 just y  ∎))
             W.now-cong
 
-    from : ∀ {f : ℕ → Maybe A} {f-inc y} x →
-           x ≡ f 0 → LE.To.to′ f f-inc x W.⇓ y → ∃ λ n → f n ↓ y
+    from : ∀ {f : ℕ → Maybe A} {y} x →
+           x ≡ f 0 → LE.To.to′ f x W.⇓ y → ∃ λ n → f n ↓ y
     from (just x) f0↓x W.now-cong      = 0 , sym f0↓x
     from nothing  _    (W.laterʳ to⇓y) =
       Σ-map suc id (from _ refl to⇓y)
@@ -784,11 +839,11 @@ module _ {a} {A : Set a} where
   -- Delay⇔Delay) to the ordering relation defined in
   -- Delay-monad.Partial-order.
 
-  ⊑⇔⊑ : ∀ {x y} →
+  ⊑⇔⊑ : ∀ x y →
         x ⊑ y ⇔ _⇔_.to Delay⇔Delay x PO.⊑ _⇔_.to Delay⇔Delay y
-  ⊑⇔⊑ {x} {y} =
+  ⊑⇔⊑ x y =
     x ⊑ y                                                              ↝⟨ F.id ⟩
-    (∀ z → x ⇓ z → y ⇓ z)                                              ↝⟨ ∀-cong-⇔ (λ _ → →-cong-⇔ ⇓⇔⇓ ⇓⇔⇓) ⟩
+    (∀ z → x ⇓ z → y ⇓ z)                                              ↝⟨ ∀-cong-⇔ (λ _ → →-cong-⇔ (⇓⇔⇓ x) (⇓⇔⇓ y)) ⟩
     (∀ z → _⇔_.to Delay⇔Delay x  W.⇓ z → _⇔_.to Delay⇔Delay y  W.⇓ z)  ↝⟨ inverse $ ∀-cong-⇔ (λ _ → →-cong-⇔ (_↔_.logical-equivalence PO.⇓↔⇓)
                                                                                                              (_↔_.logical-equivalence PO.⇓↔⇓)) ⟩
     (∀ z → _⇔_.to Delay⇔Delay x PO.⇓ z → _⇔_.to Delay⇔Delay y PO.⇓ z)  ↝⟨ inverse PO.⊑⇔⇓→⇓ ⟩□
@@ -836,10 +891,10 @@ module _ {a} {A : Set a} where
 
   ≈⇔≈ :
     Is-set A →
-    ∀ {x y} → x ≈ y ⇔ _⇔_.to Delay⇔Delay x W.≈ _⇔_.to Delay⇔Delay y
-  ≈⇔≈ A-set {x} {y} =
+    ∀ x y → x ≈ y ⇔ _⇔_.to Delay⇔Delay x W.≈ _⇔_.to Delay⇔Delay y
+  ≈⇔≈ A-set x y =
     x ∥⊑∥ y × y ∥⊑∥ x                ↝⟨ inverse (⊑⇔∥⊑∥ A-set x y ×-cong ⊑⇔∥⊑∥ A-set y x) ⟩
-    x ⊑ y × y ⊑ x                    ↝⟨ ⊑⇔⊑ ×-cong ⊑⇔⊑ ⟩
+    x ⊑ y × y ⊑ x                    ↝⟨ ⊑⇔⊑ x y ×-cong ⊑⇔⊑ y x ⟩
     to x PO.⊑ to y × to y PO.⊑ to x  ↝⟨ inverse PO.≈⇔⊑×⊒ ⟩□
     to x W.≈ to y                    □
     where

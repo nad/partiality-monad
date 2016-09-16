@@ -48,5 +48,5 @@ A ⊥ = A.Delay A / λ x y → (x A.≈ y) , A.≈-propositional x y
           x A.≈ y ⇔ ∥ _↔_.to D↔D x W.≈ _↔_.to D↔D y ∥
   lemma x y =
     x A.≈ y                            ↔⟨ inverse $ ∥∥↔ (A.≈-propositional x y) ⟩
-    ∥ x A.≈ y ∥                        ↝⟨ ∥∥-cong-⇔ (A.≈⇔≈ A-set) ⟩□
+    ∥ x A.≈ y ∥                        ↝⟨ ∥∥-cong-⇔ (A.≈⇔≈ A-set x y) ⟩□
     ∥ _↔_.to D↔D x W.≈ _↔_.to D↔D y ∥  □
