@@ -13,13 +13,15 @@ open import Logical-equivalence using (_⇔_)
 open import Prelude hiding (↑; module W)
 
 open import Bijection equality-with-J as Bijection using (_↔_)
+open import Embedding equality-with-J as Embedding using (Embedding)
 open import Equality.Decision-procedures equality-with-J
 import Equality.Groupoid equality-with-J as EG
-import Equivalence equality-with-J as Eq
+open import Equivalence equality-with-J as Eq using (_≃_)
 open import Function-universe equality-with-J as F hiding (id; _∘_)
 open import Groupoid equality-with-J
 open import H-level equality-with-J as H-level
 open import H-level.Closure equality-with-J
+open import Injection equality-with-J using (Injective)
 import Nat equality-with-J as N
 
 open import Delay-monad as D hiding (Delay)
@@ -137,6 +139,77 @@ module _ {a} {A : Set a} where
   Increasing-propositional A-set =
     Π-closure ext 1 λ _ →
     LE-propositional A-set
+
+------------------------------------------------------------------------
+-- An unused lemma
+
+private
+
+  -- If the embedding g maps nothing to nothing and just to just, then
+  -- there is an isomorphism between Increasing f and
+  -- Increasing (g ∘ f).
+
+  Increasing-∘ :
+    ∀ {a b} {A : Set a} {B : Set b} {f : ℕ → Maybe A} →
+    (g : Embedding (Maybe A) (Maybe B)) →
+    Embedding.to g nothing ≡ nothing →
+    (∀ {x} → Embedding.to g (just x) ≢ nothing) →
+    Increasing f ↔ Increasing (Embedding.to g ∘ f)
+  Increasing-∘ {A = A} {B} {f} g g↑ g↓ = record
+    { surjection = record
+      { logical-equivalence = record
+        { to   = to   ∘_
+        ; from = from ∘_
+        }
+      ; right-inverse-of = ext ∘ (to∘from ∘_)
+      }
+    ; left-inverse-of = ext ∘ (from∘to ∘_)
+    }
+    where
+    g′ : Maybe A → Maybe B
+    g′ = Embedding.to g
+
+    g-injective : Injective g′
+    g-injective = Embedding.injective (Embedding.is-embedding g)
+
+    lemma₁ : ∀ {x} → x ↑ → g′ x ↑
+    lemma₁ refl = g↑
+
+    lemma₂ : ∀ x → ¬ x ↑ → ¬ g′ x ↑
+    lemma₂ nothing  x↓ _ = x↓ refl
+    lemma₂ (just _) _    = g↓
+
+    lemma₃ : ∀ x → g′ x ↑ → x ↑
+    lemma₃ nothing  _   = refl
+    lemma₃ (just _) g↓↑ = ⊥-elim (lemma₂ _ (λ ()) g↓↑)
+
+    lemma₄ : ∀ x → g′ x ≢ nothing → x ≢ nothing
+    lemma₄ nothing  g↑↓ _  = g↑↓ g↑
+    lemma₄ (just _) _   ()
+
+    to : ∀ {n} → Increasing-at n f → Increasing-at n (g′ ∘ f)
+    to = ⊎-map (cong g′) (Σ-map lemma₁ (lemma₂ _))
+
+    from : ∀ {n} → Increasing-at n (g′ ∘ f) → Increasing-at n f
+    from = ⊎-map g-injective (Σ-map (lemma₃ _) (lemma₄ _))
+
+    to∘from : ∀ {n} (x : Increasing-at n (g′ ∘ f)) → to (from x) ≡ x
+    to∘from (inj₁ p) = cong inj₁ (
+      cong g′ (g-injective p)  ≡⟨ _≃_.right-inverse-of (Embedding.equivalence g) _ ⟩∎
+      p                        ∎)
+    to∘from (inj₂ _) = cong inj₂ $
+      _⇔_.to propositional⇔irrelevant
+        (×-closure 1 (↑-propositional _) (¬-propositional ext))
+        _ _
+
+    from∘to : ∀ {n} (x : Increasing-at n f) → from (to x) ≡ x
+    from∘to (inj₁ p) = cong inj₁ (
+      g-injective (cong g′ p)  ≡⟨ _≃_.left-inverse-of (Embedding.equivalence g) _ ⟩∎
+      p                        ∎)
+    from∘to (inj₂ _) = cong inj₂ $
+       _⇔_.to propositional⇔irrelevant
+         (×-closure 1 (↑-propositional _) (¬-propositional ext))
+         _ _
 
 ------------------------------------------------------------------------
 -- Various properties relating _↓_, _↑ and the usual ordering of the
