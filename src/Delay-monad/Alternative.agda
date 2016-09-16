@@ -23,6 +23,7 @@ open import H-level equality-with-J as H-level
 open import H-level.Closure equality-with-J
 open import Injection equality-with-J using (Injective)
 import Nat equality-with-J as N
+open import Quotient equality-with-J using (Is-equivalence-relation)
 open import Surjection equality-with-J using (_↠_)
 
 open import Delay-monad as D hiding (Delay)
@@ -867,6 +868,16 @@ module _ {a} {A : Set a} where
     Π-closure ext 1 λ _ →
     truncation-is-proposition
 
+  -- The ordering relation _∥⊑∥_ is reflexive.
+
+  ∥⊑∥-reflexive : ∀ x → x ∥⊑∥ x
+  ∥⊑∥-reflexive _ = λ _ → id
+
+  -- The ordering relation _∥⊑∥_ is transitive.
+
+  ∥⊑∥-transitive : ∀ x y z → x ∥⊑∥ y → y ∥⊑∥ z → x ∥⊑∥ z
+  ∥⊑∥-transitive _ _ _ p q = λ z → q z ∘ p z
+
 ------------------------------------------------------------------------
 -- Weak bisimilarity
 
@@ -884,6 +895,16 @@ module _ {a} {A : Set a} where
   ≈-propositional : ∀ x y → Is-proposition (x ≈ y)
   ≈-propositional x y =
     ×-closure 1 (∥⊑∥-propositional x y) (∥⊑∥-propositional y x)
+
+  -- Weak bisimilarity is an equivalence relation.
+
+  ≈-is-equivalence-relation : Is-equivalence-relation _≈_
+  ≈-is-equivalence-relation = record
+    { reflexive  = λ {x} → ∥⊑∥-reflexive x , ∥⊑∥-reflexive x
+    ; symmetric  = λ { (p , q) → q , p }
+    ; transitive = λ {x y z} → Σ-zip (∥⊑∥-transitive x y z)
+                                     (flip (∥⊑∥-transitive z y x))
+    }
 
   -- The notion of weak bisimilarity defined here is logically
   -- equivalent (via Delay⇔Delay) to the one defined for the
