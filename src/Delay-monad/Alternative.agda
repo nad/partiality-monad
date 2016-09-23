@@ -365,17 +365,17 @@ private
     to = to₁ ∘ proj₁
 
     from : D.Delay A ∞ → Delay A
-    from = λ x → f x , f-increasing x
+    from = λ x → from₁ x , from₂ x
       where
-      f : D.Delay A ∞ → ℕ → Maybe A
-      f (now x)   _       = just x
-      f (later x) zero    = nothing
-      f (later x) (suc n) = f (force x) n
+      from₁ : D.Delay A ∞ → ℕ → Maybe A
+      from₁ (now x)   _       = just x
+      from₁ (later x) zero    = nothing
+      from₁ (later x) (suc n) = from₁ (force x) n
 
-      f-increasing : ∀ x → Increasing (f x)
-      f-increasing (now x)   _       = inj₁ refl
-      f-increasing (later x) zero    = proj₁ LE-nothing-contractible
-      f-increasing (later x) (suc n) = f-increasing (force x) n
+      from₂ : ∀ x → Increasing (from₁ x)
+      from₂ (now x)   _       = inj₁ refl
+      from₂ (later x) zero    = proj₁ LE-nothing-contractible
+      from₂ (later x) (suc n) = from₂ (force x) n
 
 module _ {a} {A : Set a} where
 
