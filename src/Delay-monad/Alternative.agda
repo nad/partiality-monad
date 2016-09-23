@@ -150,6 +150,36 @@ module _ {a} {A : Set a} where
   equality-characterisation A-set =
     ignore-propositional-component (Increasing-propositional A-set)
 
+  -- If A has h-level 2 + n, then LE {A = A} x y has h-level 2 + n.
+
+  LE-closure :
+    ∀ {x y} n → H-level (2 + n) A → H-level (2 + n) (LE x y)
+  LE-closure n h =
+    ⊎-closure n
+      (mono₁ (1 + n) (Maybe-closure n h _ _))
+      (mono (N.suc≤suc (N.zero≤ (1 + n)))
+         (×-closure 1 (↑-propositional _)
+                      (¬-propositional ext)))
+
+  -- If A has h-level 2 + n, then Increasing {A = A} f has h-level
+  -- 2 + n.
+
+  Increasing-closure :
+    ∀ {f} n → H-level (2 + n) A → H-level (2 + n) (Increasing f)
+  Increasing-closure n h =
+    Π-closure ext (2 + n) λ _ →
+    LE-closure n h
+
+  -- If A has h-level 2 + n, then Delay A has h-level 2 + n.
+
+  Delay-closure :
+    ∀ n → H-level (2 + n) A → H-level (2 + n) (Delay A)
+  Delay-closure n h =
+    Σ-closure (2 + n)
+      (Π-closure ext (2 + n) λ _ →
+       Maybe-closure n h)
+      (λ _ → Increasing-closure n h)
+
 ------------------------------------------------------------------------
 -- An unused lemma
 
