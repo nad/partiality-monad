@@ -142,6 +142,14 @@ module _ {a} {A : Set a} where
     Π-closure ext 1 λ _ →
     LE-propositional A-set
 
+  -- An equality characterisation lemma which applies when A is a set.
+
+  equality-characterisation :
+    Is-set A →
+    {x y : Delay A} → proj₁ x ≡ proj₁ y ↔ x ≡ y
+  equality-characterisation A-set =
+    ignore-propositional-component (Increasing-propositional A-set)
+
 ------------------------------------------------------------------------
 -- An unused lemma
 
