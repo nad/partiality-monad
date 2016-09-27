@@ -56,6 +56,10 @@ import Partiality-monad.Inductive.Strict-omega-continuous
 
 import Partiality-monad.Inductive.Fixpoints
 
+-- Partiality algebras.
+
+import Partiality-monad.Inductive.Partiality-algebra
+
 ------------------------------------------------------------------------
 -- The delay monad
 
