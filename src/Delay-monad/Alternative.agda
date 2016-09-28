@@ -70,6 +70,44 @@ Delay : ∀ {a} → Set a → Set a
 Delay A = ∃ λ (f : ℕ → Maybe A) → Increasing f
 
 ------------------------------------------------------------------------
+-- A map function
+
+private
+
+  module _ {a b} {A : Set a} {B : Set b} where
+
+    -- A map function for Maybe.
+
+    mapᴹ : (A → B) → Maybe A → Maybe B
+    mapᴹ = ⊎-map id
+
+    -- If mapᴹ f x does not have a value, then x does not have a
+    -- value.
+
+    mapᴹ-↑ : ∀ {f : A → B} x → mapᴹ f x ↑ → x ↑
+    mapᴹ-↑ nothing  _  = refl
+    mapᴹ-↑ (just _) ()
+
+    -- The function mapᴹ f preserves LE.
+
+    mapᴹ-LE : ∀ {f : A → B} {x y} →
+              LE x y → LE (mapᴹ f x) (mapᴹ f y)
+    mapᴹ-LE =
+      ⊎-map (cong (mapᴹ _)) (Σ-map (cong (mapᴹ _)) (_∘ mapᴹ-↑ _))
+
+    -- The function mapᴹ f ∘_ preserves Increasing.
+
+    mapᴹ-Increasing : ∀ {f : A → B} {g} →
+                      Increasing g → Increasing (mapᴹ f ∘ g)
+    mapᴹ-Increasing = mapᴹ-LE ∘_
+
+-- A map function for Delay.
+
+map : ∀ {a b} {A : Set a} {B : Set b} →
+      (A → B) → Delay A → Delay B
+map f = Σ-map (mapᴹ f ∘_) mapᴹ-Increasing
+
+------------------------------------------------------------------------
 -- Lemmas related to h-levels
 
 module _ {a} {A : Set a} where
