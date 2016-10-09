@@ -196,6 +196,14 @@ x ≼ y = ∀ z → x ⇓ z → y ⇓ z
   Π-closure ext 1 λ _ →
   ⊥-is-set _ _
 
+-- _≼_ is transitive.
+
+≼-trans : ∀ {x y z} → x ≼ y → y ≼ z → x ≼ z
+≼-trans {x} {y} {z} x≼y y≼z u =
+  x ⇓ u  ↝⟨ x≼y u ⟩
+  y ⇓ u  ↝⟨ y≼z u ⟩□
+  z ⇓ u  □
+
 -- Box and diamond.
 
 □ : ∀ {ℓ} → (A → Set ℓ) → A ⊥ → Set (a ⊔ ℓ)
