@@ -176,18 +176,10 @@ private
 ⊑≃≲ : ∀ {x y} → (x ⊑ y) ≃ (x ≲ y)
 ⊑≃≲ {x} {y} =
   _↔_.to (Eq.⇔↔≃ ext ⊑-propositional (≲-propositional x y))
-    (record { to   = ⊑-rec-⊑ to-args
+    (record { to   = λ x⊑y → ⊑≲-trans _ x⊑y (≲-refl y)
             ; from = ⊥-rec-⊥ from-args _ _
             })
   where
-  to-args : Rec-args-⊑ (λ {x y} _ → x ≲ y)
-  to-args = record
-    { qr = λ x → ≲-refl x
-    ; qu = λ s ub _ _ ⨆s≲ub n → ⨆s≲ub n
-    ; ql = λ s ub _ _ s[_]≲ub n → s[ n ]≲ub
-    ; qp = λ {x y} _ → ≲-propositional x y
-    }
-
   now-lemma : ∀ x y → now x ≲ y → now x ⊑ y
   now-lemma x y = ⊥-rec-⊥
     {P = λ y → now x ≲ y → now x ⊑ y}
