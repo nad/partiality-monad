@@ -43,6 +43,7 @@ module _ {a b} {A : Set a} {B : Set b} (f : A → B ⊥) where
       ; po = f
       ; pl = λ _ → ⨆
       ; pa = λ _ _ → antisymmetry
+      ; ps = ⊥-is-set
       ; qr = λ _ → ⊑-refl
       ; qt = λ _ _ _ _ _ → ⊑-trans
       ; qe = λ _ → never⊑

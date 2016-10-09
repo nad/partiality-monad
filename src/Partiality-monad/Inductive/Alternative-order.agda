@@ -55,6 +55,7 @@ private
                                             $⟨ record { to = now-x≲y→now-x≲z; from = now-x≲z→now-x≲y } ⟩
              proj₁ now-x≲y ⇔ proj₁ now-x≲z  ↝⟨ _↔_.to (⇔↔≡′ ext univ) ⟩□
              now-x≲y ≡ now-x≲z              □
+    ; ps = ps
     ; qr = λ { _ (now-x≲y , _) →
                now-x≲y  ↝⟨ id ⟩□
                now-x≲y  □
@@ -79,6 +80,11 @@ private
     ; qp = λ _ now-x≲z → Π-closure ext 1 λ _ →
                          proj₂ now-x≲z
     }
+    where
+    abstract
+      ps : Is-set (Proposition a)
+      ps =
+        ∃-H-level-H-level-1+ ext univ 1
 
   ≲-args : Rec-args-nd A (A ⊥ → Proposition a)
                        (λ P Q → ∀ z → proj₁ (Q z) → proj₁ (P z))
@@ -93,6 +99,7 @@ private
                                           $⟨ record { to = x≲→y≲ z; from = y≲→x≲ z } ⟩
              proj₁ (x≲ z) ⇔ proj₁ (y≲ z)  ↝⟨ _↔_.to (⇔↔≡′ ext univ) ⟩□
              x≲ z ≡ y≲ z                  □
+    ; ps = ps
     ; qr = λ _ x≲ z →
              proj₁ (x≲ z)  ↝⟨ id ⟩□
              proj₁ (x≲ z)  □
@@ -115,6 +122,12 @@ private
                      Π-closure ext 1 λ _ →
                      proj₂ (x≲ z)
     }
+    where
+    abstract
+      ps : Is-set (A ⊥ → Proposition a)
+      ps =
+        Π-closure ext 2 λ _ →
+        ∃-H-level-H-level-1+ ext univ 1
 
 infix 4 _≲_
 

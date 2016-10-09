@@ -11,6 +11,8 @@ open import Logical-equivalence using (_⇔_)
 open import Prelude hiding (⊥)
 
 open import H-level equality-with-J
+open import H-level.Closure equality-with-J
+open import Nat equality-with-J as Nat
 
 open import Partiality-monad.Inductive
 
@@ -30,6 +32,7 @@ record Rec-args-nd
     po : (x : A) → P
     pl : (s : Increasing-sequence A) (pq : Inc-nd A P Q) → P
     pa : (p₁ p₂ : P) (q₁ : Q p₁ p₂) (q₂ : Q p₂ p₁) → p₁ ≡ p₂
+    ps : Is-set P
     qr : (x : A ⊥) (p : P) → Q p p
     qt : {x y z : A ⊥} → x ⊑ y → y ⊑ z →
          (px py pz : P) → Q px py → Q py pz → Q px pz
@@ -57,6 +60,7 @@ module _ {a p q} {A : Set a} {P : Set p} {Q : P → P → Set q}
                subst (const P) (antisymmetry x⊑y x⊒y) p₁  ≡⟨ subst-const (antisymmetry x⊑y x⊒y) ⟩
                p₁                                         ≡⟨ pa p₁ p₂ q₁ q₂ ⟩∎
                p₂                                         ∎
+      ; pp = _⇔_.to set⇔UIP ps
       ; qr = qr
       ; qt = qt
       ; qe = qe
@@ -97,6 +101,7 @@ module _ {a p} {A : Set a} {P : A ⊥ → Set p}
     ; pl = λ s pq → pl s (proj₁ pq)
     ; pa = λ _ _ _ _ _ _ →
              _⇔_.to propositional⇔irrelevant (pp _) _ _
+    ; pp = _⇔_.to propositional⇔irrelevant (mono₁ 1 (pp _) _ _)
     ; qp = λ _ _ _ _ _ → refl
     })
 
@@ -130,6 +135,8 @@ module _ {a q} {A : Set a} {Q : {x y : A ⊥} → x ⊑ y → Set q}
   ⊑-rec-⊑ : ∀ {x y} (x⊑y : x ⊑ y) → Q x⊑y
   ⊑-rec-⊑ = ⊑-rec {P = λ _ → ⊤} {Q = λ _ _ → Q} (record
     { pa = λ _ _ _ _ _ _ → refl
+    ; pp = _⇔_.to propositional⇔irrelevant
+             (mono (Nat.zero≤ 2) ⊤-contractible _ _)
     ; qr = λ x _ → qr x
     ; qt = λ x⊑y y⊑z _ _ _ → qt x⊑y y⊑z
     ; qe = λ x _ → qe x

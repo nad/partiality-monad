@@ -24,6 +24,7 @@ open import Surjection equality-with-J using (_↠_)
 
 import Partiality-monad.Inductive as I
 import Partiality-monad.Inductive.Eliminators as E
+import Partiality-monad.Inductive.Properties as IP
 
 -- Partiality algebras.
 
@@ -64,6 +65,7 @@ record Partiality-algebra {a} p q (A : Set a) :
     now                : A → Type
     ⨆                  : Increasing-sequence → Type
     antisymmetry       : ∀ {x y} → x ⊑ y → y ⊑ x → x ≡ y
+    ≡-proof-irrelevant : {x y : Type} → Proof-irrelevant (x ≡ y)
     ⊑-refl             : ∀ x → x ⊑ x
     ⊑-trans            : ∀ {x y z} → x ⊑ y → y ⊑ z → x ⊑ z
     never⊑             : ∀ x → never ⊑ x
@@ -124,6 +126,7 @@ Partiality-monad A = record
   ; now                = I.now
   ; ⨆                  = I.⨆
   ; antisymmetry       = I.antisymmetry
+  ; ≡-proof-irrelevant = _⇔_.to set⇔UIP IP.⊥-is-set
   ; ⊑-refl             = I.⊑-refl
   ; ⊑-trans            = I.⊑-trans
   ; never⊑             = I.never⊑
@@ -213,6 +216,7 @@ partiality-monad-initial {A = A} P = morphism , unique
     ; po = P.now
     ; pl = λ _ → P.⨆
     ; pa = λ _ _ → P.antisymmetry
+    ; ps = P.Type-is-set
     ; qr = λ _ → P.⊑-refl
     ; qt = λ _ _ _ _ _ → P.⊑-trans
     ; qe = λ _ → P.never⊑
@@ -317,6 +321,7 @@ module Eliminator-for-initial-partiality-algebra
            (p-x : P x) (p-y : P y)
            (q-x⊑y : Q p-x p-y x⊑y) (q-x⊒y : Q p-y p-x x⊒y) →
            subst P (antisymmetry x⊑y x⊒y) p-x ≡ p-y
+      pp : ∀ {x} {p₁ p₂ : P x} → Proof-irrelevant (p₁ ≡ p₂)
       qr : ∀ x (p : P x) → Q p p (⊑-refl x)
       qt : ∀ {x y z} (x⊑y : x ⊑ y) (y⊑z : y ⊑ z) →
            (px : P x) (py : P y) (pz : P z) →
@@ -360,6 +365,11 @@ module Eliminator-for-initial-partiality-algebra
                                      (antisymmetry x⊑y y⊑x)
                                      (pa x⊑y y⊑x p q Qx⊑y Qy⊑x)
                                  }
+        ; ≡-proof-irrelevant = _⇔_.to propositional⇔irrelevant
+                                 (Σ-closure 2
+                                    Type-is-set
+                                    (λ _ → _⇔_.from set⇔UIP pp)
+                                    _ _)
         ; ⊑-refl             = λ _ → _ , qr _ _
         ; ⊑-trans            = Σ-zip ⊑-trans (qt _ _ _ _ _)
         ; never⊑             = λ _ → _ , qe _ _
@@ -502,13 +512,6 @@ module Eliminator-for-initial-partiality-algebra
     -- the corresponding propositional equalities can be proved. (Some
     -- of the computation rules were not type-correct, so casts have
     -- been inserted.)
-    --
-    -- TODO:
-    --
-    --   ⊥-rec-antisymmetry :
-    --     ∀ {x y} (x⊑y : x ⊑ y) (x⊒y : y ⊑ x) →
-    --     dependent-cong ⊥-rec (antisymmetry x⊑y x⊒y) ≡
-    --     pa x⊑y x⊒y (⊥-rec x) (⊥-rec y) (⊑-rec x⊑y) (⊑-rec x⊒y)
 
     private
 
@@ -620,6 +623,12 @@ module Eliminator-for-initial-partiality-algebra
          pl s ( ⊥-rec ⊚ proj₁ s
               , ⊑-rec ⊚ proj₂ s
               )                                                     ∎
+
+    ⊥-rec-antisymmetry :
+      ∀ {x y} (x⊑y : x ⊑ y) (x⊒y : y ⊑ x) →
+      dependent-cong ⊥-rec (antisymmetry x⊑y x⊒y) ≡
+      pa x⊑y x⊒y (⊥-rec x) (⊥-rec y) (⊑-rec x⊑y) (⊑-rec x⊒y)
+    ⊥-rec-antisymmetry _ _ = pp _ _
 
     ⊑-rec-⊑-refl : ∀ x → ⊑-rec (⊑-refl x) ≡ qr x (⊥-rec x)
     ⊑-rec-⊑-refl _ = qp _ _ _ _ _

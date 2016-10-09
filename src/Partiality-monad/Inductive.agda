@@ -49,13 +49,26 @@ module _ {A : Set a} where
   Is-upper-bound s x = ∀ n → s [ n ] ⊑ x
 
   postulate
+
     -- _⊥ "constructors".
+
     never        : A ⊥
     now          : A → A ⊥
     ⨆            : Increasing-sequence A → A ⊥
     antisymmetry : {x y : A ⊥} → x ⊑ y → x ⊒ y → x ≡ y
 
+  private
+    postulate
+
+      -- We have chosen to explicitly make the type set-truncated.
+      -- However, this "constructor" is private in order to highlight
+      -- that it is not used anywhere in the development.
+      ≡-proof-irrelevant : {x y : A ⊥} → Proof-irrelevant (x ≡ y)
+
+  postulate
+
     -- _⊑_ "constructors".
+
     ⊑-refl             : (x : A ⊥) → x ⊑ x
     ⊑-trans            : {x y z : A ⊥} → x ⊑ y → y ⊑ z → x ⊑ z
     never⊑             : (x : A ⊥) → never ⊑ x
@@ -98,6 +111,7 @@ record Rec-args
          (p-x : P x) (p-y : P y)
          (q-x⊑y : Q p-x p-y x⊑y) (q-x⊒y : Q p-y p-x x⊒y) →
          subst P (antisymmetry x⊑y x⊒y) p-x ≡ p-y
+    pp : ∀ {x} {p₁ p₂ : P x} → Proof-irrelevant (p₁ ≡ p₂)
     qr : ∀ x (p : P x) → Q p p (⊑-refl x)
     qt : ∀ {x y z} (x⊑y : x ⊑ y) (y⊑z : y ⊑ z) →
          (px : P x) (py : P y) (pz : P z) →
@@ -132,7 +146,8 @@ module _ {p q} {A : Set a}
   -- Computation rules for _⊥.
   --
   -- NOTE: Rewriting has not been activated for the "computation" rule
-  -- corresponding to antisymmetry.
+  -- corresponding to antisymmetry, and there is no computation rule
+  -- corresponding to ≡-proof-irrelevant.
 
   postulate
 

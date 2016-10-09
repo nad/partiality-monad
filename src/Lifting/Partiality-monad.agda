@@ -57,6 +57,7 @@ private
              subst (const _) (L.antisymmetry x⊑y y⊑x) p-x  ≡⟨ subst-const (L.antisymmetry x⊑y y⊑x) ⟩
              p-x                                           ≡⟨ I.antisymmetry p-x⊑p-y p-y⊑p-x ⟩∎
              p-y                                           ∎
+    ; pp = _⇔_.to set⇔UIP IP.⊥-is-set
     ; qr = λ _ → I.⊑-refl
     ; qt = λ _ _ _ _ _ → I.⊑-trans
     ; qe = λ _ → I.never⊑
@@ -75,6 +76,7 @@ private
     ; po = L.now
     ; pl = λ _ → L.⨆
     ; pa = λ _ _ → L.antisymmetry
+    ; ps = L.Carrier-is-set
     ; qr = λ _ → L.⊑-refl
     ; qt = λ _ _ → L.⊑-trans
     ; qe = λ _ → L.never⊑
@@ -107,6 +109,7 @@ private
                  L.⨆ s                                          ∎
       ; pa = λ _ _ _ _ _ _ →
                _⇔_.to set⇔UIP L.Carrier-is-set _ _
+      ; pp = _⇔_.to set⇔UIP (mono₁ 1 (L.Carrier-is-set _ _))
       ; qp = λ _ _ _ _ _ → refl
       })
   }
