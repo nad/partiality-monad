@@ -31,11 +31,11 @@ record Rec-args-nd
     pl : (s : Increasing-sequence A) (pq : Inc-nd A P Q) → P
     pa : (p₁ p₂ : P) (q₁ : Q p₁ p₂) (q₂ : Q p₂ p₁) → p₁ ≡ p₂
     qr : (x : A ⊥) (p : P) → Q p p
+    qt : {x y z : A ⊥} → x ⊑ y → y ⊑ z →
+         (px py pz : P) → Q px py → Q py pz → Q px pz
     qe : (x : A ⊥) (p : P) → Q pe p
-    qu : (s : Increasing-sequence A) (ub : A ⊥) (is-ub : ⨆ s ⊑ ub)
-         (pq : Inc-nd A P Q) (pu : P)
-         (qu : Q (pl s pq) pu) (n : ℕ) →
-         Q (proj₁ pq n) pu
+    qu : (s : Increasing-sequence A) (pq : Inc-nd A P Q) (n : ℕ) →
+         Q (proj₁ pq n) (pl s pq)
     ql : ∀ s (ub : A ⊥) (is-ub : Is-upper-bound s ub) pq (pu : P)
          (qu : ∀ n → Q (proj₁ pq n) pu) →
          Q (pl s pq) pu
@@ -58,6 +58,7 @@ module _ {a p q} {A : Set a} {P : Set p} {Q : P → P → Set q}
                p₁                                         ≡⟨ pa p₁ p₂ q₁ q₂ ⟩∎
                p₂                                         ∎
       ; qr = qr
+      ; qt = qt
       ; qe = qe
       ; qu = qu
       ; ql = ql
@@ -110,9 +111,11 @@ record Rec-args-⊑ {a q} {A : Set a}
                   Set (a ⊔ q) where
   field
     qr : ∀ x → Q (⊑-refl x)
+    qt : ∀ {x y z} (x⊑y : x ⊑ y) (y⊑z : y ⊑ z) →
+         Q x⊑y → Q y⊑z → Q (⊑-trans x⊑y y⊑z)
     qe : ∀ x → Q (never⊑ x)
-    qu : ∀ s ub is-ub (q : ∀ n → Q (increasing s n)) (qu : Q is-ub) n →
-         Q (upper-bound′ s ub is-ub n)
+    qu : ∀ s (q : ∀ n → Q (increasing s n)) n →
+         Q (upper-bound s n)
     ql : ∀ s ub is-ub (q : ∀ n → Q (increasing s n))
          (qu : ∀ n → Q (is-ub n)) →
          Q (least-upper-bound s ub is-ub)
@@ -128,8 +131,9 @@ module _ {a q} {A : Set a} {Q : {x y : A ⊥} → x ⊑ y → Set q}
   ⊑-rec-⊑ = ⊑-rec {P = λ _ → ⊤} {Q = λ _ _ → Q} (record
     { pa = λ _ _ _ _ _ _ → refl
     ; qr = λ x _ → qr x
+    ; qt = λ x⊑y y⊑z _ _ _ → qt x⊑y y⊑z
     ; qe = λ x _ → qe x
-    ; qu = λ s ub is-ub pq _ → qu s ub is-ub (proj₂ pq)
+    ; qu = λ s pq → qu s (proj₂ pq)
     ; ql = λ s ub is-ub pq _ → ql s ub is-ub (proj₂ pq)
     ; qp = λ _ _ → _⇔_.to propositional⇔irrelevant ∘ qp
     })

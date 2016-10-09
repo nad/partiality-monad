@@ -59,16 +59,18 @@ private
                now-x≲y  ↝⟨ id ⟩□
                now-x≲y  □
              }
+    ; qt = λ { _ _ (P , _) (Q , _) (R , _) P→Q Q→R →
+               P  ↝⟨ P→Q ⟩
+               Q  ↝⟨ Q→R ⟩□
+               R  □
+             }
     ; qe = λ { _ (now-x≲⊥ , _) →
                Prelude.⊥  ↝⟨ ⊥-elim ⟩□
                now-x≲⊥    □
              }
-    ; qu = λ { _ _ _ (now-x≲s[_] , _) (now-x≲ub , _)
-               now-x≲s[]→now-x≲ub n →
-
-               proj₁ now-x≲s[ n ]                ↝⟨ ∣_∣ ∘ (n ,_) ⟩
-               ∥ ∃ (λ n → proj₁ now-x≲s[ n ]) ∥  ↝⟨ now-x≲s[]→now-x≲ub ⟩□
-               now-x≲ub                          □
+    ; qu = λ { s (now-x≲s[_] , _) n →
+               proj₁ now-x≲s[ n ]                ↝⟨ ∣_∣ ∘ (n ,_) ⟩□
+               ∥ ∃ (λ n → proj₁ now-x≲s[ n ]) ∥  □
              }
     ; ql = λ { s ub is-ub (now-x≲s[_] , _) now-x≲ub now-x≲s[]→now-x≲ub →
                ∥ ∃ (λ n → proj₁ now-x≲s[ n ]) ∥  ↝⟨ Trunc.rec (proj₂ now-x≲ub) (uncurry now-x≲s[]→now-x≲ub) ⟩□
@@ -94,12 +96,16 @@ private
     ; qr = λ _ x≲ z →
              proj₁ (x≲ z)  ↝⟨ id ⟩□
              proj₁ (x≲ z)  □
+    ; qt = λ _ _ P Q R Q→P R→Q z →
+             proj₁ (R z)  ↝⟨ R→Q z ⟩
+             proj₁ (Q z)  ↝⟨ Q→P z ⟩□
+             proj₁ (P z)  □
     ; qe = λ _ ⊥≲ z →
              proj₁ (⊥≲ z)  ↝⟨ _ ⟩□
              ↑ _ ⊤         □
-    ; qu = λ { _ _ _ (s[_]≲ , _) ub≲ ub≲→s[]≲ n z →
-               proj₁ (ub≲ z)      ↝⟨ flip (ub≲→s[]≲ z) n ⟩□
-               proj₁ (s[ n ]≲ z)  □
+    ; qu = λ { s (s[_]≲ , _) n z →
+               (∀ m → proj₁ (s[ m ]≲ z))  ↝⟨ (_$ n) ⟩□
+               proj₁ (s[ n ]≲ z)          □
              }
     ; ql = λ { _ _ _ (s[_]≲ , _) ub≲ ub≲→s[]≲ z →
                proj₁ (ub≲ z)              ↝⟨ flip (flip ub≲→s[]≲ z) ⟩□
@@ -291,11 +297,12 @@ larger-terminate-with-same-value = ⊑-rec-⊑
      { qr = λ x z →
               x ⇓ z  ↝⟨ id ⟩□
               x ⇓ z  □
+     ; qt = λ _ _ → ≼-trans
      ; qe = λ x z →
               never ⇓ z  ↝⟨ now≢never z ∘ sym ⟩
               ⊥₀         ↝⟨ ⊥-elim ⟩□
               x ⇓ z      □
-     ; qu = λ s ub _ q qu n x s[n]⇓x →                 $⟨ (λ _ n≤m → lemma s (flip q x) n≤m s[n]⇓x) ⟩
+     ; qu = λ s q n x s[n]⇓x →                         $⟨ (λ _ n≤m → lemma s (flip q x) n≤m s[n]⇓x) ⟩
               (∀ m → n ≤ m → s [ m ] ≡ now x)          ↝⟨ (λ hyp m n≤m → proj₁ (_≃_.from equality-characterisation-⊥ (hyp m n≤m))) ⟩
               (∀ m → n ≤ m → s [ m ] ⊑ now x)          ↝⟨ (λ hyp m → [ (λ m≤n →
 
@@ -309,10 +316,9 @@ larger-terminate-with-same-value = ⊑-rec-⊑
 
                 now x                                       ⊑⟨ sym s[n]⇓x ⟩≡
                 s [ n ]                                     ⊑⟨ upper-bound s n ⟩■
-                ⨆ s                                         ■) ⟩
+                ⨆ s                                         ■) ⟩□
 
-              ⨆ s ⇓ x                                  ↝⟨ qu x ⟩□
-              ub ⇓ x                                   □
+              ⨆ s ⇓ x                                  □
      ; ql = λ s ub _ q qu x →
          ⨆ s ⇓ x                                                  ↔⟨ inverse equality-characterisation-⊥ ⟩
          ⨆ s ⊑ now x × ⨆ s ⊒ now x                                ↔⟨ ⊑≃≲ ×-cong ⊑≃≲ ⟩

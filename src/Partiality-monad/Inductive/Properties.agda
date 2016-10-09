@@ -28,29 +28,6 @@ open import Partiality-monad.Inductive.Eliminators
 ⊑-propositional =
   _⇔_.from propositional⇔irrelevant ⊑-proof-irrelevant
 
--- ⨆ s is an upper bound for the sequence s.
-
-upper-bound : (s : Increasing-sequence A) →
-              Is-upper-bound s (⨆ s)
-upper-bound s = upper-bound′ s (⨆ s) (⊑-refl (⨆ s))
-
--- _⊑_ is transitive.
-
-⊑-trans : {x y z : A ⊥} → x ⊑ y → y ⊑ z → x ⊑ z
-⊑-trans x⊑y = ⊑-rec-⊑ {Q = λ {x y} x⊑y → ∀ {z} → y ⊑ z → x ⊑ z}
-  (record
-     { qr = λ _ → id
-     ; qe = λ _ _ → never⊑ _
-     ; qu = λ s ub is-ub q qu n {z} ⨆s⊑z →
-              q n (upper-bound′ s z (qu ⨆s⊑z) (suc n))
-     ; ql = λ s ub _ _ qu {z} ub⊑z →
-              least-upper-bound s z (λ n → qu n ub⊑z)
-     ; qp = λ _ → implicit-Π-closure        ext 1 λ _ →
-                  Π-closure {a = a} {b = a} ext 1 λ _ →
-                  ⊑-propositional
-     })
-  x⊑y
-
 -- Preorder reasoning combinators.
 
 infix  -1 finally-⊑

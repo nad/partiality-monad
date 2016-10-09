@@ -67,32 +67,14 @@ data D {a} (A : Set a) where
   ⨆     : (s : Increasing-sequence A) → A ⊥
 
   ⊑-refl            : (x : A ⊥) → x ⊑ x
+  ⊑-trans           : {x y z : A ⊥} → x ⊑ y → y ⊑ z → x ⊑ z
   never⊑            : (x : A ⊥) → never ⊑ x
-  upper-bound′      : (s : Increasing-sequence A) (ub : A ⊥)
-                      (is-ub : ⨆ s ⊑ ub) → Is-upper-bound s ub
+  upper-bound       : (s : Increasing-sequence A) →
+                      Is-upper-bound s (⨆ s)
   least-upper-bound : (s : Increasing-sequence A) (ub : A ⊥)
                       (is-ub : Is-upper-bound s ub) → ⨆ s ⊑ ub
 
--- Some examples.
-
--- ⨆ s is an upper bound for the sequence s.
-
-upper-bound : ∀ {a} {A : Set a}
-              (s : Increasing-sequence A) →
-              Is-upper-bound s (⨆ s)
-upper-bound s = upper-bound′ s (⨆ s) (⊑-refl (⨆ s))
-
--- Transitivity.
-
-⊑-trans : ∀ {a} {A : Set a} {x y z : A ⊥} → x ⊑ y → y ⊑ z → x ⊑ z
-⊑-trans (⊑-refl y)                  y⊑z  = y⊑z
-⊑-trans (never⊑ y)                  y⊑z  = never⊑ _
-⊑-trans (upper-bound′ s ub is-ub n) ub⊑z =
-  ⊑-trans (proj₂ s n) (upper-bound′ s _ (⊑-trans is-ub ub⊑z) (suc n))
-⊑-trans (least-upper-bound s ub is-ub) ub⊑z =
-  least-upper-bound s _ (λ n → ⊑-trans (is-ub n) ub⊑z)
-
--- A monotone map function.
+-- An example: A monotone map function.
 
 I-map : ∀ {a b} {A : Set a} {B : Set b} →
         (f : A → B) → ∀ {b} → I A b → I B b
@@ -115,12 +97,11 @@ D-map f never                          = never
 D-map f (now x)                        = now (f x)
 D-map f (⨆ s)                          = ⨆ (Increasing-sequence-map f s)
 D-map f (⊑-refl x)                     = ⊑-refl (D-map f x)
+D-map f (⊑-trans x⊑y y⊑z)              = ⊑-trans
+                                           (D-map f x⊑y) (D-map f y⊑z)
 D-map f (never⊑ x)                     = never⊑ (D-map f x)
-D-map f (upper-bound′ s ub is-ub n)    = upper-bound′
-                                           (Increasing-sequence-map f s)
-                                           (D-map f ub)
-                                           (D-map f is-ub)
-                                           n
+D-map f (upper-bound s n)              = upper-bound
+                                           (Increasing-sequence-map f s) n
 D-map f (least-upper-bound s ub is-ub) = least-upper-bound
                                            (Increasing-sequence-map f s)
                                            (D-map f ub)
@@ -148,10 +129,12 @@ record Rec-args
     po : ∀ x → P (now x)
     pl : ∀ s (pq : Inc P Q s) → P (⨆ s)
     qr : ∀ x (p : P x) → Q p p (⊑-refl x)
+    qt : ∀ {x y z} (x⊑y : x ⊑ y) (y⊑z : y ⊑ z) →
+         (px : P x) (py : P y) (pz : P z) →
+         Q px py x⊑y → Q py pz y⊑z → Q px pz (⊑-trans x⊑y y⊑z)
     qe : ∀ x (p : P x) → Q pe p (never⊑ x)
-    qu : ∀ s ub is-ub n (pq : Inc P Q s) (pu : P ub)
-         (qu : Q (pl s pq) pu is-ub) →
-         Q (proj₁ pq n) pu (upper-bound′ s ub is-ub n)
+    qu : ∀ s (pq : Inc P Q s) n →
+         Q (proj₁ pq n) (pl s pq) (upper-bound s n)
     ql : ∀ s ub is-ub (pq : Inc P Q s) (pu : P ub)
          (qu : ∀ n → Q (proj₁ pq n) pu (is-ub n)) →
          Q (pl s pq) pu (least-upper-bound s ub is-ub)
@@ -179,14 +162,16 @@ module _
                       , (λ n → ⊑-rec (inc n))
                       )
 
-  ⊑-rec (⊑-refl x)                     = qr x (⊥-rec x)
-  ⊑-rec (never⊑ x)                     = qe x (⊥-rec x)
-  ⊑-rec (upper-bound′ s ub is-ub n)    = qu s ub is-ub n
-                                            (inc-rec s) (⊥-rec ub)
-                                            (⊑-rec is-ub)
-  ⊑-rec (least-upper-bound s ub is-ub) = ql s ub is-ub
-                                            (inc-rec s) (⊥-rec ub)
-                                            (λ n → ⊑-rec (is-ub n))
+  ⊑-rec (⊑-refl x)                       = qr x (⊥-rec x)
+  ⊑-rec (⊑-trans {x = x} {y = y} {z = z}
+                 x⊑y y⊑z)                = qt x⊑y y⊑z (⊥-rec x)
+                                              (⊥-rec y) (⊥-rec z)
+                                              (⊑-rec x⊑y) (⊑-rec y⊑z)
+  ⊑-rec (never⊑ x)                       = qe x (⊥-rec x)
+  ⊑-rec (upper-bound s n)                = qu s (inc-rec s) n
+  ⊑-rec (least-upper-bound s ub is-ub)   = ql s ub is-ub
+                                              (inc-rec s) (⊥-rec ub)
+                                              (λ n → ⊑-rec (is-ub n))
 
 -- These dependent eliminators can be used to define a monotone map
 -- function.
@@ -201,9 +186,9 @@ module _ {a b} {A : Set a} {B : Set b} (f : A → B) where
       ; po = now ∘ f
       ; pl = λ _ → ⨆
       ; qr = λ _ → ⊑-refl
+      ; qt = λ _ _ _ _ _ → ⊑-trans
       ; qe = λ _ → never⊑
-      ; qu = λ _ _ _ n pq pu pu-is-ub →
-               upper-bound′ pq pu pu-is-ub n
+      ; qu = λ _ → upper-bound
       ; ql = λ _ _ _ → least-upper-bound
       }
 

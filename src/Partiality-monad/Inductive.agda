@@ -57,9 +57,10 @@ module _ {A : Set a} where
 
     -- _⊑_ "constructors".
     ⊑-refl             : (x : A ⊥) → x ⊑ x
+    ⊑-trans            : {x y z : A ⊥} → x ⊑ y → y ⊑ z → x ⊑ z
     never⊑             : (x : A ⊥) → never ⊑ x
-    upper-bound′       : (s : Increasing-sequence A) (ub : A ⊥) →
-                         ⨆ s ⊑ ub → Is-upper-bound s ub
+    upper-bound        : (s : Increasing-sequence A) →
+                         Is-upper-bound s (⨆ s)
     least-upper-bound  : (s : Increasing-sequence A) (ub : A ⊥) →
                          Is-upper-bound s ub → ⨆ s ⊑ ub
     ⊑-proof-irrelevant : {x y : A ⊥} → Proof-irrelevant (x ⊑ y)
@@ -98,10 +99,12 @@ record Rec-args
          (q-x⊑y : Q p-x p-y x⊑y) (q-x⊒y : Q p-y p-x x⊒y) →
          subst P (antisymmetry x⊑y x⊒y) p-x ≡ p-y
     qr : ∀ x (p : P x) → Q p p (⊑-refl x)
+    qt : ∀ {x y z} (x⊑y : x ⊑ y) (y⊑z : y ⊑ z) →
+         (px : P x) (py : P y) (pz : P z) →
+         Q px py x⊑y → Q py pz y⊑z → Q px pz (⊑-trans x⊑y y⊑z)
     qe : ∀ x (p : P x) → Q pe p (never⊑ x)
-    qu : ∀ s ub is-ub (pq : Inc P Q s) (pu : P ub)
-         (qu : Q (pl s pq) pu is-ub) →
-         ∀ n → Q (proj₁ pq n) pu (upper-bound′ s ub is-ub n)
+    qu : ∀ s (pq : Inc P Q s) n →
+         Q (proj₁ pq n) (pl s pq) (upper-bound s n)
     ql : ∀ s ub is-ub (pq : Inc P Q s) (pu : P ub)
          (qu : ∀ n → Q (proj₁ pq n) pu (is-ub n)) →
          Q (pl s pq) pu (least-upper-bound s ub is-ub)
@@ -153,11 +156,15 @@ module _ {p q} {A : Set a}
   postulate
 
     ⊑-rec-⊑-refl            : ∀ x → ⊑-rec (⊑-refl x) ≡ qr x (⊥-rec x)
+    ⊑-rec-⊑-trans           : ∀ {x y z} (x⊑y : x ⊑ y) (y⊑z : y ⊑ z) →
+                              ⊑-rec (⊑-trans x⊑y y⊑z) ≡
+                              qt x⊑y y⊑z
+                                 (⊥-rec x) (⊥-rec y) (⊥-rec z)
+                                 (⊑-rec x⊑y) (⊑-rec y⊑z)
     ⊑-rec-never⊑            : ∀ x → ⊑-rec (never⊑ x) ≡ qe x (⊥-rec x)
-    ⊑-rec-upper-bound′      : ∀ s ub is-ub n →
-                              ⊑-rec (upper-bound′ s ub is-ub n) ≡
-                              qu s ub is-ub
-                                 (inc-rec s) (⊥-rec ub) (⊑-rec is-ub) n
+    ⊑-rec-upper-bound       : ∀ s n →
+                              ⊑-rec (upper-bound s n) ≡
+                              qu s (inc-rec s) n
     ⊑-rec-least-upper-bound : ∀ s ub is-ub →
                               ⊑-rec (least-upper-bound s ub is-ub) ≡
                               ql s ub is-ub
@@ -166,6 +173,7 @@ module _ {p q} {A : Set a}
                                  (λ n → ⊑-rec (is-ub n))
 
   {-# REWRITE ⊑-rec-⊑-refl            #-}
+  {-# REWRITE ⊑-rec-⊑-trans           #-}
   {-# REWRITE ⊑-rec-never⊑            #-}
-  {-# REWRITE ⊑-rec-upper-bound′      #-}
+  {-# REWRITE ⊑-rec-upper-bound       #-}
   {-# REWRITE ⊑-rec-least-upper-bound #-}

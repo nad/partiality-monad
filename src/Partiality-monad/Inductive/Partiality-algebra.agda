@@ -65,8 +65,9 @@ record Partiality-algebra {a} p q (A : Set a) :
     ⨆                  : Increasing-sequence → Type
     antisymmetry       : ∀ {x y} → x ⊑ y → y ⊑ x → x ≡ y
     ⊑-refl             : ∀ x → x ⊑ x
+    ⊑-trans            : ∀ {x y z} → x ⊑ y → y ⊑ z → x ⊑ z
     never⊑             : ∀ x → never ⊑ x
-    upper-bound′       : ∀ s ub → ⨆ s ⊑ ub → Is-upper-bound s ub
+    upper-bound        : ∀ s → Is-upper-bound s (⨆ s)
     least-upper-bound  : ∀ s ub → Is-upper-bound s ub → ⨆ s ⊑ ub
     ⊑-proof-irrelevant : ∀ {x y} → Proof-irrelevant (x ⊑ y)
 
@@ -124,8 +125,9 @@ Partiality-monad A = record
   ; ⨆                  = I.⨆
   ; antisymmetry       = I.antisymmetry
   ; ⊑-refl             = I.⊑-refl
+  ; ⊑-trans            = I.⊑-trans
   ; never⊑             = I.never⊑
-  ; upper-bound′       = I.upper-bound′
+  ; upper-bound        = I.upper-bound
   ; least-upper-bound  = I.least-upper-bound
   ; ⊑-proof-irrelevant = I.⊑-proof-irrelevant
   }
@@ -212,8 +214,9 @@ partiality-monad-initial {A = A} P = morphism , unique
     ; pl = λ _ → P.⨆
     ; pa = λ _ _ → P.antisymmetry
     ; qr = λ _ → P.⊑-refl
+    ; qt = λ _ _ _ _ _ → P.⊑-trans
     ; qe = λ _ → P.never⊑
-    ; qu = λ _ _ _ → P.upper-bound′
+    ; qu = λ _ → P.upper-bound
     ; ql = λ _ _ _ → P.least-upper-bound
     ; qp = λ _ _ → _⇔_.from propositional⇔irrelevant
                      P.⊑-proof-irrelevant
@@ -315,10 +318,12 @@ module Eliminator-for-initial-partiality-algebra
            (q-x⊑y : Q p-x p-y x⊑y) (q-x⊒y : Q p-y p-x x⊒y) →
            subst P (antisymmetry x⊑y x⊒y) p-x ≡ p-y
       qr : ∀ x (p : P x) → Q p p (⊑-refl x)
+      qt : ∀ {x y z} (x⊑y : x ⊑ y) (y⊑z : y ⊑ z) →
+           (px : P x) (py : P y) (pz : P z) →
+           Q px py x⊑y → Q py pz y⊑z → Q px pz (⊑-trans x⊑y y⊑z)
       qe : ∀ x (p : P x) → Q pe p (never⊑ x)
-      qu : ∀ s ub is-ub (pq : Inc P Q s) (pu : P ub)
-           (qu : Q (pl s pq) pu is-ub) →
-           ∀ n → Q (proj₁ pq n) pu (upper-bound′ s ub is-ub n)
+      qu : ∀ s (pq : Inc P Q s) n →
+           Q (proj₁ pq n) (pl s pq) (upper-bound s n)
       ql : ∀ s ub is-ub (pq : Inc P Q s) (pu : P ub)
            (qu : ∀ n → Q (proj₁ pq n) pu (is-ub n)) →
            Q (pl s pq) pu (least-upper-bound s ub is-ub)
@@ -356,13 +361,9 @@ module Eliminator-for-initial-partiality-algebra
                                      (pa x⊑y y⊑x p q Qx⊑y Qy⊑x)
                                  }
         ; ⊑-refl             = λ _ → _ , qr _ _
+        ; ⊑-trans            = Σ-zip ⊑-trans (qt _ _ _ _ _)
         ; never⊑             = λ _ → _ , qe _ _
-        ; upper-bound′       = λ { s _ (_ , q) _ →
-                                     upper-bound′
-                                       (Σ-map (proj₁ ⊚_) (proj₁ ⊚_) s)
-                                       _ _ _
-                                   , qu _ _ _ _ _ q _
-                                 }
+        ; upper-bound        = λ _ _ → upper-bound _ _ , qu _ _ _
         ; least-upper-bound  = λ _ _ ⊑qs →
                                    least-upper-bound _ _ (proj₁ ⊚ ⊑qs)
                                  , ql _ _ _ _ _ (proj₂ ⊚ ⊑qs)
@@ -623,19 +624,27 @@ module Eliminator-for-initial-partiality-algebra
     ⊑-rec-⊑-refl : ∀ x → ⊑-rec (⊑-refl x) ≡ qr x (⊥-rec x)
     ⊑-rec-⊑-refl _ = qp _ _ _ _ _
 
+    ⊑-rec-⊑-trans :
+      ∀ {x y z} (x⊑y : x ⊑ y) (y⊑z : y ⊑ z) →
+      ⊑-rec (⊑-trans x⊑y y⊑z) ≡
+      qt x⊑y y⊑z
+         (⊥-rec x) (⊥-rec y) (⊥-rec z)
+         (⊑-rec x⊑y) (⊑-rec y⊑z)
+    ⊑-rec-⊑-trans _ _ = qp _ _ _ _ _
+
     ⊑-rec-never⊑ :
       ∀ x →
       subst (λ p → Q p (⊥-rec x) _) ⊥-rec-never (⊑-rec (never⊑ x)) ≡
       qe x (⊥-rec x)
     ⊑-rec-never⊑ _ = qp _ _ _ _ _
 
-    ⊑-rec-upper-bound′ :
-      ∀ s ub is-ub n →
-      ⊑-rec (upper-bound′ s ub is-ub n) ≡
-      qu s ub is-ub
-         (inc-rec s) (⊥-rec ub)
-         (subst (λ x → Q x _ _) (⊥-rec-⨆ s) (⊑-rec is-ub)) n
-    ⊑-rec-upper-bound′ _ _ _ _ = qp _ _ _ _ _
+    ⊑-rec-upper-bound :
+      ∀ s n →
+      subst (λ p → Q (⊥-rec (s [ n ])) p (upper-bound s n))
+            (⊥-rec-⨆ s)
+            (⊑-rec (upper-bound s n)) ≡
+      qu s (inc-rec s) n
+    ⊑-rec-upper-bound _ _ = qp _ _ _ _ _
 
     ⊑-rec-least-upper-bound :
       ∀ s ub is-ub →

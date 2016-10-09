@@ -58,13 +58,13 @@ private
              p-x                                           ≡⟨ I.antisymmetry p-x⊑p-y p-y⊑p-x ⟩∎
              p-y                                           ∎
     ; qr = λ _ → I.⊑-refl
-    ; qt = λ _ _ _ _ _ → IP.⊑-trans
+    ; qt = λ _ _ _ _ _ → I.⊑-trans
     ; qe = λ _ → I.never⊑
-    ; qu = λ _ → IP.upper-bound
+    ; qu = λ _ → I.upper-bound
     ; ql = λ _ _ _ → I.least-upper-bound
     ; qm = λ { refl → I.⊑-refl _ }
     ; q⨆ = λ s →
-             I.now (proj₁ s 0)                    IP.⊑⟨ IP.upper-bound _ 0 ⟩■
+             I.now (proj₁ s 0)                    IP.⊑⟨ I.upper-bound _ 0 ⟩■
              I.⨆ ((λ n → I.now (proj₁ s n)) , _)  ■
     ; qp = λ _ _ _ → I.⊑-proof-irrelevant
     }
@@ -76,9 +76,9 @@ private
     ; pl = λ _ → L.⨆
     ; pa = λ _ _ → L.antisymmetry
     ; qr = λ _ → L.⊑-refl
+    ; qt = λ _ _ → L.⊑-trans
     ; qe = λ _ → L.never⊑
-    ; qu = λ _ _ _ _ _ qu _ →
-             L.⊑-trans _ _ _ (L.upper-bound _ _) qu
+    ; qu = λ _ → L.upper-bound
     ; ql = λ _ _ _ → L.least-upper-bound
     ; qp = λ _ _ → L.⊑-propositional
     }

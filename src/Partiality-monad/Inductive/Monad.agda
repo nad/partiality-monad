@@ -44,8 +44,9 @@ module _ {a b} {A : Set a} {B : Set b} (f : A → B ⊥) where
       ; pl = λ _ → ⨆
       ; pa = λ _ _ → antisymmetry
       ; qr = λ _ → ⊑-refl
+      ; qt = λ _ _ _ _ _ → ⊑-trans
       ; qe = λ _ → never⊑
-      ; qu = λ _ _ _ → upper-bound′
+      ; qu = λ _ → upper-bound
       ; ql = λ _ _ _ → least-upper-bound
       ; qp = λ _ _ → ⊑-propositional
       }
