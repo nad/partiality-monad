@@ -2,7 +2,7 @@
 -- A definitional interpreter
 ------------------------------------------------------------------------
 
-{-# OPTIONS --without-K --rewriting #-}
+{-# OPTIONS --without-K #-}
 
 module Lambda.Partiality-monad.Inductive.Interpreter where
 
@@ -101,6 +101,7 @@ module Interpreter₁ where
     ∙-increasing (con i)  v₂ n       = run fail ■
     ∙-increasing (ƛ t₁ ρ) v₂ (suc n) = ⟦⟧′-increasing t₁ (snoc ρ v₂) n
     ∙-increasing (ƛ t₁ ρ) v₂ zero    =
+      never >>= return ∘ just      ⊑⟨ never->>= ⟩≡
       never                        ⊑⟨ never⊑ _ ⟩■
       run (⟦ t₁ ⟧′ (snoc ρ v₂) 0)  ■
 
@@ -184,7 +185,8 @@ interpreters-equal = λ t ρ →
       run ((v₁ Interpreter₁.∙ v₂) n) ≡
       function (run (v₁ Interpreter₂.∙ v₂)) (app→ (function step₂) n)
     ∙-lemma (con i)  v₂ n       = refl
-    ∙-lemma (ƛ t₁ ρ) v₂ zero    = refl
+    ∙-lemma (ƛ t₁ ρ) v₂ zero    = never >>= return ∘ just  ≡⟨ never->>= ⟩∎
+                                  never                    ∎
     ∙-lemma (ƛ t₁ ρ) v₂ (suc n) = ⟦⟧-lemma t₁ (snoc ρ v₂) n
 
 -- Let us use Interpreter₁ as the default interpreter.
@@ -200,6 +202,21 @@ open Interpreter₁ public
 Ω-loops =
   antisymmetry (least-upper-bound _ _ lemma) (never⊑ _)
   where
+  ω-empty = ƛ (var fzero · var fzero) empty
+
+  reduce-twice :
+    ∀ n → run (⟦ Ω ⟧′ empty n) ≡ run ((ω-empty ∙ ω-empty) n)
+  reduce-twice n =
+    run (⟦ Ω ⟧′ empty n)                              ≡⟨ now->>= ⟩
+    run (⟦ ω ⟧′ empty n >>= λ v₂ → (ω-empty ∙ v₂) n)  ≡⟨ now->>= ⟩∎
+    run ((ω-empty ∙ ω-empty) n)                       ∎
+
   lemma : ∀ n → run (⟦ Ω ⟧′ empty n) ⊑ never
-  lemma zero    = never⊑ never
-  lemma (suc n) = lemma n
+  lemma zero    =
+    run (⟦ Ω ⟧′ empty zero)         ⊑⟨ reduce-twice zero ⟩≡
+    run ((ω-empty ∙ ω-empty) zero)  ⊑⟨ never->>= ⟩≡
+    never                           ■
+  lemma (suc n) =
+    run (⟦ Ω ⟧′ empty (suc n))  ⊑⟨ reduce-twice (suc n) ⟩≡
+    run (⟦ Ω ⟧′ empty n)        ⊑⟨ lemma n ⟩■
+    never                       ■

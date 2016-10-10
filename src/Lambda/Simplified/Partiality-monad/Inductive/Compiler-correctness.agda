@@ -2,7 +2,7 @@
 -- Compiler correctness
 ------------------------------------------------------------------------
 
-{-# OPTIONS --without-K --rewriting #-}
+{-# OPTIONS --without-K #-}
 
 module Lambda.Simplified.Partiality-monad.Inductive.Compiler-correctness
   where
@@ -56,13 +56,13 @@ mutual
   ⟦⟧-correct (var x) {ρ} {c} {s} {k} hyp =
     execⁿ ⟨ var x ∷ c , s , comp-env ρ ⟩                 ≳⟨ step⇓ ⟩
     execⁿ ⟨ c , val (comp-val (ρ x)) ∷ s , comp-env ρ ⟩  ≳⟨ hyp (ρ x) ⟩
-    (λ n → k n (ρ x))                                    ≳⟨⟩
+    (λ n → k n (ρ x))                                    ≳⟨ sym now->>= ⟩≡
     (λ n → evalⁿ (var x) ρ (suc n) >>= k n)              ∎≳
 
   ⟦⟧-correct (ƛ t) {ρ} {c} {s} {k} hyp =
     execⁿ ⟨ clo (comp t (ret ∷ [])) ∷ c , s , comp-env ρ ⟩   ≳⟨ step⇓ ⟩
     execⁿ ⟨ c , val (comp-val (T.ƛ t ρ)) ∷ s , comp-env ρ ⟩  ≳⟨ hyp (T.ƛ t ρ) ⟩
-    (λ n → k n (T.ƛ t ρ))                                    ≳⟨⟩
+    (λ n → k n (T.ƛ t ρ))                                    ≳⟨ sym now->>= ⟩≡
     (λ n → evalⁿ (ƛ t) ρ (suc n) >>= k n)                    ∎≳
 
   ⟦⟧-correct (t₁ · t₂) {ρ} {c} {s} {k} {n} hyp =
@@ -96,7 +96,7 @@ mutual
           , comp-env ρ
           ⟩                                                     ≳⟨ refl ⟩≡
 
-    const never                                                 ≳⟨ refl ⟩≡
+    const never                                                 ≳⟨ sym never->>= ⟩≡
 
     (λ n → (T.ƛ t₁ ρ₁ ∙ⁿ v₂) n >>= k n)                         ∎≳
 
@@ -152,6 +152,6 @@ correct t =
   ⨆ ( (λ n → evalⁿ t empty n >>= λ v →
              return (just (comp-val v)))
     , _
-    )                                                        ≡⟨⟩
+    )                                                        ≡⟨ sym ⨆->>= ⟩
 
   (⟦ t ⟧ empty >>= λ v → return (just (comp-val v)))         ∎

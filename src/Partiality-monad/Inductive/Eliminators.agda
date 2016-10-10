@@ -78,6 +78,15 @@ module _ {a p q} {A : Set a} {P : Set p} {Q : P → P → Set q}
   inc-rec-nd : Increasing-sequence A → Inc-nd A P Q
   inc-rec-nd = inc-rec args′
 
+  ⊥-rec-nd-never : ⊥-rec-nd never ≡ pe
+  ⊥-rec-nd-never = ⊥-rec-never _
+
+  ⊥-rec-nd-now : ∀ x → ⊥-rec-nd (now x) ≡ po x
+  ⊥-rec-nd-now = ⊥-rec-now _
+
+  ⊥-rec-nd-⨆ : ∀ s → ⊥-rec-nd (⨆ s) ≡ pl s (inc-rec-nd s)
+  ⊥-rec-nd-⨆ = ⊥-rec-⨆ _
+
 ------------------------------------------------------------------------
 -- Eliminators which are trivial for _⊑_
 
@@ -107,6 +116,15 @@ module _ {a p} {A : Set a} {P : A ⊥ → Set p}
 
   inc-rec-⊥ : (s : ℕ → A ⊥) → ∀ n → P (s n)
   inc-rec-⊥ s = ⊥-rec-⊥ ∘ s
+
+  ⊥-rec-⊥-never : ⊥-rec-⊥ never ≡ pe
+  ⊥-rec-⊥-never = ⊥-rec-never _
+
+  ⊥-rec-⊥-now : ∀ x → ⊥-rec-⊥ (now x) ≡ po x
+  ⊥-rec-⊥-now = ⊥-rec-now _
+
+  ⊥-rec-⊥-⨆ : ∀ s → ⊥-rec-⊥ (⨆ s) ≡ pl s (λ n → ⊥-rec-⊥ (s [ n ]))
+  ⊥-rec-⊥-⨆ = ⊥-rec-⨆ _
 
 ------------------------------------------------------------------------
 -- Eliminators which are trivial for _⊥

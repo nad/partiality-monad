@@ -2,7 +2,7 @@
 -- Fixpoint combinators
 ------------------------------------------------------------------------
 
-{-# OPTIONS --without-K --rewriting #-}
+{-# OPTIONS --without-K #-}
 
 module Partiality-monad.Inductive.Fixpoints where
 
@@ -784,7 +784,7 @@ instance
     ; ω-continuous = λ univ recs →
         (function x (⨆ ∘ recs) >>=′ λ y → function (f y) (⨆ ∘ recs))     ≡⟨ cong₂ _>>=′_ (ω-continuous x univ recs)
                                                                                          (ext λ y → ω-continuous (f y) univ recs) ⟩
-        (⨆ (sequence x recs) >>=′ λ y → ⨆ (sequence (f y) recs))         ≡⟨⟩
+        (⨆ (sequence x recs) >>=′ λ y → ⨆ (sequence (f y) recs))         ≡⟨ ⨆->>= ⟩
 
         ⨆ ( (λ n →
                function x (λ z → recs z [ n ]) >>=′ λ y →

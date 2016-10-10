@@ -3,7 +3,7 @@
 -- with related results
 ------------------------------------------------------------------------
 
-{-# OPTIONS --without-K --rewriting #-}
+{-# OPTIONS --without-K #-}
 
 open import Equality.Propositional
 open import Univalence-axiom equality-with-J
@@ -144,33 +144,51 @@ x ≲ y = proj₁ (⊥-rec-nd ≲-args x y)
 ⊑≲-trans : ∀ {x y} (z : A ⊥) → x ⊑ y → y ≲ z → x ≲ z
 ⊑≲-trans z x⊑y = ⊑-rec-nd ≲-args x⊑y z
 
-private
+-- "Evaluation" lemmas for _≲_.
 
-  -- Lemmas showing certain aspects of how _≲_ evaluates.
+never≲ : ∀ {y} → (never ≲ y) ≡ ↑ _ ⊤
+never≲ {y} = cong (λ f → proj₁ (f y)) (
+  ⊥-rec-nd ≲-args never  ≡⟨ ⊥-rec-nd-never ≲-args ⟩∎
+  (λ _ → ↑ _ ⊤ , _)      ∎)
 
-  never≲ : ∀ y → (never ≲ y) ≡ ↑ _ ⊤
-  never≲ _ = refl
+⨆≲ : ∀ {s y} → (⨆ s ≲ y) ≡ ∀ n → s [ n ] ≲ y
+⨆≲ {s} {y} = cong (λ f → proj₁ (f y)) (
+  ⊥-rec-nd ≲-args (⨆ s)            ≡⟨ ⊥-rec-nd-⨆ ≲-args s ⟩∎
+  (λ y → (∀ n → s [ n ] ≲ y) , _)  ∎)
 
-  ⨆≲ : ∀ s y → (⨆ s ≲ y) ≡ ∀ n → s [ n ] ≲ y
-  ⨆≲ _ _ = refl
+now≲never : ∀ {x} → (now x ≲ never) ≡ Prelude.⊥
+now≲never {x} =
+  now x ≲ never                          ≡⟨ cong (λ f → proj₁ (f never)) (⊥-rec-nd-now ≲-args x) ⟩
+  proj₁ (⊥-rec-nd now[ x ]≲-args never)  ≡⟨ cong proj₁ (⊥-rec-nd-never now[ x ]≲-args) ⟩∎
+  Prelude.⊥                              ∎
 
-  now≲never : ∀ x → (now x ≲ never) ≡ Prelude.⊥
-  now≲never _ = refl
+now≲now : ∀ {x y} → (now x ≲ now y) ≡ ∥ x ≡ y ∥
+now≲now {x} {y} =
+  (now x ≲ now y)                          ≡⟨ cong (λ f → proj₁ (f (now y))) (⊥-rec-nd-now ≲-args x) ⟩
+  proj₁ (⊥-rec-nd now[ x ]≲-args (now y))  ≡⟨ cong proj₁ (⊥-rec-nd-now now[ x ]≲-args y) ⟩∎
+  ∥ x ≡ y ∥                                ∎
 
-  now≲now : ∀ x y → (now x ≲ now y) ≡ ∥ x ≡ y ∥
-  now≲now _ _ = refl
-
-  now≲⨆ : ∀ x s → (now x ≲ ⨆ s) ≡ ∥ (∃ λ n → now x ≲ s [ n ]) ∥
-  now≲⨆ _ _ = refl
+now≲⨆ : ∀ {x s} → (now x ≲ ⨆ s) ≡ ∥ (∃ λ n → now x ≲ s [ n ]) ∥
+now≲⨆ {x} {s} =
+  (now x ≲ ⨆ s)                                            ≡⟨ cong (λ f → proj₁ (f (⨆ s))) (⊥-rec-nd-now ≲-args x) ⟩
+  proj₁ (⊥-rec-nd now[ x ]≲-args (⨆ s))                    ≡⟨ cong proj₁ (⊥-rec-nd-⨆ now[ x ]≲-args s) ⟩
+  ∥ (∃ λ n → proj₁ (⊥-rec-nd now[ x ]≲-args (s [ n ]))) ∥  ≡⟨ cong (λ f → ∥ (∃ λ n → proj₁ (f (s [ n ]))) ∥) (sym $ ⊥-rec-nd-now ≲-args x) ⟩∎
+  ∥ (∃ λ n → now x ≲ s [ n ]) ∥                            ∎
 
 -- _≲_ is reflexive.
 
 ≲-refl : ∀ x → x ≲ x
 ≲-refl = ⊥-rec-⊥ (record
-  { po = λ _ → ∣ refl ∣
+  { pe =                $⟨ _ ⟩
+         ↑ _ ⊤          ↝⟨ ≡⇒↝ bijection $ sym never≲ ⟩□
+         never ≲ never  □
+  ; po = λ x →            $⟨ ∣ refl ∣ ⟩
+           ∥ x ≡ x ∥      ↝⟨ ≡⇒↝ bijection $ sym now≲now ⟩□
+           now x ≲ now x  □
   ; pl = λ s →
-           (∀ n → s [ n ] ≲ s [ n ])  ↝⟨ (λ s≲s n → ⨆-lemma s (s [ n ]) n (s≲s n)) ⟩□
-           (∀ n → s [ n ] ≲ ⨆ s)      □
+           (∀ n → s [ n ] ≲ s [ n ])  ↝⟨ (λ s≲s n → ⨆-lemma s (s [ n ]) n (s≲s n)) ⟩
+           (∀ n → s [ n ] ≲ ⨆ s)      ↔⟨ ≡⇒↝ bijection $ sym ⨆≲ ⟩□
+           ⨆ s ≲ ⨆ s                  □
   ; pp = λ x → ≲-propositional x x
   })
   where
@@ -178,13 +196,21 @@ private
   ⨆-lemma s = ⊥-rec-⊥
     {P = λ x → ∀ n → x ≲ s [ n ] → x ≲ ⨆ s}
     (record
-       { po = λ x n →
-                now x ≲ s [ n ]                ↝⟨ ∣_∣ ∘ (n ,_) ⟩□
-                ∥ (∃ λ n → now x ≲ s [ n ]) ∥  □
+       { pe = λ n →
+                never ≲ s [ n ]  ↔⟨ ≡⇒↝ bijection $ never≲ ⟩
+                ↑ _ ⊤            ↔⟨ ≡⇒↝ bijection $ sym never≲ ⟩□
+                never ≲ ⨆ s      □
+       ; po = λ x n →
+                now x ≲ s [ n ]                ↝⟨ ∣_∣ ∘ (n ,_) ⟩
+                ∥ (∃ λ n → now x ≲ s [ n ]) ∥  ↔⟨ ≡⇒↝ bijection $ sym now≲⨆ ⟩□
+                now x ≲ ⨆ s                    □
        ; pl = λ s′ →
-                (∀ m n → s′ [ m ] ≲ s [ n ] → s′ [ m ] ≲ ⨆ s)  ↝⟨ (λ hyp n s′≲s m → hyp m n (s′≲s m)) ⟩□
+                (∀ m n → s′ [ m ] ≲ s [ n ] → s′ [ m ] ≲ ⨆ s)  ↝⟨ (λ hyp n s′≲s m → hyp m n (s′≲s m)) ⟩
+
                 (∀ n → (∀ m → s′ [ m ] ≲ s [ n ]) →
-                       (∀ m → s′ [ m ] ≲ ⨆ s))                 □
+                       (∀ m → s′ [ m ] ≲ ⨆ s))                 ↔⟨ Eq.∀-preserves ext (λ _ →
+                                                                    ≡⇒↝ _ $ sym $ cong₂ (λ x y → x → y) ⨆≲ ⨆≲) ⟩□
+                (∀ n → ⨆ s′ ≲ s [ n ] → ⨆ s′ ≲ ⨆ s)            □
        ; pp = λ x → Π-closure ext 1 λ _ →
                     Π-closure ext 1 λ _ →
                     ≲-propositional x (⨆ s)
@@ -203,9 +229,12 @@ private
   now-lemma x y = ⊥-rec-⊥
     {P = λ y → now x ≲ y → now x ⊑ y}
     (record
-       { pe = Prelude.⊥      ↝⟨ ⊥-elim ⟩□
+       { pe = now x ≲ never  ↔⟨ ≡⇒↝ bijection now≲never ⟩
+              Prelude.⊥      ↝⟨ ⊥-elim ⟩□
               now x ⊑ never  □
        ; po = λ y →
+                now x ≲ now y    ↔⟨ ≡⇒↝ bijection now≲now ⟩
+
                 ∥ x ≡ y ∥        ↝⟨ Trunc.rec ⊑-propositional (
 
                   x ≡ y               ↝⟨ cong now ⟩
@@ -214,6 +243,8 @@ private
 
                 now x ⊑ now y    □
        ; pl = λ s now-x≲s→now-x⊑s →
+                now x ≲ ⨆ s                    ↔⟨ ≡⇒↝ bijection now≲⨆ ⟩
+
                 ∥ ∃ (λ n → now x ≲ s [ n ]) ∥  ↝⟨ Trunc.rec ⊑-propositional (uncurry λ n now-x≲s[n] →
 
                   now x                             ⊑⟨ now-x≲s→now-x⊑s n now-x≲s[n] ⟩
@@ -231,6 +262,7 @@ private
     { pe = λ y _ → never⊑ y
     ; po = now-lemma
     ; pl = λ s s≲→s⊑ y →
+             ⨆ s ≲ y              ↔⟨ ≡⇒↝ bijection ⨆≲ ⟩
              (∀ n → s [ n ] ≲ y)  ↝⟨ (λ s[_]≲y n → s≲→s⊑ n y s[ n ]≲y) ⟩
              (∀ n → s [ n ] ⊑ y)  ↝⟨ least-upper-bound s y ⟩□
              ⨆ s ⊑ y              □
@@ -251,7 +283,8 @@ private
 now⋢never : (x : A) → ¬ now x ⊑ never
 now⋢never x =
   now x ⊑ never  ↔⟨ ⊑≃≲ ⟩
-  now x ≲ never  ↝⟨ ⊥-elim ⟩□
+  now x ≲ never  ↔⟨ ≡⇒↝ bijection now≲never ⟩
+  Prelude.⊥      ↝⟨ ⊥-elim ⟩□
   ⊥₀             □
 
 -- Defined values of the form now x are never equal to never.
@@ -269,7 +302,7 @@ now≢never x =
 now⊑now≃∥≡∥ : {x y : A} → (now x ⊑ now y) ≃ ∥ x ≡ y ∥
 now⊑now≃∥≡∥ {x} {y} =
   now x ⊑ now y  ↝⟨ ⊑≃≲ ⟩
-  now x ≲ now y  ↝⟨ F.id ⟩□
+  now x ≲ now y  ↔⟨ ≡⇒↝ bijection now≲now ⟩□
   ∥ x ≡ y ∥      □
 
 -- There is an equivalence between "now x is equal to now y" and "x
@@ -335,7 +368,7 @@ larger-terminate-with-same-value = ⊑-rec-⊑
      ; ql = λ s ub _ q qu x →
          ⨆ s ⇓ x                                                  ↔⟨ inverse equality-characterisation-⊥ ⟩
          ⨆ s ⊑ now x × ⨆ s ⊒ now x                                ↔⟨ ⊑≃≲ ×-cong ⊑≃≲ ⟩
-         ⨆ s ≲ now x × now x ≲ ⨆ s                                ↝⟨ id ⟩
+         ⨆ s ≲ now x × now x ≲ ⨆ s                                ↔⟨ ≡⇒↝ bijection ⨆≲ ×-cong ≡⇒↝ bijection now≲⨆ ⟩
          (∀ n → s [ n ] ≲ now x) × ∥ ∃ (λ n → now x ≲ s [ n ]) ∥  ↝⟨ (uncurry λ all → ∥∥-map (Σ-map id (λ {n} →
 
            now x ≲ s [ n ]                                             ↝⟨ (λ now-x≲s[n] → now-x≲s[n] , all n) ⟩
@@ -440,7 +473,7 @@ terminating-element-is-⨆ s {n} {x} =
   (⨆ s ⇓ x) ≃ ∥ ∃ (λ n → s [ n ] ⇓ x) ∥
 ⨆⇓≃∥∃⇓∥ s {x} =
   ⨆ s ⇓ x                        ↝⟨ ⇓≃now≲ ⟩
-  now x ≲ ⨆ s                    ↝⟨ F.id ⟩
+  now x ≲ ⨆ s                    ↔⟨ ≡⇒↝ bijection now≲⨆ ⟩
   ∥ ∃ (λ n → now x ≲ s [ n ]) ∥  ↝⟨ ∥∥-cong (∃-cong λ _ → inverse ⇓≃now≲) ⟩□
   ∥ ∃ (λ n → s [ n ] ⇓ x) ∥      □
 
@@ -480,9 +513,10 @@ now-or-never x = run (map (⊎-map id ¬⇓→⇑) excluded-middle)
   ∀ {ℓ} {P : A → Set ℓ} →
   □ P never
 □-never {P = P} y =
-  never ⇓ y  ↔⟨ ⇓≃now≲ ⟩
-  Prelude.⊥  ↝⟨ ⊥-elim ⟩□
-  P y        □
+  never ⇓ y      ↔⟨ ⇓≃now≲ ⟩
+  now y ≲ never  ↔⟨ ≡⇒↝ bijection now≲never ⟩
+  Prelude.⊥      ↝⟨ ⊥-elim ⟩□
+  P y            □
 
 □-now :
   ∀ {ℓ} {P : A → Set ℓ} {x} →
@@ -504,6 +538,7 @@ now-or-never x = run (map (⊎-map id ¬⇓→⇑) excluded-middle)
   ∀ {s} → (∀ n → □ P (s [ n ])) → □ P (⨆ s)
 □-⨆ {P = P} P-prop {s} p y =
   ⨆ s ⇓ y                        ↔⟨ ⇓≃now≲ ⟩
+  now y ≲ ⨆ s                    ↔⟨ ≡⇒↝ bijection now≲⨆ ⟩
   ∥ ∃ (λ n → now y ≲ s [ n ]) ∥  ↔⟨ ∥∥-cong (∃-cong λ _ → inverse ⇓≃now≲) ⟩
   ∥ ∃ (λ n → s [ n ] ⇓ y) ∥      ↝⟨ Trunc.rec (P-prop y) (uncurry λ n s[n]⇓y → p n y s[n]⇓y) ⟩□
   P y                            □

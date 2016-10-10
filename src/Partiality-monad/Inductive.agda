@@ -2,10 +2,10 @@
 -- A higher inductive-inductive definition of the partiality monad
 ------------------------------------------------------------------------
 
--- Note that this module is experimental: it uses rewrite rules to
--- encode a higher inductive-inductive type.
+-- Note that this module is experimental: it uses postulates to encode
+-- a higher inductive-inductive type.
 
-{-# OPTIONS --without-K --rewriting #-}
+{-# OPTIONS --without-K #-}
 
 module Partiality-monad.Inductive {a} where
 
@@ -143,52 +143,10 @@ module _ {p q} {A : Set a}
                       , (λ n → ⊑-rec (inc n))
                       )
 
-  -- Computation rules for _⊥.
-  --
-  -- NOTE: Rewriting has not been activated for the "computation" rule
-  -- corresponding to antisymmetry, and there is no computation rule
-  -- corresponding to ≡-proof-irrelevant.
+  -- Some "computation" rules.
 
   postulate
 
     ⊥-rec-never : ⊥-rec never ≡ pe
     ⊥-rec-now   : ∀ x → ⊥-rec (now x) ≡ po x
     ⊥-rec-⨆     : ∀ s → ⊥-rec (⨆ s) ≡ pl s (inc-rec s)
-    ⊥-rec-antisymmetry :
-      ∀ {x y} (x⊑y : x ⊑ y) (x⊒y : x ⊒ y) →
-      dependent-cong ⊥-rec (antisymmetry x⊑y x⊒y) ≡
-      pa x⊑y x⊒y (⊥-rec x) (⊥-rec y) (⊑-rec x⊑y) (⊑-rec x⊒y)
-
-  {-# REWRITE ⊥-rec-never #-}
-  {-# REWRITE ⊥-rec-now   #-}
-  {-# REWRITE ⊥-rec-⨆     #-}
-
-  -- Computation rules for _⊑_.
-  --
-  -- NOTE: There is no computation rule corresponding to
-  -- ⊑-proof-irrelevant.
-
-  postulate
-
-    ⊑-rec-⊑-refl            : ∀ x → ⊑-rec (⊑-refl x) ≡ qr x (⊥-rec x)
-    ⊑-rec-⊑-trans           : ∀ {x y z} (x⊑y : x ⊑ y) (y⊑z : y ⊑ z) →
-                              ⊑-rec (⊑-trans x⊑y y⊑z) ≡
-                              qt x⊑y y⊑z
-                                 (⊥-rec x) (⊥-rec y) (⊥-rec z)
-                                 (⊑-rec x⊑y) (⊑-rec y⊑z)
-    ⊑-rec-never⊑            : ∀ x → ⊑-rec (never⊑ x) ≡ qe x (⊥-rec x)
-    ⊑-rec-upper-bound       : ∀ s n →
-                              ⊑-rec (upper-bound s n) ≡
-                              qu s (inc-rec s) n
-    ⊑-rec-least-upper-bound : ∀ s ub is-ub →
-                              ⊑-rec (least-upper-bound s ub is-ub) ≡
-                              ql s ub is-ub
-                                 (inc-rec s)
-                                 (⊥-rec ub)
-                                 (λ n → ⊑-rec (is-ub n))
-
-  {-# REWRITE ⊑-rec-⊑-refl            #-}
-  {-# REWRITE ⊑-rec-⊑-trans           #-}
-  {-# REWRITE ⊑-rec-never⊑            #-}
-  {-# REWRITE ⊑-rec-upper-bound       #-}
-  {-# REWRITE ⊑-rec-least-upper-bound #-}

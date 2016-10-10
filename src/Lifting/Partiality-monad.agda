@@ -3,7 +3,7 @@
 -- based on the lifting construction in Lifting
 ------------------------------------------------------------------------
 
-{-# OPTIONS --without-K --rewriting #-}
+{-# OPTIONS --without-K #-}
 
 open import Prelude hiding (⊥)
 
@@ -93,18 +93,32 @@ private
       ; from = IE.⊥-rec-nd argsI
       }
     ; right-inverse-of = IE.⊥-rec-⊥ (record
-        { pe = refl
-        ; po = λ _ → refl
+        { pe = L.⊥-rec argsL (IE.⊥-rec-nd argsI I.never)  ≡⟨ cong (L.⊥-rec argsL) (IE.⊥-rec-nd-never argsI) ⟩
+               L.⊥-rec argsL L.never                      ≡⟨ L.⊥-rec-never _ ⟩∎
+               I.never                                    ∎
+        ; po = λ x →
+                 L.⊥-rec argsL (IE.⊥-rec-nd argsI (I.now x))  ≡⟨ cong (L.⊥-rec argsL) (IE.⊥-rec-nd-now argsI _) ⟩
+                 L.⊥-rec argsL (L.now x)                      ≡⟨ L.⊥-rec-now _ _ ⟩∎
+                 I.now x ∎
         ; pl = λ s ih →
+                 L.⊥-rec argsL (IE.⊥-rec-nd argsI (I.⨆ s))      ≡⟨ cong (L.⊥-rec argsL) (IE.⊥-rec-nd-⨆ argsI _) ⟩
+                 L.⊥-rec argsL (L.⨆ (IE.inc-rec-nd argsI s))    ≡⟨ L.⊥-rec-⨆ _ _ ⟩
                  I.⨆ (L.inc-rec argsL (IE.inc-rec-nd argsI s))  ≡⟨ cong I.⨆ $ _↔_.to IP.equality-characterisation-increasing ih ⟩∎
                  I.⨆ s                                          ∎
         ; pp = λ _ → IP.⊥-is-set _ _
         })
     }
   ; left-inverse-of = L.⊥-rec {Q = λ _ _ _ → ⊤} (record
-      { pe = refl
-      ; po = λ _ → refl
+      { pe = IE.⊥-rec-nd argsI (L.⊥-rec argsL L.never)  ≡⟨ cong (IE.⊥-rec-nd argsI) (L.⊥-rec-never _) ⟩
+             IE.⊥-rec-nd argsI I.never                  ≡⟨ IE.⊥-rec-nd-never argsI ⟩∎
+             L.never                                    ∎
+      ; po = λ x →
+               IE.⊥-rec-nd argsI (L.⊥-rec argsL (L.now x))  ≡⟨ cong (IE.⊥-rec-nd argsI) (L.⊥-rec-now _ _) ⟩
+               IE.⊥-rec-nd argsI (I.now x)                  ≡⟨ IE.⊥-rec-nd-now argsI _ ⟩∎
+               L.now x                                      ∎
       ; pl = λ s ih →
+                 IE.⊥-rec-nd argsI (L.⊥-rec argsL (L.⨆ s))      ≡⟨ cong (IE.⊥-rec-nd argsI) (L.⊥-rec-⨆ _ _) ⟩
+                 IE.⊥-rec-nd argsI (I.⨆ (L.inc-rec argsL s))    ≡⟨ IE.⊥-rec-nd-⨆ argsI _ ⟩
                  L.⨆ (IE.inc-rec-nd argsI (L.inc-rec argsL s))  ≡⟨ cong L.⨆ $ _↔_.to L.equality-characterisation-increasing (proj₁ ih) ⟩∎
                  L.⨆ s                                          ∎
       ; pa = λ _ _ _ _ _ _ →

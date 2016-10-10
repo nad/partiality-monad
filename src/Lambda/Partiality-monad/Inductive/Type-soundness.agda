@@ -2,7 +2,7 @@
 -- A type soundness result
 ------------------------------------------------------------------------
 
-{-# OPTIONS --without-K --rewriting #-}
+{-# OPTIONS --without-K #-}
 
 module Lambda.Partiality-monad.Inductive.Type-soundness where
 
@@ -90,8 +90,10 @@ module _ (univ : Univalence lzero) where
     ∙-wf : ∀ {σ τ f v} →
            WF-Value (σ ⇾ τ) f → WF-Value (force σ) v →
            ∀ n → □ (∥WF-MV∥ (force τ)) (run ((f ∙ v) n))
-    ∙-wf (ƛ t₁∈ ρ₁-wf) v₂-wf zero    = □-never univ
     ∙-wf (ƛ t₁∈ ρ₁-wf) v₂-wf (suc n) = ⟦⟧′-wf _ t₁∈ (snoc-wf ρ₁-wf v₂-wf) n
+    ∙-wf (ƛ t₁∈ ρ₁-wf) v₂-wf zero    =         $⟨ □-never univ ⟩
+      □ (∥WF-MV∥ _) never                      ↝⟨ ≡⇒↝ bijection $ cong (□ (∥WF-MV∥ _)) (sym never->>=) ⟩□
+      □ (∥WF-MV∥ _) (never >>= return ∘ just)  □
 
   type-soundness : ∀ {t : Tm 0} {σ} →
                    empty ⊢ t ∈ σ → ¬ ⟦ t ⟧ empty ≡ fail

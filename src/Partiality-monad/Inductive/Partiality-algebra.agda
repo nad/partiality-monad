@@ -2,7 +2,7 @@
 -- Partiality algebras
 ------------------------------------------------------------------------
 
-{-# OPTIONS --without-K --rewriting #-}
+{-# OPTIONS --without-K #-}
 
 -- The code below uses ideas and concepts from "Inductive types in
 -- homotopy type theory" by Awodey, Gambino and Sojakova, and
@@ -230,9 +230,9 @@ partiality-monad-initial {A = A} P = morphism , unique
   morphism = record
     { function     = E.⊥-rec-nd args
     ; monotone     = E.⊑-rec-nd args
-    ; strict       = refl
-    ; now-to-now   = λ _ → refl
-    ; ω-continuous = λ _ → refl
+    ; strict       = E.⊥-rec-nd-never args
+    ; now-to-now   = E.⊥-rec-nd-now args
+    ; ω-continuous = E.⊥-rec-nd-⨆ args
     }
 
   open Morphism
@@ -240,12 +240,18 @@ partiality-monad-initial {A = A} P = morphism , unique
   function-unique : (f : Morphism (Partiality-monad A) P) →
                     E.⊥-rec-nd args ≡ function f
   function-unique f = sym $ ext $ E.⊥-rec-⊥ (record
-    { pe = strict f
-    ; po = now-to-now f
+    { pe = function f I.never       ≡⟨ strict f ⟩
+           P.never                  ≡⟨ sym $ E.⊥-rec-nd-never args ⟩∎
+           E.⊥-rec-nd args I.never  ∎
+    ; po = λ x →
+             function f (I.now x)       ≡⟨ now-to-now f x ⟩
+             P.now x                    ≡⟨ sym $ E.⊥-rec-nd-now args x ⟩∎
+             E.⊥-rec-nd args (I.now x)  ∎
     ; pl = λ s hyp →
              function f (I.⨆ s)           ≡⟨ ω-continuous f s ⟩
-             P.⨆ (sequence-function f s)  ≡⟨ cong P.⨆ $ _↔_.to P.equality-characterisation-increasing hyp ⟩∎
-             P.⨆ (E.inc-rec-nd args s)    ∎
+             P.⨆ (sequence-function f s)  ≡⟨ cong P.⨆ $ _↔_.to P.equality-characterisation-increasing hyp ⟩
+             P.⨆ (E.inc-rec-nd args s)    ≡⟨ sym $ E.⊥-rec-nd-⨆ args s ⟩
+             E.⊥-rec-nd args (I.⨆ s) ∎
     ; pp = λ _ → P.Type-is-set _ _
     })
 
@@ -508,10 +514,7 @@ module Eliminator-for-initial-partiality-algebra
     inc-rec : ∀ s → Inc P Q s
     inc-rec (s , inc) = ⊥-rec ⊚ s , ⊑-rec ⊚ inc
 
-    -- The eliminators do not compute in the right way, but most of
-    -- the corresponding propositional equalities can be proved. (Some
-    -- of the computation rules were not type-correct, so casts have
-    -- been inserted.)
+    -- "Computation" rules.
 
     private
 
@@ -623,44 +626,3 @@ module Eliminator-for-initial-partiality-algebra
          pl s ( ⊥-rec ⊚ proj₁ s
               , ⊑-rec ⊚ proj₂ s
               )                                                     ∎
-
-    ⊥-rec-antisymmetry :
-      ∀ {x y} (x⊑y : x ⊑ y) (x⊒y : y ⊑ x) →
-      dependent-cong ⊥-rec (antisymmetry x⊑y x⊒y) ≡
-      pa x⊑y x⊒y (⊥-rec x) (⊥-rec y) (⊑-rec x⊑y) (⊑-rec x⊒y)
-    ⊥-rec-antisymmetry _ _ = pp _ _
-
-    ⊑-rec-⊑-refl : ∀ x → ⊑-rec (⊑-refl x) ≡ qr x (⊥-rec x)
-    ⊑-rec-⊑-refl _ = qp _ _ _ _ _
-
-    ⊑-rec-⊑-trans :
-      ∀ {x y z} (x⊑y : x ⊑ y) (y⊑z : y ⊑ z) →
-      ⊑-rec (⊑-trans x⊑y y⊑z) ≡
-      qt x⊑y y⊑z
-         (⊥-rec x) (⊥-rec y) (⊥-rec z)
-         (⊑-rec x⊑y) (⊑-rec y⊑z)
-    ⊑-rec-⊑-trans _ _ = qp _ _ _ _ _
-
-    ⊑-rec-never⊑ :
-      ∀ x →
-      subst (λ p → Q p (⊥-rec x) _) ⊥-rec-never (⊑-rec (never⊑ x)) ≡
-      qe x (⊥-rec x)
-    ⊑-rec-never⊑ _ = qp _ _ _ _ _
-
-    ⊑-rec-upper-bound :
-      ∀ s n →
-      subst (λ p → Q (⊥-rec (s [ n ])) p (upper-bound s n))
-            (⊥-rec-⨆ s)
-            (⊑-rec (upper-bound s n)) ≡
-      qu s (inc-rec s) n
-    ⊑-rec-upper-bound _ _ = qp _ _ _ _ _
-
-    ⊑-rec-least-upper-bound :
-      ∀ s ub is-ub →
-      subst (λ x → Q x _ _) (⊥-rec-⨆ s)
-            (⊑-rec (least-upper-bound s ub is-ub)) ≡
-      ql s ub is-ub
-         (inc-rec s)
-         (⊥-rec ub)
-         (λ n → ⊑-rec (is-ub n))
-    ⊑-rec-least-upper-bound _ _ _ = qp _ _ _ _ _

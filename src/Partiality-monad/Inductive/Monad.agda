@@ -2,7 +2,7 @@
 -- The partiality monad's monad instance
 ------------------------------------------------------------------------
 
-{-# OPTIONS --without-K --rewriting #-}
+{-# OPTIONS --without-K #-}
 
 module Partiality-monad.Inductive.Monad where
 
@@ -24,6 +24,7 @@ open import Univalence-axiom equality-with-J
 open import Partiality-monad.Inductive
 import Partiality-monad.Inductive.Alternative-order as Alternative-order
 open import Partiality-monad.Inductive.Eliminators
+open import Partiality-monad.Inductive.Monotone
 open import Partiality-monad.Inductive.Omega-continuous
 open import Partiality-monad.Inductive.Properties
 
@@ -33,32 +34,37 @@ open import Partiality-monad.Inductive.Properties
 -- Functions of type A → B ⊥ can be lifted to /ω-continuous/ functions
 -- from A ⊥ to B ⊥.
 
-module _ {a b} {A : Set a} {B : Set b} (f : A → B ⊥) where
+private
 
-  private
+  =<<-args : ∀ {a b} {A : Set a} {B : Set b}
+             (f : A → B ⊥) → Rec-args-nd A (B ⊥) _⊑_
+  =<<-args f = record
+    { pe = never
+    ; po = f
+    ; pl = λ _ → ⨆
+    ; pa = λ _ _ → antisymmetry
+    ; ps = ⊥-is-set
+    ; qr = λ _ → ⊑-refl
+    ; qt = λ _ _ _ _ _ → ⊑-trans
+    ; qe = λ _ → never⊑
+    ; qu = λ _ → upper-bound
+    ; ql = λ _ _ _ → least-upper-bound
+    ; qp = λ _ _ → ⊑-propositional
+    }
 
-    =<<-args : Rec-args-nd A (B ⊥) _⊑_
-    =<<-args = record
-      { pe = never
-      ; po = f
-      ; pl = λ _ → ⨆
-      ; pa = λ _ _ → antisymmetry
-      ; ps = ⊥-is-set
-      ; qr = λ _ → ⊑-refl
-      ; qt = λ _ _ _ _ _ → ⊑-trans
-      ; qe = λ _ → never⊑
-      ; qu = λ _ → upper-bound
-      ; ql = λ _ _ _ → least-upper-bound
-      ; qp = λ _ _ → ⊑-propositional
-      }
+infix 50 _∗ _∗-inc_
 
-  infix 50 _∗ _∗-inc_
+_∗ : ∀ {a b} {A : Set a} {B : Set b} →
+     (A → B ⊥) → [ A ⊥→ B ⊥]
+f ∗ =
+    (⊥-rec-nd (=<<-args f) , ⊑-rec-nd (=<<-args f))
+  , λ s →
+      ⊥-rec-nd (=<<-args f) (⨆ s)    ≡⟨ ⊥-rec-nd-⨆ (=<<-args f) s ⟩∎
+      ⨆ (inc-rec-nd (=<<-args f) s)  ∎
 
-  _∗ : [ A ⊥→ B ⊥]
-  _∗ = (⊥-rec-nd =<<-args , ⊑-rec-nd =<<-args) , λ _ → refl
-
-  _∗-inc_ : Increasing-sequence A → Increasing-sequence B
-  _∗-inc_ = inc-rec-nd =<<-args
+_∗-inc_ : ∀ {a b} {A : Set a} {B : Set b} →
+          (A → B ⊥) → Increasing-sequence A → Increasing-sequence B
+_∗-inc_ f = inc-rec-nd (=<<-args f)
 
 -- A universe-polymorphic variant of bind.
 
@@ -67,6 +73,20 @@ infixl 5 _>>=′_
 _>>=′_ : ∀ {a b} {A : Set a} {B : Set b} →
          A ⊥ → (A → B ⊥) → B ⊥
 x >>=′ f = proj₁ (proj₁ (f ∗)) x
+
+-- "Computation" rules.
+
+never->>= : ∀ {a b} {A : Set a} {B : Set b} {f : A → B ⊥} →
+            never >>=′ f ≡ never
+never->>= = ⊥-rec-nd-never (=<<-args _)
+
+now->>= : ∀ {a b} {A : Set a} {B : Set b} {f : A → B ⊥} {x} →
+          now x >>=′ f ≡ f x
+now->>= = ⊥-rec-nd-now (=<<-args _) _
+
+⨆->>= : ∀ {a b} {A : Set a} {B : Set b} {f : A → B ⊥} {s} →
+        ⨆ s >>=′ f ≡ ⨆ (f ∗-inc s)
+⨆->>= = ⊥-rec-nd-⨆ (=<<-args _) _
 
 -- Bind is monotone.
 
@@ -78,12 +98,18 @@ _>>=-mono_ :
 _>>=-mono_ {x = x} {y} {f} {g} x⊑y f⊑g =
   x >>=′ f ⊑⟨ proj₂ (proj₁ (f ∗)) x⊑y ⟩
   y >>=′ f ⊑⟨ ⊥-rec-⊥ {P = λ y → y >>=′ f ⊑ y >>=′ g} (record
-                { pe = never⊑ never
-                ; po = f⊑g
+                { pe = never >>=′ f  ⊑⟨ never->>= ⟩≡
+                       never         ⊑⟨ never⊑ _ ⟩■
+                       never >>=′ g  ■
+                ; po = λ x →
+                         now x >>=′ f  ⊑⟨ now->>= ⟩≡
+                         f x           ⊑⟨ f⊑g x ⟩
+                         g x           ⊑⟨ sym now->>= ⟩≡
+                         now x >>=′ g  ■
                 ; pl = λ s ih →
-                         ⨆ s >>=′ f     ⊑⟨⟩
+                         ⨆ s >>=′ f     ⊑⟨ ⨆->>= ⟩≡
                          ⨆ (f ∗-inc s)  ⊑⟨ ⨆-mono ih ⟩
-                         ⨆ (g ∗-inc s)  ⊑⟨⟩
+                         ⨆ (g ∗-inc s)  ⊑⟨ sym ⨆->>= ⟩≡
                          ⨆ s >>=′ g     ■
                 ; pp = λ _ → ⊑-propositional
                 })
@@ -96,16 +122,19 @@ module Monad-laws where
 
   left-identity : ∀ {a b} {A : Set a} {B : Set b} x (f : A → B ⊥) →
                   now x >>=′ f ≡ f x
-  left-identity x f = refl
+  left-identity _ _ = now->>=
 
   right-identity : ∀ {a} {A : Set a} (x : A ⊥) →
                    x >>=′ now ≡ x
   right-identity = ⊥-rec-⊥
     (record
-       { pe = refl
-       ; po = λ _ → refl
+       { pe = never >>=′ now  ≡⟨ never->>= ⟩∎
+              never           ∎
+       ; po = λ x →
+                now x >>=′ now  ≡⟨ now->>= ⟩∎
+                now x           ∎
        ; pl = λ s hyp →
-                ⨆ s >>=′ now        ≡⟨⟩
+                ⨆ s >>=′ now        ≡⟨ ⨆->>= ⟩
                 ⨆ (now ∗-inc s)     ≡⟨ cong ⨆ (_↔_.to equality-characterisation-increasing λ n →
 
                   s [ n ] >>=′ now       ≡⟨ hyp n ⟩∎
@@ -120,15 +149,24 @@ module Monad-laws where
                   x >>=′ (λ x → f x >>=′ g) ≡ x >>=′ f >>=′ g
   associativity x f g = ⊥-rec-⊥
     (record
-       { pe = refl
-       ; po = λ _ → refl
+       { pe = (never >>=′ λ x → f x >>=′ g)  ≡⟨ never->>= ⟩
+              never                          ≡⟨ sym never->>= ⟩
+              never >>=′ g                   ≡⟨ cong (_>>=′ g) $ sym never->>= ⟩∎
+              never >>=′ f >>=′ g            ∎
+       ; po = λ x →
+                (now x >>=′ λ x → f x >>=′ g)  ≡⟨ now->>= ⟩
+                f x >>=′ g                     ≡⟨ cong (_>>=′ g) $ sym now->>= ⟩∎
+                now x >>=′ f >>=′ g            ∎
        ; pl = λ s hyp →
+                (⨆ s >>=′ λ x → f x >>=′ g)        ≡⟨ ⨆->>= ⟩
                 ⨆ ((λ x → f x >>=′ g) ∗-inc s)     ≡⟨ cong ⨆ (_↔_.to equality-characterisation-increasing λ n →
 
                   s [ n ] >>=′ (λ x → f x >>=′ g)       ≡⟨ hyp n ⟩∎
-                  s [ n ] >>=′ f >>=′ g                 ∎) ⟩∎
+                  s [ n ] >>=′ f >>=′ g                 ∎) ⟩
 
-                ⨆ (g ∗-inc (f ∗-inc s))            ∎
+                ⨆ (g ∗-inc (f ∗-inc s))            ≡⟨ sym ⨆->>= ⟩
+                ⨆ (f ∗-inc s) >>=′ g               ≡⟨ cong (_>>=′ g) (sym ⨆->>=) ⟩∎
+                ⨆ s >>=′ f >>=′ g                  ∎
        ; pp = λ _ → ⊥-is-set _ _
        })
     x
@@ -169,7 +207,7 @@ map-∘ : ∀ {a b c} {A : Set a} {B : Set b} {C : Set c}
 map-∘ f g =
   (now ∘ f ∘ g) ∗                ≡⟨ _↔_.to equality-characterisation-continuous (λ x →
 
-    x >>=′ (now ∘ f ∘ g)                     ≡⟨⟩
+    x >>=′ (now ∘ f ∘ g)                     ≡⟨ cong (x >>=′_) (ext λ _ → sym now->>=) ⟩
     x >>=′ (λ x → now (g x) >>=′ (now ∘ f))  ≡⟨ Monad-laws.associativity x (now ∘ g) (now ∘ f) ⟩∎
     x >>=′ (now ∘ g) >>=′ (now ∘ f)          ∎) ⟩∎
 
@@ -189,14 +227,17 @@ map-∘ f g =
 >>=-⇓ {x = x} {f} {y} univ-a univ-b = ⊥-rec-⊥
   {P = λ x → (x >>=′ f ⇓ y) ≃ ∥ ∃ (λ z → x ⇓ z × f z ⇓ y) ∥}
   (record
-     { pe = never ⇓ y                          ↝⟨ ⇓≃now≲ ⟩
-            Prelude.⊥                          ↔⟨ inverse (not-inhabited⇒∥∥↔⊥ id) ⟩
-            ∥ Prelude.⊥ ∥                      ↔⟨ ∥∥-cong (inverse ×-right-zero) ⟩
-            ∥ ∃ (λ z → ⊥₀) ∥                   ↔⟨ ∥∥-cong (∃-cong (λ _ → inverse ×-left-zero)) ⟩
-            ∥ ∃ (λ z → Prelude.⊥ × f z ⇓ y) ∥  ↝⟨ ∥∥-cong (∃-cong (λ _ → inverse (Alternative-order.⇓≃now≲ univ-a) ×-cong F.id)) ⟩□
-            ∥ ∃ (λ z → never ⇓ z × f z ⇓ y) ∥  □
+     { pe = never >>=′ f ⇓ y                         ↔⟨ ≡⇒↝ bijection (cong (_⇓ y) never->>=) ⟩
+            never ⇓ y                                ↝⟨ B.⇓≃now≲ ⟩
+            now y B.≲ never                          ↔⟨ ≡⇒↝ bijection B.now≲never ⟩
+            Prelude.⊥                                ↔⟨ inverse (not-inhabited⇒∥∥↔⊥ id) ⟩
+            ∥ Prelude.⊥ ∥                            ↔⟨ ∥∥-cong (inverse ×-right-zero) ⟩
+            ∥ ∃ (λ z → ⊥₀) ∥                         ↔⟨ ∥∥-cong (∃-cong (λ _ → inverse ×-left-zero)) ⟩
+            ∥ ∃ (λ z → Prelude.⊥       × f z ⇓ y) ∥  ↝⟨ ∥∥-cong (∃-cong (λ _ → ≡⇒↝ _ (sym A.now≲never) ×-cong F.id)) ⟩
+            ∥ ∃ (λ z → now z A.≲ never × f z ⇓ y) ∥  ↔⟨ ∥∥-cong (∃-cong (λ _ → inverse (Alternative-order.⇓≃now≲ univ-a) ×-cong F.id)) ⟩□
+            ∥ ∃ (λ z → never ⇓ z       × f z ⇓ y) ∥  □
      ; po = λ x →
-              now x >>=′ f ⇓ y                                   ↝⟨ F.id ⟩
+              now x >>=′ f ⇓ y                                   ↔⟨ ≡⇒↝ bijection (cong (_⇓ y) now->>=) ⟩
               f x ⇓ y                                            ↔⟨ inverse (∥∥↔ (⊥-is-set _ _)) ⟩
               ∥ f x ⇓ y ∥                                        ↔⟨ ∥∥-cong (inverse $ drop-⊤-left-Σ $ inverse $
                                                                       _⇔_.to contractible⇔⊤↔ (singleton-contractible _)) ⟩
@@ -205,13 +246,12 @@ map-∘ f g =
                                                                       (λ F → ∃ (λ _ → F (_ ≡ _) × _))
                                                                       (λ f → Σ-map id (Σ-map f id))
                                                                       (λ { (x , y , z) → ∥∥-map ((x ,_) ∘ (_, z)) y }) ⟩
-              ∥ ∃ (λ z → ∥ z ≡ x ∥ × f z ⇓ y) ∥                  ↝⟨ ∥∥-cong (∃-cong λ _ → inverse (Alternative-order.⇓≃now≲ univ-a)
-                                                                                            ×-cong
-                                                                                          F.id) ⟩□
-              ∥ ∃ (λ z → now x ⇓ z × f z ⇓ y) ∥                  □
+              ∥ ∃ (λ z → ∥ z ≡ x ∥       × f z ⇓ y) ∥            ↝⟨ ∥∥-cong (∃-cong λ _ → ≡⇒↝ _ (sym A.now≲now) ×-cong F.id) ⟩
+              ∥ ∃ (λ z → now z A.≲ now x × f z ⇓ y) ∥            ↝⟨ ∥∥-cong (∃-cong λ _ → inverse A.⇓≃now≲ ×-cong F.id) ⟩□
+              ∥ ∃ (λ z → now x ⇓ z       × f z ⇓ y) ∥            □
      ; pl = λ s ih →
-              ⨆ s >>=′ f ⇓ y                                     ↝⟨ F.id ⟩
-              ⨆ (f ∗-inc s) ⇓ y                                  ↝⟨ ⨆⇓≃∥∃⇓∥ _ ⟩
+              ⨆ s >>=′ f ⇓ y                                     ↔⟨ ≡⇒↝ bijection (cong (_⇓ y) ⨆->>=) ⟩
+              ⨆ (f ∗-inc s) ⇓ y                                  ↝⟨ B.⨆⇓≃∥∃⇓∥ _ ⟩
               ∥ (∃ λ n → s [ n ] >>=′ f ⇓ y) ∥                   ↝⟨ ∥∥-cong (∃-cong ih) ⟩
               ∥ (∃ λ n → ∥ ∃ (λ z → s [ n ] ⇓ z × f z ⇓ y) ∥) ∥  ↔⟨ Trunc.flatten′ (λ F → ∃ λ _ → F (∃ λ _ → _ × _))
                                                                                    (λ f → Σ-map id f)
@@ -222,16 +262,14 @@ map-∘ f g =
                                                                       (λ F → (∃ λ _ → F (∃ λ _ → _ ⇓ _) × _))
                                                                       (λ f → Σ-map id (Σ-map f id))
                                                                       (λ { (x , y , z) → ∥∥-map ((x ,_) ∘ (_, z)) y }) ⟩
-              ∥ (∃ λ z → ∥ (∃ λ n → s [ n ] ⇓ z) ∥ × f z ⇓ y) ∥  ↝⟨ ∥∥-cong (∃-cong λ _ →
-                                                                               inverse (Alternative-order.⨆⇓≃∥∃⇓∥ univ-a _)
-                                                                                 ×-cong
-                                                                               F.id) ⟩□
+              ∥ (∃ λ z → ∥ (∃ λ n → s [ n ] ⇓ z) ∥ × f z ⇓ y) ∥  ↝⟨ ∥∥-cong (∃-cong λ _ → inverse (A.⨆⇓≃∥∃⇓∥ _) ×-cong F.id) ⟩□
               ∥ ∃ (λ z → ⨆ s ⇓ z × f z ⇓ y) ∥                    □
      ; pp = λ _ → Eq.right-closure ext 0 truncation-is-proposition
      })
   x
   where
-  open Alternative-order univ-b
+  module A = Alternative-order univ-a
+  module B = Alternative-order univ-b
 
 -- □ is closed, in a certain sense, under bind (assuming univalence).
 
@@ -259,7 +297,7 @@ map-∘ f g =
        ∥∥-map (λ { (z , fy⇓z , Qz) →
                      z
                    , (x >>=′ f      ≡⟨ cong (_>>=′ f) x⇓y ⟩
-                      now y >>=′ f  ≡⟨⟩
+                      now y >>=′ f  ≡⟨ now->>= ⟩
                       f y           ≡⟨ fy⇓z ⟩∎
                       now z         ∎)
                    , Qz

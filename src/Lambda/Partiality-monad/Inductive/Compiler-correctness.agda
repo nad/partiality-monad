@@ -2,7 +2,7 @@
 -- Compiler correctness
 ------------------------------------------------------------------------
 
-{-# OPTIONS --without-K --rewriting #-}
+{-# OPTIONS --without-K #-}
 
 module Lambda.Partiality-monad.Inductive.Compiler-correctness where
 
@@ -41,19 +41,19 @@ mutual
   ⟦⟧-correct (con i) {ρ} {c} {s} {k} hyp =
     steps ⟨ con i ∷ c , s , comp-env ρ ⟩                     ≳⟨ step⇓ ⟩
     steps ⟨ c , val (comp-val (T.con i)) ∷ s , comp-env ρ ⟩  ≳⟨ hyp (T.con i) ⟩
-    (λ n → run (k n (T.con i)))                              ≳⟨⟩
+    (λ n → run (k n (T.con i)))                              ≳⟨ sym now->>= ⟩≡
     (λ n → run (⟦ con i ⟧′ ρ n >>= k n))                     ∎≳
 
   ⟦⟧-correct (var x) {ρ} {c} {s} {k} hyp =
     steps ⟨ var x ∷ c , s , comp-env ρ ⟩                 ≳⟨ step⇓ ⟩
     steps ⟨ c , val (comp-val (ρ x)) ∷ s , comp-env ρ ⟩  ≳⟨ hyp (ρ x) ⟩
-    (λ n → run (k n (ρ x)))                              ≳⟨⟩
+    (λ n → run (k n (ρ x)))                              ≳⟨ sym now->>= ⟩≡
     (λ n → run (⟦ var x ⟧′ ρ n >>= k n))                 ∎≳
 
   ⟦⟧-correct (ƛ t) {ρ} {c} {s} {k} hyp =
     steps ⟨ clo (comp t (ret ∷ [])) ∷ c , s , comp-env ρ ⟩   ≳⟨ step⇓ ⟩
     steps ⟨ c , val (comp-val (T.ƛ t ρ)) ∷ s , comp-env ρ ⟩  ≳⟨ hyp (T.ƛ t ρ) ⟩
-    (λ n → run (k n (T.ƛ t ρ)))                              ≳⟨⟩
+    (λ n → run (k n (T.ƛ t ρ)))                              ≳⟨ sym now->>= ⟩≡
     (λ n → run (⟦ ƛ t ⟧′ ρ n >>= k n))                       ∎≳
 
   ⟦⟧-correct (t₁ · t₂) {ρ} {c} {s} {k} {n} hyp =
@@ -85,7 +85,7 @@ mutual
           , comp-env ρ
           ⟩                                        ≳⟨⟩
 
-    const (run fail)                               ≳⟨⟩
+    const (run fail)                               ≳⟨ sym now->>= ⟩≡
 
     (λ n → run ((T.con i ∙ v₂) n >>= k n))         ∎≳
 
@@ -93,11 +93,13 @@ mutual
     steps ⟨ app ∷ c
           , val (comp-val v₂) ∷ val (comp-val (T.ƛ t₁ ρ₁)) ∷ s
           , comp-env ρ
-          ⟩                                                     ≳⟨ refl ⟩≡
+          ⟩                                   ≳⟨ refl ⟩≡
 
-    const never                                                 ≳⟨ refl ⟩≡
+    const never                               ≳⟨ sym never->>= ⟩≡
 
-    (λ n → run ((T.ƛ t₁ ρ₁ ∙ v₂) n >>= k n))                    ∎≳
+    const (never >>= _)                       ≳⟨ cong (_>>= maybe (MaybeT.run ∘ k 0) (return nothing)) (sym never->>=) ⟩≡
+
+    (λ n → run ((T.ƛ t₁ ρ₁ ∙ v₂) n >>= k n))  ∎≳
 
   ∙-correct (T.ƛ t₁ ρ₁) v₂ {ρ} {c} {s} {k} {suc n} hyp = later (
     steps ⟨ app ∷ c
@@ -138,13 +140,18 @@ correct :
   wrap (exec ⟨ comp t [] , [] , empty ⟩) ≡
   (⟦ t ⟧ empty >>= λ v → return (comp-val v))
 correct t =
-  wrap (exec ⟨ comp t [] , [] , empty ⟩)                  ≡⟨ cong (λ ρ → wrap (exec ⟨ comp t [] , [] , ρ ⟩)) $ sym comp-empty ⟩
+  wrap (exec ⟨ comp t [] , [] , empty ⟩)                   ≡⟨ cong (λ ρ → wrap (exec ⟨ comp t [] , [] , ρ ⟩)) $ sym comp-empty ⟩
 
-  wrap (exec ⟨ comp t [] , [] , comp-env empty ⟩)         ≡⟨⟩
+  wrap (exec ⟨ comp t [] , [] , comp-env empty ⟩)          ≡⟨⟩
 
-  wrap (⨆ (stepsˢ ⟨ comp t [] , [] , comp-env empty ⟩))   ≡⟨ cong wrap (≳→⨆≡⨆ 0 $ ⟦⟧-correct t λ v →
-                                                                                    const (MaybeT.run (return (comp-val v))) ∎≳) ⟩
+  wrap (⨆ (stepsˢ ⟨ comp t [] , [] , comp-env empty ⟩))    ≡⟨ cong wrap (≳→⨆≡⨆ 0 $ ⟦⟧-correct t λ v →
+                                                                                     const (MaybeT.run (return (comp-val v))) ∎≳) ⟩
   wrap (⨆ (⟦ t ⟧ˢ empty >>=ˢ λ v →
-           constˢ (MaybeT.run (return (comp-val v)))))    ≡⟨ cong (λ s → wrap (⨆ s))
-                                                                  (_↔_.to equality-characterisation-increasing (λ _ → refl)) ⟩∎
-  (⟦ t ⟧ empty >>= λ v → return (comp-val v))             ∎
+           constˢ (MaybeT.run (return (comp-val v)))))     ≡⟨ cong (λ s → wrap (⨆ s))
+                                                                   (_↔_.to equality-characterisation-increasing (λ _ → refl)) ⟩
+  wrap (⨆ (maybe (λ v → MaybeT.run (return (comp-val v)))
+                 (return nothing)
+             ∗-inc
+           ⟦ t ⟧ˢ empty))                                  ≡⟨ cong wrap (sym ⨆->>=) ⟩∎
+
+  (⟦ t ⟧ empty >>= λ v → return (comp-val v))              ∎

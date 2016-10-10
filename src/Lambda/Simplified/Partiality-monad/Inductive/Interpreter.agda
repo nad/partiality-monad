@@ -2,7 +2,7 @@
 -- A definitional interpreter
 ------------------------------------------------------------------------
 
-{-# OPTIONS --without-K --rewriting #-}
+{-# OPTIONS --without-K #-}
 
 module Lambda.Simplified.Partiality-monad.Inductive.Interpreter where
 
@@ -163,23 +163,55 @@ interpreters-equal = λ t ρ →
   where
   open Interpreter₁
 
+  ω-empty = ƛ (var fzero · var fzero) empty
+
+  reduce-twice :
+    ∀ n → ⟦ Ω ⟧′ empty n ≡ (ω-empty ∙ ω-empty) n
+  reduce-twice n =
+    ⟦ Ω ⟧′ empty n                                ≡⟨ now->>= ⟩
+    (⟦ ω ⟧′ empty n >>= λ v₂ → (ω-empty ∙ v₂) n)  ≡⟨ now->>= ⟩∎
+    (ω-empty ∙ ω-empty) n                         ∎
+
   lemma : ∀ n → ⟦ Ω ⟧′ empty n ⊑ never
-  lemma zero    = never⊑ never
-  lemma (suc n) = lemma n
+  lemma zero    =
+    ⟦ Ω ⟧′ empty zero         ⊑⟨ reduce-twice zero ⟩≡
+    (ω-empty ∙ ω-empty) zero  ⊑⟨⟩
+    never                     ■
+  lemma (suc n) =
+    ⟦ Ω ⟧′ empty (suc n)  ⊑⟨ reduce-twice (suc n) ⟩≡
+    ⟦ Ω ⟧′ empty n        ⊑⟨ lemma n ⟩■
+    never                 ■
 
 -- A direct proof for Interpreter₂.
 
 Ω-loops₂ : Interpreter₂.⟦ Ω ⟧ empty ≡ never
 Ω-loops₂ = antisymmetry (least-upper-bound _ _ lemma) (never⊑ _)
-  where
+  module Ω-loops₂ where
   open Interpreter₂
   open Trans-⊑
+  open Partial
+
+  ω-empty = ƛ (var fzero · var fzero) empty
+
+  reduce-twice :
+    ∀ f →
+    function eval f (_ , Ω , empty) ≡
+    f (_ , var fzero · var fzero , snoc empty ω-empty)
+  reduce-twice f =
+    function eval f (_ , Ω , empty)                     ≡⟨⟩
+    function (⟦ Ω ⟧′ empty) f                           ≡⟨ cong (_$ f) {x = function (⟦ Ω ⟧′ empty)}                (ext λ _ → now->>=) ⟩
+    function (⟦ ω ⟧′ empty >>= λ v₂ → ω-empty ∙ v₂) f   ≡⟨ cong (_$ f) {x = function (⟦ ω ⟧′ empty >>= ω-empty ∙_)} (ext λ _ → now->>=) ⟩
+    function (ω-empty ∙ ω-empty) f                      ≡⟨⟩
+    f (_ , var fzero · var fzero , snoc empty ω-empty)  ∎
 
   lemma : ∀ n → app→ (function eval) n (_ , Ω , empty) ⊑ never
-  lemma zero          = never⊑ never
-  lemma (suc zero)    = never⊑ never
+  lemma zero       = never⊑ never
+  lemma (suc zero) =
+    app→ (function eval) 1 (_ , Ω , empty)  ⊑⟨ reduce-twice _ ⟩≡
+    app→ (function eval) 0 (_ , Ω , empty)  ⊑⟨⟩
+    never                                   ■
   lemma (suc (suc n)) =
-    app→ (function eval) (suc (suc n)) (_ , Ω , empty)  ⊑⟨⟩
+    app→ (function eval) (suc (suc n)) (_ , Ω , empty)  ⊑⟨ reduce-twice _ ⟩≡
     app→ (function eval) (suc n) (_ , Ω , empty)        ⊑⟨ lemma (suc n) ⟩■
     never                                               ■
 
@@ -191,23 +223,33 @@ interpreters-equal = λ t ρ →
   where
   open Interpreter₂
   open Trans-⊑
+  open Partial
 
   lemma =
-    ⟦ Ω ⟧ empty                                 ⊑⟨⟩
-    fixP evalP (_ , Ω , empty)                  ⊑⟨ cong (_$ (_ , Ω , empty)) $
-                                                     fixP-is-fixpoint-combinator univ evalP ⟩≡
-    function eval (fixP evalP) (_ , Ω , empty)  ⊑⟨ fixP-induction₁
-                                                     (λ f → function eval f (_ , Ω , empty) ⊑ never)
-                                                     (never⊑ never)
-                                                     (λ s hyp →
-                                                        function eval (⨆ ∘ s) (_ , Ω , empty)  ⊑⟨ least-upper-bound _ _ hyp ⟩■
-                                                        never                                  ■)
-                                                     evalP
-                                                     (λ g hyp →
-                                                        function eval (function eval g) (_ , Ω , empty)  ⊑⟨⟩
-                                                        function eval g (_ , Ω , empty)                  ⊑⟨ hyp ⟩■
-                                                        never                                            ■) ⟩■
-    never                                       ■
+    ⟦ Ω ⟧ empty                                              ⊑⟨⟩
+
+    fixP evalP (_ , Ω , empty)                               ⊑⟨ cong (_$ (_ , Ω , empty)) $
+                                                                  fixP-is-fixpoint-combinator univ evalP ⟩≡
+    function eval (fixP evalP) (_ , Ω , empty)               ⊑⟨ fixP-induction₁
+                                                                  (λ f → function eval f (_ , Ω , empty) ⊑ never) (
+        function eval (const never) (_ , Ω , empty)                  ⊑⟨ Ω-loops₂.reduce-twice _ ⟩≡
+        never                                                        ■)
+                                                                  (λ s hyp →
+        function eval (⨆ ∘ s) (_ , Ω , empty)                        ⊑⟨ Ω-loops₂.reduce-twice _ ⟩≡
+        ⨆ (s _)                                                      ⊑⟨ least-upper-bound _ _ (λ n →
+
+            s _ [ n ]                                                     ⊑⟨ sym $ Ω-loops₂.reduce-twice _ ⟩≡
+            function eval (λ x → s x [ n ]) (_ , Ω , empty)               ⊑⟨ hyp n ⟩■
+            never                                                         ■) ⟩
+
+        never                                                        ■)
+                                                                  evalP
+                                                                  (λ g hyp →
+        function eval (function eval g) (_ , Ω , empty)              ⊑⟨ Ω-loops₂.reduce-twice _ ⟩≡
+        function eval g (_ , Ω , empty)                              ⊑⟨ hyp ⟩■
+        never                                                        ■) ⟩■
+
+    never                                                    ■
 
 ------------------------------------------------------------------------
 -- Setup

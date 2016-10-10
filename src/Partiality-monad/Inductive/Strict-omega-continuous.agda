@@ -2,7 +2,7 @@
 -- Strict ω-continuous functions
 ------------------------------------------------------------------------
 
-{-# OPTIONS --without-K --rewriting #-}
+{-# OPTIONS --without-K #-}
 
 module Partiality-monad.Inductive.Strict-omega-continuous where
 
@@ -74,11 +74,14 @@ equality-characterisation-strict {f = f} {g} =
 >>=-∘-return fs = ⊥-rec-⊥
   {P = λ x → x >>=′ (f ∘ return) ≡ f x}
   (record
-     { pe = never    ≡⟨ sym (proj₂ fs) ⟩∎
-            f never  ∎
-     ; po = λ _ → refl
+     { pe = never >>=′ f ∘ return  ≡⟨ never->>= ⟩
+            never                  ≡⟨ sym (proj₂ fs) ⟩∎
+            f never                ∎
+     ; po = λ x →
+              now x >>=′ f ∘ return  ≡⟨ now->>= ⟩∎
+              f (now x)              ∎
      ; pl = λ s p →
-              ⨆ s >>=′ (f ∘ return)     ≡⟨⟩
+              ⨆ s >>=′ (f ∘ return)     ≡⟨ ⨆->>= ⟩
               ⨆ ((f ∘ return) ∗-inc s)  ≡⟨ cong ⨆ (_↔_.to equality-characterisation-increasing λ n →
 
                 (f ∘ return) ∗-inc s [ n ]   ≡⟨ p n ⟩∎
@@ -102,7 +105,8 @@ partial↔strict :
 partial↔strict {a} = record
   { surjection = record
     { logical-equivalence = record
-      { to   = λ f → f ∗ , refl
+      { to   = λ f → f ∗ , (never >>=′ f  ≡⟨ never->>= ⟩∎
+                            never         ∎)
       ; from = λ f x → proj₁ (proj₁ (proj₁ f)) (return x)
       }
     ; right-inverse-of    = λ fs →
