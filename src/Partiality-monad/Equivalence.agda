@@ -69,8 +69,8 @@ Delay→⊥ = ⨆ ∘ Delay→Inc-seq
 -- Delay→⊥ is monotone (if A is a set).
 
 Delay→⊥-mono :
-  Is-set A → ∀ {x y} → x A.∥⊑∥ y → Delay→⊥ x I.⊑ Delay→⊥ y
-Delay→⊥-mono A-set {x@(f , _)} {y@(g , _)} x⊑y =
+  Is-set A → ∀ x y → x A.∥⊑∥ y → Delay→⊥ x I.⊑ Delay→⊥ y
+Delay→⊥-mono A-set x@(f , _) y@(g , _) x⊑y =
   least-upper-bound (Delay→Inc-seq x) (Delay→⊥ y) is-ub
   where
   is-ub : ∀ n → Delay→Inc-seq x [ n ] I.⊑ Delay→⊥ y
@@ -95,9 +95,9 @@ Delay→⊥-mono A-set {x@(f , _)} {y@(g , _)} x⊑y =
 -- Delay→⊥ maps weakly bisimilar values to equal values (if A is a
 -- set).
 
-Delay→⊥-≈→≡ : Is-set A → ∀ {x y} → x A.≈ y → Delay→⊥ x ≡ Delay→⊥ y
-Delay→⊥-≈→≡ A-set {x} {y} =
-  x A.≈ y                                            ↝⟨ Σ-map (Delay→⊥-mono A-set) (Delay→⊥-mono A-set) ⟩
+Delay→⊥-≈→≡ : Is-set A → ∀ x y → x A.≈ y → Delay→⊥ x ≡ Delay→⊥ y
+Delay→⊥-≈→≡ A-set x y =
+  x A.≈ y                                            ↝⟨ Σ-map (Delay→⊥-mono A-set x y) (Delay→⊥-mono A-set y x) ⟩
   Delay→⊥ x I.⊑ Delay→⊥ y × Delay→⊥ x I.⊒ Delay→⊥ y  ↝⟨ uncurry antisymmetry ⟩□
   Delay→⊥ x ≡ Delay→⊥ y                              □
 
@@ -105,7 +105,8 @@ Delay→⊥-≈→≡ A-set {x} {y} =
 -- inductive partiality monad.
 
 ⊥→⊥ : Is-set A → A CA.⊥ → A I.⊥
-⊥→⊥ A-set = Quotient.rec Delay→⊥ (Delay→⊥-≈→≡ A-set) ⊥-is-set
+⊥→⊥ A-set =
+  Quotient.rec Delay→⊥ (λ {x y} → Delay→⊥-≈→≡ A-set x y) ⊥-is-set
 
 ------------------------------------------------------------------------
 -- A lemma
@@ -115,8 +116,8 @@ Delay→⊥-≈→≡ A-set {x} {y} =
 
 ⇓⇔⇓ :
   Is-set A → Univalence a →
-  ∀ {x y} → Delay→⊥ x IP.⇓ y ⇔ x A.⇓ y
-⇓⇔⇓ A-set univ {x@(f , _)} {y} =
+  ∀ x {y} → Delay→⊥ x IP.⇓ y ⇔ x A.⇓ y
+⇓⇔⇓ A-set univ x@(f , _) {y} =
   Delay→⊥ x IP.⇓ y                    ↝⟨ F.id ⟩
   ⨆ (Delay→Inc-seq x) IP.⇓ y          ↔⟨ ⨆⇓≃∥∃⇓∥ univ (Delay→Inc-seq x) ⟩
   ∥ (∃ λ n → Maybe→⊥ (f n) IP.⇓ y) ∥  ↝⟨ ∥∥-cong-⇔ (∃-cong λ _ → record { to = to _; from = cong Maybe→⊥ }) ⟩
@@ -144,24 +145,24 @@ Delay→⊥-≈→≡ A-set {x} {y} =
 
 Delay→⊥-injective :
   Is-set A → Univalence a →
-  ∀ {x y} → Delay→⊥ x ≡ Delay→⊥ y → x A.≈ y
-Delay→⊥-injective A-set univ x≡y =
-    lemma A-set univ (≡→⊑      x≡y)
-  , lemma A-set univ (≡→⊑ (sym x≡y))
+  ∀ x y → Delay→⊥ x ≡ Delay→⊥ y → x A.≈ y
+Delay→⊥-injective A-set univ x y x≡y =
+    lemma A-set univ x y (≡→⊑      x≡y)
+  , lemma A-set univ y x (≡→⊑ (sym x≡y))
   where
   ≡→⊑ : ∀ {x y} → x ≡ y → x I.⊑ y
   ≡→⊑ refl = ⊑-refl _
 
   lemma :
     Is-set A → Univalence a →
-    ∀ {x y} → Delay→⊥ x I.⊑ Delay→⊥ y → x A.∥⊑∥ y
-  lemma A-set univ {x} {y} x⊑y z =
+    ∀ x y → Delay→⊥ x I.⊑ Delay→⊥ y → x A.∥⊑∥ y
+  lemma A-set univ x y x⊑y z =
     x A.∥⇓∥ z            ↝⟨ _⇔_.from (A.⇓⇔∥⇓∥ A-set x) ⟩
-    x A.⇓ z              ↝⟨ _⇔_.from (⇓⇔⇓ A-set univ) ⟩
+    x A.⇓ z              ↝⟨ _⇔_.from (⇓⇔⇓ A-set univ x) ⟩
     Delay→⊥ x IP.⇓ z     ↔⟨ ⇓≃now⊑ univ ⟩
     now z I.⊑ Delay→⊥ x  ↝⟨ flip ⊑-trans x⊑y ⟩
     now z I.⊑ Delay→⊥ y  ↔⟨ inverse (⇓≃now⊑ univ) ⟩
-    Delay→⊥ y IP.⇓ z     ↝⟨ _⇔_.to (⇓⇔⇓ A-set univ) ⟩
+    Delay→⊥ y IP.⇓ z     ↝⟨ _⇔_.to (⇓⇔⇓ A-set univ y) ⟩
     y A.⇓ z              ↝⟨ _⇔_.to (A.⇓⇔∥⇓∥ A-set y) ⟩□
     y A.∥⇓∥ z            □
 
@@ -175,7 +176,7 @@ Delay→⊥-injective A-set univ x≡y =
     (λ x → ⊥→⊥ A-set x ≡ ⊥→⊥ A-set y → x ≡ y)
     (λ x → Quotient.elim-Prop
        (λ y → Delay→⊥ x ≡ ⊥→⊥ A-set y → Quotient.[ x ] ≡ y)
-       (λ _ → []-respects-relation ∘ Delay→⊥-injective A-set univ)
+       (λ y → []-respects-relation ∘ Delay→⊥-injective A-set univ x y)
        (λ _ → Π-closure ext 1 λ _ →
               /-is-set _ _)
        y)
@@ -249,7 +250,7 @@ Delay→⊥-surjective A-set univ cc =
       f₂↓→⨆s⇓ {y} {m} f₂↓ =
         terminating-element-is-⨆ univ s
           (s [ m ]        ≡⟨ sym (h m) ⟩
-           Delay→⊥ (f m)  ≡⟨ _⇔_.from (⇓⇔⇓ A-set univ) (_ , f₂↓) ⟩∎
+           Delay→⊥ (f m)  ≡⟨ _⇔_.from (⇓⇔⇓ A-set univ (f m)) (_ , f₂↓) ⟩∎
            now y          ∎)
 
     termination-value-unique-f₁ :
@@ -317,7 +318,7 @@ Delay→⊥-surjective A-set univ cc =
       Delay→⊥ x         ■
     f₂⊑x m n | just y , f₂↓ =
       Maybe→⊥ (f₂ m n)  ⊑⟨ cong Maybe→⊥ f₂↓ ⟩≡
-      now y             ⊑⟨ sym (_⇔_.from (⇓⇔⇓ A-set univ) x⇓) ⟩≡
+      now y             ⊑⟨ sym (_⇔_.from (⇓⇔⇓ A-set univ x) x⇓) ⟩≡
       Delay→⊥ x         ■
       where
       k = _↔_.from ℕ↔ℕ² (m , n)
@@ -418,7 +419,7 @@ Delay→⊥′-≈→≡ :
   ∀ {x y} → x W.≈ y → Delay→⊥′ x ≡ Delay→⊥′ y
 Delay→⊥′-≈→≡ A-set {x} {y} =
   x W.≈ y                                                ↝⟨ _⇔_.to (A.≈⇔≈′ A-set) ⟩
-  _⇔_.from A.Delay⇔Delay x A.≈ _⇔_.from A.Delay⇔Delay y  ↝⟨ Delay→⊥-≈→≡ A-set ⟩□
+  _⇔_.from A.Delay⇔Delay x A.≈ _⇔_.from A.Delay⇔Delay y  ↝⟨ Delay→⊥-≈→≡ A-set (_⇔_.from A.Delay⇔Delay x) (_⇔_.from A.Delay⇔Delay y) ⟩□
   Delay→⊥′ x ≡ Delay→⊥′ y                                □
 
 -- One can also translate from the coinductive to the inductive
@@ -427,5 +428,5 @@ Delay→⊥′-≈→≡ A-set {x} {y} =
 ⊥→⊥′ : Is-set A → A C.⊥ → A I.⊥
 ⊥→⊥′ A-set = Quotient.rec
   Delay→⊥′
-  (Trunc.rec (IP.⊥-is-set _ _) (Delay→⊥′-≈→≡ A-set))
-  IP.⊥-is-set
+  (Trunc.rec (I.⊥-is-set _ _) (Delay→⊥′-≈→≡ A-set))
+  I.⊥-is-set

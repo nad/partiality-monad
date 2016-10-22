@@ -72,9 +72,9 @@ equality-characterisation-strict {f = f} {g} =
   let f = proj₁ (proj₁ (proj₁ fs)) in
   ∀ x → x >>=′ (f ∘ return) ≡ f x
 >>=-∘-return fs = ⊥-rec-⊥
-  {P = λ x → x >>=′ (f ∘ return) ≡ f x}
   (record
-     { pe = never >>=′ f ∘ return  ≡⟨ never->>= ⟩
+     { P  = λ x → x >>=′ (f ∘ return) ≡ f x
+     ; pe = never >>=′ f ∘ return  ≡⟨ never->>= ⟩
             never                  ≡⟨ sym (proj₂ fs) ⟩∎
             f never                ∎
      ; po = λ x →

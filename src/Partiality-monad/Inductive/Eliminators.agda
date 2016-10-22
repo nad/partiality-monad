@@ -24,10 +24,10 @@ Inc-nd : ∀ {a p q}
          (Q : P → P → Set q) → Set (p ⊔ q)
 Inc-nd A P Q = ∃ λ (p : ℕ → P) → ∀ n → Q (p n) (p (suc n))
 
-record Rec-args-nd
-         {a p q} (A : Set a) (P : Set p) (Q : P → P → Set q) :
-         Set (a ⊔ p ⊔ q) where
+record Arguments-nd {a} p q (A : Set a) : Set (a ⊔ lsuc (p ⊔ q)) where
   field
+    P  : Set p
+    Q  : P → P → Set q
     pe : P
     po : (x : A) → P
     pl : (s : Increasing-sequence A) (pq : Inc-nd A P Q) → P
@@ -44,16 +44,17 @@ record Rec-args-nd
          Q (pl s pq) pu
     qp : (p₁ p₂ : P) → Is-proposition (Q p₁ p₂)
 
-module _ {a p q} {A : Set a} {P : Set p} {Q : P → P → Set q}
-         (args : Rec-args-nd A P Q) where
+module _ {a p q} {A : Set a} (args : Arguments-nd p q A) where
 
-  open Rec-args-nd args
+  open Arguments-nd args
 
   private
 
-    args′ : Rec-args {A = A} (λ _ → P) (λ p-x p-y _ → Q p-x p-y)
+    args′ : Arguments p q A
     args′ = record
-      { pe = pe
+      { P  = λ _ → P
+      ; Q  = λ p-x p-y _ → Q p-x p-y
+      ; pe = pe
       ; po = po
       ; pl = pl
       ; pa = λ x⊑y x⊒y p₁ p₂ q₁ q₂ →
@@ -90,22 +91,22 @@ module _ {a p q} {A : Set a} {P : Set p} {Q : P → P → Set q}
 ------------------------------------------------------------------------
 -- Eliminators which are trivial for _⊑_
 
-record Rec-args-⊥ {a p} {A : Set a}
-                  (P : A ⊥ → Set p) : Set (a ⊔ p) where
+record Arguments-⊥ {a} p (A : Set a) : Set (a ⊔ lsuc p) where
   field
+    P  : A ⊥ → Set p
     pe : P never
     po : ∀ x → P (now x)
     pl : ∀ s (p : ∀ n → P (s [ n ])) → P (⨆ s)
     pp : ∀ x → Is-proposition (P x)
 
-module _ {a p} {A : Set a} {P : A ⊥ → Set p}
-         (args : Rec-args-⊥ P) where
+module _ {a p} {A : Set a} (args : Arguments-⊥ p A) where
 
-  open Rec-args-⊥ args
+  open Arguments-⊥ args
 
   ⊥-rec-⊥ : (x : A ⊥) → P x
-  ⊥-rec-⊥ = ⊥-rec {Q = λ _ _ _ → ⊤} (record
-    { pe = pe
+  ⊥-rec-⊥ = ⊥-rec (record
+    { Q  = λ _ _ _ → ⊤
+    ; pe = pe
     ; po = po
     ; pl = λ s pq → pl s (proj₁ pq)
     ; pa = λ _ _ _ _ _ _ →
@@ -129,10 +130,9 @@ module _ {a p} {A : Set a} {P : A ⊥ → Set p}
 ------------------------------------------------------------------------
 -- Eliminators which are trivial for _⊥
 
-record Rec-args-⊑ {a q} {A : Set a}
-                  (Q : {x y : A ⊥} → x ⊑ y → Set q) :
-                  Set (a ⊔ q) where
+record Arguments-⊑ {a} q (A : Set a) : Set (a ⊔ lsuc q) where
   field
+    Q  : {x y : A ⊥} → x ⊑ y → Set q
     qr : ∀ x → Q (⊑-refl x)
     qt : ∀ {x y z} (x⊑y : x ⊑ y) (y⊑z : y ⊑ z) →
          Q x⊑y → Q y⊑z → Q (⊑-trans x⊑y y⊑z)
@@ -145,14 +145,15 @@ record Rec-args-⊑ {a q} {A : Set a}
     qp : ∀ {x y} (x⊑y : x ⊑ y) →
          Is-proposition (Q x⊑y)
 
-module _ {a q} {A : Set a} {Q : {x y : A ⊥} → x ⊑ y → Set q}
-         (args : Rec-args-⊑ Q) where
+module _ {a q} {A : Set a} (args : Arguments-⊑ q A) where
 
-  open Rec-args-⊑ args
+  open Arguments-⊑ args
 
   ⊑-rec-⊑ : ∀ {x y} (x⊑y : x ⊑ y) → Q x⊑y
-  ⊑-rec-⊑ = ⊑-rec {P = λ _ → ⊤} {Q = λ _ _ → Q} (record
-    { pa = λ _ _ _ _ _ _ → refl
+  ⊑-rec-⊑ = ⊑-rec (record
+    { P  = λ _ → ⊤
+    ; Q  = λ _ _ → Q
+    ; pa = λ _ _ _ _ _ _ → refl
     ; pp = _⇔_.to propositional⇔irrelevant
              (mono (Nat.zero≤ 2) ⊤-contractible _ _)
     ; qr = λ x _ → qr x

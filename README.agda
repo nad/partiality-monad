@@ -19,6 +19,10 @@ module README where
 
 import Partiality-monad.Inductive.Preliminary-sketch
 
+-- Partiality algebras.
+
+import Partiality-monad.Inductive.Partiality-algebra
+
 -- A higher inductive-inductive definition of the partiality monad.
 
 import Partiality-monad.Inductive
@@ -55,10 +59,6 @@ import Partiality-monad.Inductive.Strict-omega-continuous
 -- Fixpoint combinators.
 
 import Partiality-monad.Inductive.Fixpoints
-
--- Partiality algebras.
-
-import Partiality-monad.Inductive.Partiality-algebra
 
 ------------------------------------------------------------------------
 -- The delay monad

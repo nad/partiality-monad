@@ -43,10 +43,11 @@ open import Partiality-monad.Inductive.Properties
 
 private
 
-  now[_]≲-args : A → Rec-args-nd A (Proposition a)
-                                 (λ P Q → proj₁ P → proj₁ Q)
+  now[_]≲-args : A → Arguments-nd (lsuc a) a A
   now[ x ]≲-args = record
-    { pe = Prelude.⊥ , ⊥-propositional
+    { P  = Proposition a
+    ; Q  = λ P Q → proj₁ P → proj₁ Q
+    ; pe = Prelude.⊥ , ⊥-propositional
     ; po = λ y → ∥ x ≡ y ∥ , truncation-is-proposition
     ; pl = λ { s (now-x≲s[_] , _) → ∥ ∃ (λ n → proj₁ (now-x≲s[ n ])) ∥
                                   , truncation-is-proposition
@@ -86,10 +87,11 @@ private
       ps =
         ∃-H-level-H-level-1+ ext univ 1
 
-  ≲-args : Rec-args-nd A (A ⊥ → Proposition a)
-                       (λ P Q → ∀ z → proj₁ (Q z) → proj₁ (P z))
+  ≲-args : Arguments-nd (lsuc a) a A
   ≲-args = record
-    { pe = λ _ → ↑ _ ⊤ , ↑-closure 1 (mono₁ 0 ⊤-contractible)
+    { P  = A ⊥ → Proposition a
+    ; Q  = λ P Q → ∀ z → proj₁ (Q z) → proj₁ (P z)
+    ; pe = λ _ → ↑ _ ⊤ , ↑-closure 1 (mono₁ 0 ⊤-contractible)
     ; po = λ x y → ⊥-rec-nd now[ x ]≲-args y
     ; pl = λ { _ (s[_]≲ , _) y → (∀ n → proj₁ (s[ n ]≲ y))
                                , Π-closure ext 1 λ n →
@@ -194,9 +196,9 @@ now≲⨆ {x} {s} =
   where
   ⨆-lemma : ∀ s x n → x ≲ s [ n ] → x ≲ ⨆ s
   ⨆-lemma s = ⊥-rec-⊥
-    {P = λ x → ∀ n → x ≲ s [ n ] → x ≲ ⨆ s}
     (record
-       { pe = λ n →
+       { P  = λ x → ∀ n → x ≲ s [ n ] → x ≲ ⨆ s
+       ; pe = λ n →
                 never ≲ s [ n ]  ↔⟨ ≡⇒↝ bijection $ never≲ ⟩
                 ↑ _ ⊤            ↔⟨ ≡⇒↝ bijection $ sym never≲ ⟩□
                 never ≲ ⨆ s      □
@@ -227,9 +229,9 @@ now≲⨆ {x} {s} =
   where
   now-lemma : ∀ x y → now x ≲ y → now x ⊑ y
   now-lemma x y = ⊥-rec-⊥
-    {P = λ y → now x ≲ y → now x ⊑ y}
     (record
-       { pe = now x ≲ never  ↔⟨ ≡⇒↝ bijection now≲never ⟩
+       { P  = λ y → now x ≲ y → now x ⊑ y
+       ; pe = now x ≲ never  ↔⟨ ≡⇒↝ bijection now≲never ⟩
               Prelude.⊥      ↝⟨ ⊥-elim ⟩□
               now x ⊑ never  □
        ; po = λ y →
@@ -257,9 +259,10 @@ now≲⨆ {x} {s} =
        })
     y
 
-  from-args : Rec-args-⊥ (λ x → ∀ y → x ≲ y → x ⊑ y)
+  from-args : Arguments-⊥ a A
   from-args = record
-    { pe = λ y _ → never⊑ y
+    { P  = λ x → ∀ y → x ≲ y → x ⊑ y
+    ; pe = λ y _ → never⊑ y
     ; po = now-lemma
     ; pl = λ s s≲→s⊑ y →
              ⨆ s ≲ y              ↔⟨ ≡⇒↝ bijection ⨆≲ ⟩
@@ -338,9 +341,9 @@ termination-value-merely-unique {x} {y} {z} x⇓y x⇓z =
 
 larger-terminate-with-same-value : {x y : A ⊥} → x ⊑ y → x ≼ y
 larger-terminate-with-same-value = ⊑-rec-⊑
-  {Q = λ {x y} _ → x ≼ y}
   (record
-     { qr = λ x z →
+     { Q  = λ {x y} _ → x ≼ y
+     ; qr = λ x z →
               x ⇓ z  ↝⟨ id ⟩□
               x ⇓ z  □
      ; qt = λ _ _ → ≼-trans
@@ -407,9 +410,9 @@ terminating-element-is-⨆ s {n} {x} =
 
 ≼→⊑ : {x y : A ⊥} → x ≼ y → x ⊑ y
 ≼→⊑ {x} {y} = ⊥-rec-⊥
-  {P = λ x → x ≼ y → x ⊑ y}
   (record
-     { pe = never ≼ y  ↝⟨ (λ _ → never⊑ y) ⟩□
+     { P  = λ x → x ≼ y → x ⊑ y
+     ; pe = never ≼ y  ↝⟨ (λ _ → never⊑ y) ⟩□
             never ⊑ y   □
      ; po = λ x →
               now x ≼ y              ↝⟨ (λ hyp → hyp x refl) ⟩
@@ -481,9 +484,9 @@ terminating-element-is-⨆ s {n} {x} =
 
 ¬⇓→⇑ : {x : A ⊥} → ¬ (∃ λ y → x ⇓ y) → x ⇑
 ¬⇓→⇑ {x} = ⊥-rec-⊥
-  {P = λ x → ¬ (∃ λ y → x ⇓ y) → x ⇑}
   (record
-     { pe = ¬ ∃ (never ⇓_)  ↝⟨ const refl ⟩□
+     { P  = λ x → ¬ (∃ λ y → x ⇓ y) → x ⇑
+     ; pe = ¬ ∃ (never ⇓_)  ↝⟨ const refl ⟩□
             never ⇑         □
      ; po = λ x →
               ¬ ∃ (now x ⇓_) ↝⟨ _$ (x , refl) ⟩

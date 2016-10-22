@@ -57,7 +57,7 @@ private
              subst (const _) (L.antisymmetry x⊑y y⊑x) p-x  ≡⟨ subst-const (L.antisymmetry x⊑y y⊑x) ⟩
              p-x                                           ≡⟨ I.antisymmetry p-x⊑p-y p-y⊑p-x ⟩∎
              p-y                                           ∎
-    ; pp = _⇔_.to set⇔UIP IP.⊥-is-set
+    ; pp = _⇔_.to set⇔UIP I.⊥-is-set
     ; qr = λ _ → I.⊑-refl
     ; qt = λ _ _ _ _ _ → I.⊑-trans
     ; qe = λ _ → I.never⊑
@@ -70,9 +70,11 @@ private
     ; qp = λ _ _ _ → I.⊑-proof-irrelevant
     }
 
-  argsI : ∀ {A} → IE.Rec-args-nd A (A ⊥) _⊑_
-  argsI = record
-    { pe = L.never
+  argsI : ∀ {A} → IE.Arguments-nd a a A
+  argsI {A} = record
+    { P  = A ⊥
+    ; Q  = _⊑_
+    ; pe = L.never
     ; po = L.now
     ; pl = λ _ → L.⨆
     ; pa = λ _ _ → L.antisymmetry
@@ -103,9 +105,9 @@ private
         ; pl = λ s ih →
                  L.⊥-rec argsL (IE.⊥-rec-nd argsI (I.⨆ s))      ≡⟨ cong (L.⊥-rec argsL) (IE.⊥-rec-nd-⨆ argsI _) ⟩
                  L.⊥-rec argsL (L.⨆ (IE.inc-rec-nd argsI s))    ≡⟨ L.⊥-rec-⨆ _ _ ⟩
-                 I.⨆ (L.inc-rec argsL (IE.inc-rec-nd argsI s))  ≡⟨ cong I.⨆ $ _↔_.to IP.equality-characterisation-increasing ih ⟩∎
+                 I.⨆ (L.inc-rec argsL (IE.inc-rec-nd argsI s))  ≡⟨ cong I.⨆ $ _↔_.to I.equality-characterisation-increasing ih ⟩∎
                  I.⨆ s                                          ∎
-        ; pp = λ _ → IP.⊥-is-set _ _
+        ; pp = λ _ → I.⊥-is-set _ _
         })
     }
   ; left-inverse-of = L.⊥-rec {Q = λ _ _ _ → ⊤} (record
@@ -131,7 +133,7 @@ private
 ⊑≃⊑ : ∀ {A} {x y : A ⊥} →
       (x ⊑ y) ≃ (_↔_.to ⊥↔⊥ x I.⊑ _↔_.to ⊥↔⊥ y)
 ⊑≃⊑ {x = x} {y} =
-  _↔_.to (Eq.⇔↔≃ ext L.⊑-propositional IP.⊑-propositional)
+  _↔_.to (Eq.⇔↔≃ ext L.⊑-propositional I.⊑-propositional)
     (record
        { to   = L.⊑-rec argsL
        ; from =

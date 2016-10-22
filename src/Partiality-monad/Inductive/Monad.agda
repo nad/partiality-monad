@@ -37,9 +37,11 @@ open import Partiality-monad.Inductive.Properties
 private
 
   =<<-args : ∀ {a b} {A : Set a} {B : Set b}
-             (f : A → B ⊥) → Rec-args-nd A (B ⊥) _⊑_
-  =<<-args f = record
-    { pe = never
+             (f : A → B ⊥) → Arguments-nd b b A
+  =<<-args {B = B} f = record
+    { P  = B ⊥
+    ; Q  = _⊑_
+    ; pe = never
     ; po = f
     ; pl = λ _ → ⨆
     ; pa = λ _ _ → antisymmetry
@@ -97,8 +99,9 @@ _>>=-mono_ :
   x ⊑ y → (∀ z → f z ⊑ g z) → x >>=′ f ⊑ y >>=′ g
 _>>=-mono_ {x = x} {y} {f} {g} x⊑y f⊑g =
   x >>=′ f ⊑⟨ proj₂ (proj₁ (f ∗)) x⊑y ⟩
-  y >>=′ f ⊑⟨ ⊥-rec-⊥ {P = λ y → y >>=′ f ⊑ y >>=′ g} (record
-                { pe = never >>=′ f  ⊑⟨ never->>= ⟩≡
+  y >>=′ f ⊑⟨ ⊥-rec-⊥ (record
+                { P  = λ y → y >>=′ f ⊑ y >>=′ g
+                ; pe = never >>=′ f  ⊑⟨ never->>= ⟩≡
                        never         ⊑⟨ never⊑ _ ⟩■
                        never >>=′ g  ■
                 ; po = λ x →
@@ -225,9 +228,9 @@ map-∘ f g =
   Univalence b →
   (x >>=′ f ⇓ y) ≃ ∥ ∃ (λ z → x ⇓ z × f z ⇓ y) ∥
 >>=-⇓ {x = x} {f} {y} univ-a univ-b = ⊥-rec-⊥
-  {P = λ x → (x >>=′ f ⇓ y) ≃ ∥ ∃ (λ z → x ⇓ z × f z ⇓ y) ∥}
   (record
-     { pe = never >>=′ f ⇓ y                         ↔⟨ ≡⇒↝ bijection (cong (_⇓ y) never->>=) ⟩
+     { P  = λ x → (x >>=′ f ⇓ y) ≃ ∥ ∃ (λ z → x ⇓ z × f z ⇓ y) ∥
+     ; pe = never >>=′ f ⇓ y                         ↔⟨ ≡⇒↝ bijection (cong (_⇓ y) never->>=) ⟩
             never ⇓ y                                ↝⟨ B.⇓≃now≲ ⟩
             now y B.≲ never                          ↔⟨ ≡⇒↝ bijection B.now≲never ⟩
             Prelude.⊥                                ↔⟨ inverse (not-inhabited⇒∥∥↔⊥ id) ⟩

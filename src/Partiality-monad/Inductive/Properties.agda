@@ -22,12 +22,6 @@ open import Nat equality-with-J
 open import Partiality-monad.Inductive
 open import Partiality-monad.Inductive.Eliminators
 
--- _⊑_ is propositional.
-
-⊑-propositional : {x y : A ⊥} → Is-proposition (x ⊑ y)
-⊑-propositional =
-  _⇔_.from propositional⇔irrelevant ⊑-proof-irrelevant
-
 -- Preorder reasoning combinators.
 
 infix  -1 finally-⊑
@@ -71,44 +65,6 @@ later-larger s {m} (≤-step′ {k = n} p refl) =
   s [ m ]      ⊑⟨ later-larger s p ⟩
   s [ n ]      ⊑⟨ increasing s n ⟩■
   s [ suc n ]  ■
-
-private
-
-  -- A lemma.
-
-  ⊥-is-set-and-equality-characterisation : Is-set (A ⊥) × _
-  ⊥-is-set-and-equality-characterisation =
-    Eq.propositional-identity≃≡
-      (λ x y → x ⊑ y × x ⊒ y)
-      (λ _ _ → ×-closure 1 ⊑-propositional ⊑-propositional)
-      (λ x → ⊑-refl x , ⊑-refl x)
-      (λ x y → uncurry {B = λ _ → x ⊒ y} antisymmetry)
-
--- _⊥ is a family of sets. (This lemma is analogous to
--- Theorem 11.3.9 in "Homotopy Type Theory: Univalent Foundations of
--- Mathematics" (first edition).)
-
-⊥-is-set : Is-set (A ⊥)
-⊥-is-set = proj₁ ⊥-is-set-and-equality-characterisation
-
--- Equality characterisation lemma for the partiality monad.
-
-equality-characterisation-⊥ :
-  {x y : A ⊥} → (x ⊑ y × x ⊒ y) ≃ (x ≡ y)
-equality-characterisation-⊥ =
-  proj₂ ⊥-is-set-and-equality-characterisation ext
-
--- Equality characterisation lemma for increasing sequences.
-
-equality-characterisation-increasing :
-  {s₁ s₂ : Increasing-sequence A} →
-  (∀ n → s₁ [ n ] ≡ s₂ [ n ]) ↔ s₁ ≡ s₂
-equality-characterisation-increasing {s₁} {s₂} =
-  (∀ n → s₁ [ n ] ≡ s₂ [ n ])  ↔⟨ Eq.extensionality-isomorphism ext ⟩
-  proj₁ s₁ ≡ proj₁ s₂          ↝⟨ ignore-propositional-component
-                                    (Π-closure ext 1 λ _ →
-                                     ⊑-propositional) ⟩□
-  s₁ ≡ s₂                      □
 
 -- The tail of an increasing sequence.
 
