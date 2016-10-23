@@ -5,6 +5,9 @@
 -- Thorsten Altenkirch, Nils Anders Danielsson and Nicolai Kraus
 ------------------------------------------------------------------------
 
+-- Comments of the form (§n) indicate that (parts of) the given
+-- module(s) correspond to (parts of) Section n in the paper.
+
 {-# OPTIONS --without-K #-}
 
 module README where
@@ -21,15 +24,16 @@ module README where
 
 import Partiality-monad.Inductive.Preliminary-sketch
 
--- Partiality algebras.
+-- Partiality algebras (§3.1).
 
 import Partiality-monad.Inductive.Partiality-algebra
 
--- A higher inductive-inductive definition of the partiality monad.
+-- A higher inductive-inductive definition of the partiality monad
+-- (§3.1).
 
 import Partiality-monad.Inductive
 
--- Specialised eliminators.
+-- Specialised eliminators (§3.1).
 
 import Partiality-monad.Inductive.Eliminators
 
@@ -38,19 +42,19 @@ import Partiality-monad.Inductive.Eliminators
 import Partiality-monad.Inductive.Properties
 
 -- An alternative characterisation of the information ordering, along
--- with related results.
+-- with related results (§3.3).
 
 import Partiality-monad.Inductive.Alternative-order
 
--- Monotone functions.
+-- Monotone functions (§5.1).
 
 import Partiality-monad.Inductive.Monotone
 
--- ω-continuous functions.
+-- ω-continuous functions (§5.1).
 
 import Partiality-monad.Inductive.Omega-continuous
 
--- The partiality monad's monad instance.
+-- The partiality monad's monad instance (§3.2).
 
 import Partiality-monad.Inductive.Monad
 
@@ -58,12 +62,12 @@ import Partiality-monad.Inductive.Monad
 
 import Partiality-monad.Inductive.Strict-omega-continuous
 
--- Fixpoint combinators.
+-- Fixpoint combinators (§5.1).
 
 import Partiality-monad.Inductive.Fixpoints
 
 ------------------------------------------------------------------------
--- The delay monad
+-- The delay monad (§4)
 
 -- The delay monad, defined coinductively.
 
@@ -77,7 +81,7 @@ import Delay-monad.Strong-bisimilarity
 
 import Delay-monad.Weak-bisimilarity
 
--- An alternative definition of the delay monad.
+-- An alternative definition of the delay monad (§4.1).
 
 import Delay-monad.Alternative
 
@@ -98,7 +102,7 @@ import Delay-monad.Monad
 import Delay-monad.Always
 
 ------------------------------------------------------------------------
--- An example
+-- An example (§5.3)
 
 -- Some developments from "Operational Semantics Using the Partiality
 -- Monad" by Danielsson, implemented using both the higher
@@ -193,7 +197,7 @@ import Delay-monad.Sized.Always
 ------------------------------------------------------------------------
 -- The delay monad quotiented by weak bisimilarity
 
--- The delay monad quotiented by weak bisimilarity.
+-- The delay monad quotiented by weak bisimilarity (§4).
 
 import Partiality-monad.Coinductive
 
@@ -207,7 +211,7 @@ import Partiality-monad.Coinductive.Partial-order
 import Partiality-monad.Coinductive.Alternative
 
 ------------------------------------------------------------------------
--- A proof of equivalence
+-- A proof of equivalence (§4.2)
 
 -- The partiality monads in Partiality-monad.Inductive and
 -- Partiality-monad.Coinductive are pointwise equivalent, for sets,
