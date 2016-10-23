@@ -1,5 +1,7 @@
 ------------------------------------------------------------------------
--- Code related to the paper "Partiality, Revisited"
+-- Code related to the paper "Partiality, Revisited: The Partiality
+-- Monad as a Quotient Inductive-Inductive Type"
+--
 -- Thorsten Altenkirch, Nils Anders Danielsson and Nicolai Kraus
 ------------------------------------------------------------------------
 
