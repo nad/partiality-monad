@@ -180,9 +180,12 @@ instance
 
   -- The partiality monad's monad instance.
 
+  partiality-raw-monad : ∀ {ℓ} → Raw-monad (_⊥ {a = ℓ})
+  Raw-monad.return partiality-raw-monad = now
+  Raw-monad._>>=_  partiality-raw-monad = _>>=′_
+
   partiality-monad : ∀ {ℓ} → Monad (_⊥ {a = ℓ})
-  Raw-monad.return (Monad.raw-monad partiality-monad) = now
-  Raw-monad._>>=_  (Monad.raw-monad partiality-monad) = _>>=′_
+  Monad.raw-monad      partiality-monad = partiality-raw-monad
   Monad.left-identity  partiality-monad = Monad-laws.left-identity
   Monad.right-identity partiality-monad = Monad-laws.right-identity
   Monad.associativity  partiality-monad = Monad-laws.associativity

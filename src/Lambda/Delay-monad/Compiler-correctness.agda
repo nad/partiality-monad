@@ -9,7 +9,7 @@ module Lambda.Delay-monad.Compiler-correctness where
 open import Equality.Propositional
 open import Prelude
 
-open import Maybe equality-with-J
+open import Maybe equality-with-J hiding (_>>=′_)
 open import Monad equality-with-J
 
 open import Delay-monad.Monad

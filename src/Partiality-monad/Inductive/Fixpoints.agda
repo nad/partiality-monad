@@ -769,12 +769,10 @@ instance
 
   -- Partial A B is a monad.
 
-  partial-monad : ∀ {a b c} {A : Set a} {B : A → Set b} →
-                  Monad (Partial {c = c} A B)
-  Raw-monad.return (Monad.raw-monad partial-monad) x =
-    non-recursive (return x)
-
-  Raw-monad._>>=_ (Monad.raw-monad partial-monad) x f = record
+  partial-raw-monad : ∀ {a b c} {A : Set a} {B : A → Set b} →
+                      Raw-monad (Partial {c = c} A B)
+  Raw-monad.return partial-raw-monad x   = non-recursive (return x)
+  Raw-monad._>>=_  partial-raw-monad x f = record
     { function     = λ rec →
                        function x rec >>=′ λ y →
                        function (f y) rec
@@ -799,6 +797,10 @@ instance
     }
     where
     open Partial
+
+  partial-monad : ∀ {a b c} {A : Set a} {B : A → Set b} →
+                  Monad (Partial {c = c} A B)
+  Monad.raw-monad partial-monad = partial-raw-monad
 
   Monad.left-identity partial-monad _ f =
     _↔_.to equality-characterisation-Partial
