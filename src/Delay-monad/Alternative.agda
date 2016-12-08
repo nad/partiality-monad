@@ -607,7 +607,8 @@ module _ {a} {A : Set a} where
                                                                                     (ext (proj₁∘from∘to′ g g-inc nothing g0↑)) ⟩
         subst (Increasing-at n)
               (cong (_∘ suc) (ext (proj₁∘from∘to′ g g-inc nothing g0↑)))
-              (proj₂ (from (to (g ∘ suc , g-inc ∘ suc))) n)              ≡⟨ cong (λ eq → subst (Increasing-at n) eq _) $
+              (proj₂ (from (to (g ∘ suc , g-inc ∘ suc))) n)              ≡⟨ cong (λ eq → subst (Increasing-at n) eq
+                                                                                               (proj₂ (from (to (g ∘ suc , g-inc ∘ suc))) n)) $
                                                                               cong-∘-ext (proj₁∘from∘to′ g g-inc nothing g0↑) ⟩
         subst (Increasing-at n)
               (ext (proj₁∘from∘to′ g g-inc nothing g0↑ ∘ suc))
