@@ -31,44 +31,53 @@ open import Partiality-monad.Coinductive
 LE : A ⊥ → A ⊥ → Proposition a
 LE x y = Quotient.rec
   (λ x → LE″ x y)
-  (Trunc.rec
-     (Is-set-∃-Is-proposition ext prop-ext _ _)
-     (lemma₃ y))
-  (Is-set-∃-Is-proposition ext prop-ext)
+  (left-lemma″-∥∥ y)
+  is-set
   x
   where
   LE′ : Delay A ∞ → Delay A ∞ → Proposition a
   LE′ x y = ∥ x PO.⊑ y ∥ , truncation-is-proposition
 
-  lemma₁ : ∀ {x y z} → x ≈ y → LE′ z x ≡ LE′ z y
-  lemma₁ x≈y =
-    _↔_.to (⇔↔≡″ ext prop-ext)
-           (record { to   = ∥∥-map (flip PO.transitive-⊑≈ x≈y)
-                   ; from = ∥∥-map (flip PO.transitive-⊑≈
-                                      (W.symmetric x≈y))
-                   })
+  abstract
 
-  lemma₂ : ∀ {x y z} → x ≈ y → LE′ x z ≡ LE′ y z
-  lemma₂ x≈y =
-    _↔_.to (⇔↔≡″ ext prop-ext)
-           (record { to   = ∥∥-map (PO.transitive-≈⊑
-                                      (W.symmetric x≈y))
-                   ; from = ∥∥-map (PO.transitive-≈⊑ x≈y)
-                   })
+    is-set : Is-set (∃ Is-proposition)
+    is-set = Is-set-∃-Is-proposition ext prop-ext
+
+    right-lemma : ∀ {x y z} → x ≈ y → LE′ z x ≡ LE′ z y
+    right-lemma x≈y =
+      _↔_.to (⇔↔≡″ ext prop-ext)
+             (record { to   = ∥∥-map (flip PO.transitive-⊑≈ x≈y)
+                     ; from = ∥∥-map (flip PO.transitive-⊑≈
+                                        (W.symmetric x≈y))
+                     })
+
+    right-lemma-∥∥ : ∀ {x y z} → ∥ x ≈ y ∥ → LE′ z x ≡ LE′ z y
+    right-lemma-∥∥ = Trunc.rec (is-set _ _) right-lemma
 
   LE″ : Delay A ∞ → A ⊥ → Proposition a
-  LE″ x y = Quotient.rec
-    (LE′ x)
-    (Trunc.rec (Is-set-∃-Is-proposition ext prop-ext _ _) lemma₁)
-    (Is-set-∃-Is-proposition ext prop-ext)
-    y
+  LE″ x y = Quotient.rec (LE′ x) right-lemma-∥∥ is-set y
 
-  lemma₃ : ∀ {x y} z → x ≈ y → LE″ x z ≡ LE″ y z
-  lemma₃ {x} {y} z x≈y = Quotient.elim-Prop
-    (λ z → LE″ x z ≡ LE″ y z)
-    (λ _ → lemma₂ x≈y)
-    (λ _ → Is-set-∃-Is-proposition ext prop-ext _ _)
-    z
+  abstract
+
+    left-lemma : ∀ {x y z} → x ≈ y → LE′ x z ≡ LE′ y z
+    left-lemma x≈y =
+      _↔_.to (⇔↔≡″ ext prop-ext)
+             (record { to   = ∥∥-map (PO.transitive-≈⊑
+                                        (W.symmetric x≈y))
+                     ; from = ∥∥-map (PO.transitive-≈⊑ x≈y)
+                     })
+
+    left-lemma″ : ∀ {x y} z → x ≈ y → LE″ x z ≡ LE″ y z
+    left-lemma″ {x} {y} z x≈y = Quotient.elim-Prop
+      (λ z → LE″ x z ≡ LE″ y z)
+      (λ _ → left-lemma x≈y)
+      (λ _ → Is-set-∃-Is-proposition ext prop-ext _ _)
+      z
+
+    left-lemma″-∥∥ : ∀ {x y} z → ∥ x ≈ y ∥ → LE″ x z ≡ LE″ y z
+    left-lemma″-∥∥ z = Trunc.rec
+     (is-set _ _)
+     (left-lemma″ z)
 
 infix 4 _⊑_
 
