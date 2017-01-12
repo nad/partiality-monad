@@ -6,7 +6,7 @@
 
 module Lambda.Simplified.Syntax where
 
-open import Prelude
+open import Prelude hiding (Vec)
 
 open import Lambda.Syntax public using (Vec; empty; snoc)
 
