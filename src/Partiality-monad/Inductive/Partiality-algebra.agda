@@ -231,8 +231,8 @@ record Morphism {a p₁ p₂ q₁ q₂} {A : Set a}
     module P₂ = Partiality-algebra P₂
 
   field
-    function     : P₁.Type → P₂.Type
-    monotone     : ∀ {x y} → x P₁.⊑ y → function x P₂.⊑ function y
+    function : P₁.Type → P₂.Type
+    monotone : ∀ {x y} → x P₁.⊑ y → function x P₂.⊑ function y
 
   sequence-function : P₁.Increasing-sequence → P₂.Increasing-sequence
   sequence-function = Σ-map (function ⊚_) (monotone ⊚_)
@@ -432,7 +432,7 @@ eliminators→initiality :
   (P : Partiality-algebra p′ q′ A) →
   Elimination-principle p q P →
   Initial p q P
-eliminators→initiality {p = p} {q} {A} P elims P′ = morphism , unique
+eliminators→initiality {p = p} {q} P elims P′ = morphism , unique
   where
   module P  = Partiality-algebra P
   module P′ = Partiality-algebra P′
