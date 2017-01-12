@@ -215,7 +215,8 @@ import Partiality-monad.Coinductive.Alternative
 
 -- The partiality monads in Partiality-monad.Inductive and
 -- Partiality-monad.Coinductive are pointwise equivalent, for sets,
--- assuming extensionality, univalence and countable choice.
+-- assuming extensionality, propositional extensionality and countable
+-- choice.
 
 import Partiality-monad.Equivalence
 

@@ -8,7 +8,7 @@ open import Equality.Propositional
 open import Univalence-axiom equality-with-J
 
 module Partiality-monad.Coinductive.Partial-order
-  {a} (univ : Univalence a) {A : Set a} where
+  {a} (prop-ext : Propositional-extensionality a) {A : Set a} where
 
 open import H-level.Truncation.Propositional as Trunc
 open import Interval using (ext)
@@ -32,9 +32,9 @@ LE : A ⊥ → A ⊥ → Proposition a
 LE x y = Quotient.rec
   (λ x → LE″ x y)
   (Trunc.rec
-     (∃-H-level-H-level-1+ ext univ 1 _ _)
+     (Is-set-∃-Is-proposition ext prop-ext _ _)
      (lemma₃ y))
-  (∃-H-level-H-level-1+ ext univ 1)
+  (Is-set-∃-Is-proposition ext prop-ext)
   x
   where
   LE′ : Delay A ∞ → Delay A ∞ → Proposition a
@@ -42,7 +42,7 @@ LE x y = Quotient.rec
 
   lemma₁ : ∀ {x y z} → x ≈ y → LE′ z x ≡ LE′ z y
   lemma₁ x≈y =
-    _↔_.to (⇔↔≡′ ext univ)
+    _↔_.to (⇔↔≡″ ext prop-ext)
            (record { to   = ∥∥-map (flip PO.transitive-⊑≈ x≈y)
                    ; from = ∥∥-map (flip PO.transitive-⊑≈
                                       (W.symmetric x≈y))
@@ -50,7 +50,7 @@ LE x y = Quotient.rec
 
   lemma₂ : ∀ {x y z} → x ≈ y → LE′ x z ≡ LE′ y z
   lemma₂ x≈y =
-    _↔_.to (⇔↔≡′ ext univ)
+    _↔_.to (⇔↔≡″ ext prop-ext)
            (record { to   = ∥∥-map (PO.transitive-≈⊑
                                       (W.symmetric x≈y))
                    ; from = ∥∥-map (PO.transitive-≈⊑ x≈y)
@@ -59,15 +59,15 @@ LE x y = Quotient.rec
   LE″ : Delay A ∞ → A ⊥ → Proposition a
   LE″ x y = Quotient.rec
     (LE′ x)
-    (Trunc.rec (∃-H-level-H-level-1+ ext univ 1 _ _) lemma₁)
-    (∃-H-level-H-level-1+ ext univ 1)
+    (Trunc.rec (Is-set-∃-Is-proposition ext prop-ext _ _) lemma₁)
+    (Is-set-∃-Is-proposition ext prop-ext)
     y
 
   lemma₃ : ∀ {x y} z → x ≈ y → LE″ x z ≡ LE″ y z
   lemma₃ {x} {y} z x≈y = Quotient.elim-Prop
     (λ z → LE″ x z ≡ LE″ y z)
     (λ _ → lemma₂ x≈y)
-    (λ _ → ∃-H-level-H-level-1+ ext univ 1 _ _)
+    (λ _ → Is-set-∃-Is-proposition ext prop-ext _ _)
     z
 
 infix 4 _⊑_

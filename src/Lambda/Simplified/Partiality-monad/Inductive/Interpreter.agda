@@ -216,10 +216,11 @@ interpreters-equal = λ t ρ →
     never                                               ■
 
 -- Another proof for Interpreter₂. This proof uses Scott induction
--- (and univalence).
+-- (and propositional extensionality).
 
-Ω-loops₂′ : Univalence lzero → Interpreter₂.⟦ Ω ⟧ empty ≡ never
-Ω-loops₂′ univ = antisymmetry lemma (never⊑ _)
+Ω-loops₂′ : Propositional-extensionality lzero →
+            Interpreter₂.⟦ Ω ⟧ empty ≡ never
+Ω-loops₂′ prop-ext = antisymmetry lemma (never⊑ _)
   where
   open Interpreter₂
   open Trans-⊑
@@ -229,7 +230,7 @@ interpreters-equal = λ t ρ →
     ⟦ Ω ⟧ empty                                              ⊑⟨⟩
 
     fixP evalP (_ , Ω , empty)                               ⊑⟨ cong (_$ (_ , Ω , empty)) $
-                                                                  fixP-is-fixpoint-combinator univ evalP ⟩≡
+                                                                  fixP-is-fixpoint-combinator prop-ext evalP ⟩≡
     function eval (fixP evalP) (_ , Ω , empty)               ⊑⟨ fixP-induction₁
                                                                   (λ f → function eval f (_ , Ω , empty) ⊑ never) (
         function eval (const never) (_ , Ω , empty)                  ⊑⟨ Ω-loops₂.reduce-twice _ ⟩≡

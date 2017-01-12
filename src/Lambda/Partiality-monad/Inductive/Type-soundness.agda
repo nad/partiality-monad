@@ -46,9 +46,10 @@ does-not-go-wrong {σ} {x} always =
   ∥ ⊥₀ ∥               ↝⟨ _↔_.to (not-inhabited⇒∥∥↔⊥ id) ⟩□
   ⊥₀                   □
 
--- Well-typed programs do not "go wrong" (assuming univalence).
+-- Well-typed programs do not "go wrong" (assuming propositional
+-- extensionality).
 
-module _ (univ : Univalence lzero) where
+module _ (prop-ext : Propositional-extensionality lzero) where
 
   -- Some "constructors" for □ ∘ ∥WF-MV∥.
 
@@ -56,7 +57,7 @@ module _ (univ : Univalence lzero) where
     ∀ {σ v} →
     WF-Value σ v →
     □ (∥WF-MV∥ σ) (MaybeT.run (return v))
-  return-wf v-wf = □-now univ truncation-is-proposition ∣ v-wf ∣
+  return-wf v-wf = □-now prop-ext truncation-is-proposition ∣ v-wf ∣
 
   _>>=-wf_ :
     ∀ {σ τ} {x : M Value} {f : Value → M Value} →
@@ -64,7 +65,7 @@ module _ (univ : Univalence lzero) where
     (∀ {v} → WF-Value σ v → □ (∥WF-MV∥ τ) (run (f v))) →
     □ (∥WF-MV∥ τ) (MaybeT.run (x >>= f))
   _>>=-wf_ {σ} {τ} {f = f} x-wf f-wf =
-    □->>= univ univ (λ _ → truncation-is-proposition) x-wf
+    □->>= prop-ext prop-ext (λ _ → truncation-is-proposition) x-wf
       λ { {nothing} → Trunc.rec prop ⊥-elim
         ; {just v}  → Trunc.rec prop f-wf
         }
@@ -91,7 +92,7 @@ module _ (univ : Univalence lzero) where
            WF-Value (σ ⇾ τ) f → WF-Value (force σ) v →
            ∀ n → □ (∥WF-MV∥ (force τ)) (run ((f ∙ v) n))
     ∙-wf (ƛ t₁∈ ρ₁-wf) v₂-wf (suc n) = ⟦⟧′-wf _ t₁∈ (snoc-wf ρ₁-wf v₂-wf) n
-    ∙-wf (ƛ t₁∈ ρ₁-wf) v₂-wf zero    =         $⟨ □-never univ ⟩
+    ∙-wf (ƛ t₁∈ ρ₁-wf) v₂-wf zero    =         $⟨ □-never prop-ext ⟩
       □ (∥WF-MV∥ _) never                      ↝⟨ ≡⇒↝ bijection $ cong (□ (∥WF-MV∥ _)) (sym never->>=) ⟩□
       □ (∥WF-MV∥ _) (never >>= return ∘ just)  □
 
@@ -99,6 +100,6 @@ module _ (univ : Univalence lzero) where
                    empty ⊢ t ∈ σ → ¬ ⟦ t ⟧ empty ≡ fail
   type-soundness {t} {σ} =
     empty ⊢ t ∈ σ                                 ↝⟨ (λ t∈ → ⟦⟧′-wf _ t∈ empty-wf) ⟩
-    (∀ n → □ (∥WF-MV∥ σ) (run (⟦ t ⟧′ empty n)))  ↝⟨ □-⨆ univ (λ _ → truncation-is-proposition) ⟩
+    (∀ n → □ (∥WF-MV∥ σ) (run (⟦ t ⟧′ empty n)))  ↝⟨ □-⨆ prop-ext (λ _ → truncation-is-proposition) ⟩
     □ (∥WF-MV∥ σ) (run (⟦ t ⟧ empty))             ↝⟨ does-not-go-wrong ⟩□
     ¬ ⟦ t ⟧ empty ≡ fail                          □

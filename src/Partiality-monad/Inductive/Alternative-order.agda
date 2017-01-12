@@ -8,10 +8,11 @@
 open import Equality.Propositional
 open import Univalence-axiom equality-with-J
 
--- The characterisation uses univalence.
+-- The characterisation uses propositional extensionality.
 
 module Partiality-monad.Inductive.Alternative-order
-         {a} (univ : Univalence a) {A : Set a} where
+         {a} (prop-ext : Propositional-extensionality a) {A : Set a}
+         where
 
 open import H-level.Truncation.Propositional as Trunc
 open import Interval using (ext)
@@ -54,7 +55,7 @@ private
              }
     ; pa = λ now-x≲y now-x≲z now-x≲y→now-x≲z now-x≲z→now-x≲y →
                                             $⟨ record { to = now-x≲y→now-x≲z; from = now-x≲z→now-x≲y } ⟩
-             proj₁ now-x≲y ⇔ proj₁ now-x≲z  ↝⟨ _↔_.to (⇔↔≡′ ext univ) ⟩□
+             proj₁ now-x≲y ⇔ proj₁ now-x≲z  ↝⟨ _↔_.to (⇔↔≡″ ext prop-ext) ⟩□
              now-x≲y ≡ now-x≲z              □
     ; ps = ps
     ; qr = λ { _ (now-x≲y , _) →
@@ -85,7 +86,7 @@ private
     abstract
       ps : Is-set (Proposition a)
       ps =
-        ∃-H-level-H-level-1+ ext univ 1
+        Is-set-∃-Is-proposition ext prop-ext
 
   ≲-args : Arguments-nd (lsuc a) a A
   ≲-args = record
@@ -99,7 +100,7 @@ private
              }
     ; pa = λ x≲ y≲ y≲→x≲ x≲→y≲ → ext λ z →
                                           $⟨ record { to = x≲→y≲ z; from = y≲→x≲ z } ⟩
-             proj₁ (x≲ z) ⇔ proj₁ (y≲ z)  ↝⟨ _↔_.to (⇔↔≡′ ext univ) ⟩□
+             proj₁ (x≲ z) ⇔ proj₁ (y≲ z)  ↝⟨ _↔_.to (⇔↔≡″ ext prop-ext) ⟩□
              x≲ z ≡ y≲ z                  □
     ; ps = ps
     ; qr = λ _ x≲ z →
@@ -129,7 +130,7 @@ private
       ps : Is-set (A ⊥ → Proposition a)
       ps =
         Π-closure ext 2 λ _ →
-        ∃-H-level-H-level-1+ ext univ 1
+        Is-set-∃-Is-proposition ext prop-ext
 
 infix 4 _≲_
 
@@ -279,7 +280,7 @@ now≲⨆ {x} {s} =
 -- _≲_
 
 -- Defined values of the form now x are never smaller than or equal
--- to never (assuming univalence).
+-- to never (assuming propositional extensionality).
 --
 -- This lemma was proved together with Paolo Capriotti.
 

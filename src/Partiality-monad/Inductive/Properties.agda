@@ -115,7 +115,7 @@ x ⇑ = x ≡ never
 -- An alternative characterisation of _⊑_.
 --
 -- For a proof showing that _⊑_ and _≼_ are pointwise equivalent
--- (assuming univalence), see
+-- (assuming propositional extensionality), see
 -- Partiality-monad.Inductive.Alternative-order.≼≃⊑.
 
 _≼_ : A ⊥ → A ⊥ → Set a
