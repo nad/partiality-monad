@@ -73,7 +73,7 @@ record Partiality-algebra {a} p q (A : Set a) :
     -- We have chosen to explicitly make the type set-truncated.
     -- However, this "constructor" is not used anywhere in the
     -- development.
-    ≡-proof-irrelevant-unused : {x y : Type} → Proof-irrelevant (x ≡ y)
+    Type-UIP-unused : Uniqueness-of-identity-proofs Type
 
     -- _⊑_ "constructors".
 
@@ -366,29 +366,29 @@ lower-initiality {p₁ = p₁} {q₁} p₂ q₂ {A} P initial P′ =
 
   P″ : Partiality-algebra (p₁ ⊔ p₂) (q₁ ⊔ q₂) A
   P″ = record
-    { Type                      = ↑ p₂ Type
-    ; _⊑_                       = λ x y → ↑ q₂ (lower x ⊑ lower y)
-    ; never                     = lift never
-    ; now                       = lift ⊚ now
-    ; ⨆                         = lift ⊚ ⨆ ⊚ Σ-map (lower ⊚_) (lower ⊚_)
-    ; antisymmetry              = λ x⊑y y⊑x →
-                                    cong lift (antisymmetry (lower x⊑y)
-                                                            (lower y⊑x))
-    ; ≡-proof-irrelevant-unused = λ _ _ →
-                                    _⇔_.to set⇔UIP
-                                      (↑-closure 2 Type-is-set) _ _
-    ; ⊑-refl                    = lift ⊚ ⊑-refl ⊚ lower
-    ; ⊑-trans                   = λ x⊑y y⊑z →
-                                    lift (⊑-trans (lower x⊑y)
-                                                  (lower y⊑z))
-    ; never⊑                    = lift ⊚ never⊑ ⊚ lower
-    ; upper-bound               = λ _ → lift ⊚ upper-bound _
-    ; least-upper-bound         = λ _ _ →
-                                    lift ⊚
-                                    least-upper-bound _ _ ⊚
-                                    (lower ⊚_)
-    ; ⊑-proof-irrelevant        = _⇔_.to propositional⇔irrelevant
-                                    (↑-closure 1 ⊑-propositional)
+    { Type               = ↑ p₂ Type
+    ; _⊑_                = λ x y → ↑ q₂ (lower x ⊑ lower y)
+    ; never              = lift never
+    ; now                = lift ⊚ now
+    ; ⨆                  = lift ⊚ ⨆ ⊚ Σ-map (lower ⊚_) (lower ⊚_)
+    ; antisymmetry       = λ x⊑y y⊑x →
+                             cong lift (antisymmetry (lower x⊑y)
+                                                     (lower y⊑x))
+    ; Type-UIP-unused    = λ _ _ →
+                             _⇔_.to set⇔UIP
+                               (↑-closure 2 Type-is-set) _ _
+    ; ⊑-refl             = lift ⊚ ⊑-refl ⊚ lower
+    ; ⊑-trans            = λ x⊑y y⊑z →
+                             lift (⊑-trans (lower x⊑y)
+                                           (lower y⊑z))
+    ; never⊑             = lift ⊚ never⊑ ⊚ lower
+    ; upper-bound        = λ _ → lift ⊚ upper-bound _
+    ; least-upper-bound  = λ _ _ →
+                             lift ⊚
+                             least-upper-bound _ _ ⊚
+                             (lower ⊚_)
+    ; ⊑-proof-irrelevant = _⇔_.to propositional⇔irrelevant
+                             (↑-closure 1 ⊑-propositional)
     }
 
   lower-morphism : Morphism P P″ → Morphism P P′
@@ -537,6 +537,11 @@ initiality→eliminators {p = p} {q} {p′} {q′} {A} {PA} initial args =
                                    (antisymmetry x⊑y y⊑x)
                                    (pa x⊑y y⊑x p q Qx⊑y Qy⊑x)
                                }
+      ; Type-UIP-unused    = _⇔_.to propositional⇔irrelevant
+                               (Σ-closure 2
+                                  Type-is-set
+                                  (λ _ → _⇔_.from set⇔UIP pp)
+                                  _ _)
       ; ⊑-refl             = λ _ → _ , qr _ _
       ; ⊑-trans            = Σ-zip ⊑-trans (qt _ _ _ _ _)
       ; never⊑             = λ _ → _ , qe _ _
@@ -548,12 +553,6 @@ initiality→eliminators {p = p} {q} {p′} {q′} {A} {PA} initial args =
                                (Σ-closure 1 ⊑-propositional λ _ →
                                   _⇔_.from propositional⇔irrelevant
                                     (qp _ _ _))
-      ; ≡-proof-irrelevant-unused =
-          _⇔_.to propositional⇔irrelevant
-            (Σ-closure 2
-               Type-is-set
-               (λ _ → _⇔_.from set⇔UIP pp)
-               _ _)
       }
 
     -- Initiality gives us a morphism from PA to ∃PA.
