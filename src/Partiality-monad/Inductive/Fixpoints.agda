@@ -9,7 +9,7 @@ module Partiality-monad.Inductive.Fixpoints where
 open import Equality.Propositional
 open import Interval using (ext)
 open import Logical-equivalence using (_⇔_)
-open import Prelude hiding (⊥)
+open import Prelude hiding (⊥; head; tail)
 
 open import Bijection equality-with-J using (_↔_)
 import Equivalence equality-with-J as Eq
@@ -815,3 +815,87 @@ instance
   Monad.associativity partial-monad x _ _ =
     _↔_.to equality-characterisation-Partial
       (λ h → associativity (Partial.function x h) _ _)
+
+------------------------------------------------------------------------
+-- An example
+
+private
+
+  infixr 5 _∷_
+
+  record Stream {a} (A : Set a) : Set a where
+    coinductive
+    constructor _∷_
+    field
+      head : A
+      tail : Stream A
+
+  open Stream
+
+  -- A direct implementation of a function that searches a stream for
+  -- an element satisfying a predicate.
+
+  module Direct {a} {A : Set a} (q : A → Bool) where
+
+    Φ : Trans (Stream A) (λ _ → A)
+    Φ f xs = if q (head xs) then return (head xs) else f (tail xs)
+
+    Φ-monotone :
+      ∀ {f₁ f₂} → (∀ xs → f₁ xs ⊑ f₂ xs) → ∀ xs → Φ f₁ xs ⊑ Φ f₂ xs
+    Φ-monotone f₁⊑f₂ xs with q (head xs)
+    ... | true  = return (head xs)  ■
+    ... | false = f₁⊑f₂ (tail xs)
+
+    Φ-⊑ : Trans-⊑ (Stream A) (λ _ → A)
+    Φ-⊑ = record { function = Φ; monotone = Φ-monotone }
+
+    search : Stream A → A ⊥
+    search = fix→ Φ-⊑
+
+    search-least :
+      ∀ f → (∀ xs → Φ f xs ⊑ f xs) →
+      ∀ xs → search xs ⊑ f xs
+    search-least = fix→-is-least Φ-⊑
+
+    Φ-ω-continuous :
+      (s : Stream A → Increasing-sequence A) (xs : Stream A) →
+      Φ (⨆ ∘ s) xs ≡ ⨆ [ Φ-⊑ $ s at xs ]-inc
+    Φ-ω-continuous s xs with q (head xs)
+    ... | true  = return (head xs)               ≡⟨ sym ⨆-const ⟩∎
+                  ⨆ (constˢ (return (head xs)))  ∎
+    ... | false = ⨆ (s (tail xs))                ∎
+
+    Φ-ω : Trans-ω (Stream A) (λ _ → A)
+    Φ-ω = record { transformer = Φ-⊑; ω-continuous = Φ-ω-continuous }
+
+    search-fixpoint : search ≡ Φ search
+    search-fixpoint = fix→-is-fixpoint-combinator Φ-ω
+
+  -- An arguably more convenient implementation, with the potential
+  -- drawback that one of the lemmas depends on propositional
+  -- extensionality.
+
+  module Indirect {a} {A : Set a} (q : A → Bool) where
+
+    ΦP : Stream A → Partial (Stream A) (λ _ → A) A
+    ΦP xs =
+      if q (head xs) then
+        return (head xs)
+      else
+        rec (tail xs)
+
+    Φ : Trans (Stream A) (λ _ → A)
+    Φ = Trans-⊑.function (transformer ΦP)
+
+    search : Stream A → A ⊥
+    search = fixP ΦP
+
+    search-least :
+      ∀ f → (∀ xs → Φ f xs ⊑ f xs) →
+      ∀ xs → search xs ⊑ f xs
+    search-least = fixP-is-least ΦP
+
+    search-fixpoint :
+      Propositional-extensionality a →
+      search ≡ Φ search
+    search-fixpoint prop-ext = fixP-is-fixpoint-combinator prop-ext ΦP
