@@ -1,54 +1,72 @@
 ------------------------------------------------------------------------
--- Some definitions and properties
+-- Partiality algebra properties that do not depend on initiality
 ------------------------------------------------------------------------
 
-{-# OPTIONS --without-K #-}
+open import Partiality-monad.Inductive.Partiality-algebra
+  hiding (id; _∘_)
 
-module Partiality-monad.Inductive.Properties {a} {A : Set a} where
+module Partiality-monad.Inductive.Partiality-algebra.Properties
+  {a p q} {A : Set a} (P : Partiality-algebra p q A) where
 
 open import Equality.Propositional
-open import H-level.Truncation.Propositional
+open import H-level.Truncation.Propositional hiding (elim)
 open import Interval using (ext)
-open import Logical-equivalence using (_⇔_)
-open import Prelude hiding (⊥)
+open import Prelude
 
-open import Bijection equality-with-J using (_↔_)
-open import Equivalence equality-with-J as Eq using (_≃_)
 open import Function-universe equality-with-J hiding (id; _∘_)
-open import H-level equality-with-J
+open import H-level equality-with-J hiding (Type)
 open import H-level.Closure equality-with-J
 open import Nat equality-with-J
 
-open import Partiality-monad.Inductive
-open import Partiality-monad.Inductive.Eliminators
+open Partiality-algebra P
 
--- Preorder reasoning combinators.
+------------------------------------------------------------------------
+-- Some predicates
+
+-- A termination predicate: x ⇓ y means that x terminates with the
+-- value y.
+
+infix 4 _⇓_ _⇑
+
+_⇓_ : Type → A → Set p
+x ⇓ y = x ≡ now y
+
+-- A non-termination predicate.
+
+_⇑ : Type → Set p
+x ⇑ = x ≡ never
+
+------------------------------------------------------------------------
+-- Preorder reasoning combinators
 
 infix  -1 finally-⊑
 infix  -1 _■
 infixr -2 _⊑⟨_⟩_ _⊑⟨⟩_ _⊑⟨_⟩≡_
 
-_⊑⟨_⟩_ : (x {y z} : A ⊥) → x ⊑ y → y ⊑ z → x ⊑ z
+_⊑⟨_⟩_ : (x {y z} : Type) → x ⊑ y → y ⊑ z → x ⊑ z
 _ ⊑⟨ x⊑y ⟩ y⊑z = ⊑-trans x⊑y y⊑z
 
-_⊑⟨⟩_ : (x {y} : A ⊥) → x ⊑ y → x ⊑ y
+_⊑⟨⟩_ : (x {y} : Type) → x ⊑ y → x ⊑ y
 _ ⊑⟨⟩ x⊑y = x⊑y
 
-_⊑⟨_⟩≡_ : (x {y z} : A ⊥) → x ≡ y →
+_⊑⟨_⟩≡_ : (x {y z} : Type) → x ≡ y →
           y ⊑ z → x ⊑ z
 _ ⊑⟨ refl ⟩≡ y⊑z = y⊑z
 
-_■ : (x : A ⊥) → x ⊑ x
+_■ : (x : Type) → x ⊑ x
 x ■ = ⊑-refl x
 
-finally-⊑ : (x y : A ⊥) → x ⊑ y → x ⊑ y
+finally-⊑ : (x y : Type) → x ⊑ y → x ⊑ y
 finally-⊑ _ _ x⊑y = x⊑y
 
 syntax finally-⊑ x y x⊑y = x ⊑⟨ x⊑y ⟩■ y ■
 
+------------------------------------------------------------------------
+-- Some simple lemmas
+
 -- ⨆ is monotone.
 
-⨆-mono : {s₁ s₂ : Increasing-sequence A} →
+⨆-mono : {s₁ s₂ : Increasing-sequence} →
          (∀ n → s₁ [ n ] ⊑ s₂ [ n ]) → ⨆ s₁ ⊑ ⨆ s₂
 ⨆-mono {s₁} {s₂} s₁⊑s₂ =
   least-upper-bound s₁ (⨆ s₂) (λ n →
@@ -58,7 +76,7 @@ syntax finally-⊑ x y x⊑y = x ⊑⟨ x⊑y ⟩■ y ■
 
 -- Later elements in an increasing sequence are larger.
 
-later-larger : (s : Increasing-sequence A) →
+later-larger : (s : Increasing-sequence) →
                ∀ {m n} → m ≤ n → s [ m ] ⊑ s [ n ]
 later-larger s {m} (≤-refl′ refl)           = s [ m ] ■
 later-larger s {m} (≤-step′ {k = n} p refl) =
@@ -66,9 +84,17 @@ later-larger s {m} (≤-step′ {k = n} p refl) =
   s [ n ]      ⊑⟨ increasing s n ⟩■
   s [ suc n ]  ■
 
+-- Only never is smaller than or equal to never.
+
+only-never-⊑-never : {x : Type} → x ⊑ never → x ≡ never
+only-never-⊑-never x⊑never = antisymmetry x⊑never (never⊑ _)
+
+------------------------------------------------------------------------
+-- Tails
+
 -- The tail of an increasing sequence.
 
-tailˢ : Increasing-sequence A → Increasing-sequence A
+tailˢ : Increasing-sequence → Increasing-sequence
 tailˢ = Σ-map (_∘ suc) (_∘ suc)
 
 -- The tail has the same least upper bound as the full sequence.
@@ -81,68 +107,33 @@ tailˢ = Σ-map (_∘ suc) (_∘ suc)
   (⨆-mono (λ n → s [ n ]      ⊑⟨ increasing s n ⟩■
                  s [ suc n ]  ■))
 
--- Only never is smaller than or equal to never.
+------------------------------------------------------------------------
+-- Constant sequences
 
-only-never-⊑-never : {x : A ⊥} → x ⊑ never → x ≡ never
-only-never-⊑-never x⊑never = antisymmetry x⊑never (never⊑ _)
+-- One way to form a constant sequence.
 
--- Constant sequences.
-
-constˢ : A ⊥ → Increasing-sequence A
+constˢ : Type → Increasing-sequence
 constˢ x = const x , const (⊑-refl x)
 
 -- The least upper bound of a constant sequence is equal to the
 -- value in the sequence.
 
-⨆-const : ∀ {x : A ⊥} {inc} → ⨆ (const x , inc) ≡ x
+⨆-const : ∀ {x : Type} {inc} → ⨆ (const x , inc) ≡ x
 ⨆-const {x} =
   antisymmetry (least-upper-bound _ _ (λ _ → ⊑-refl x))
                (upper-bound _ 0)
 
--- A termination predicate: x ⇓ y means that x terminates with the
--- value y.
+------------------------------------------------------------------------
+-- Box and diamond
 
-infix 4 _⇓_ _⇑
+-- Box.
 
-_⇓_ : A ⊥ → A → Set a
-x ⇓ y = x ≡ now y
-
--- A non-termination predicate.
-
-_⇑ : A ⊥ → Set a
-x ⇑ = x ≡ never
-
--- An alternative characterisation of _⊑_.
---
--- For a proof showing that _⊑_ and _≼_ are pointwise equivalent
--- (assuming propositional extensionality), see
--- Partiality-monad.Inductive.Alternative-order.≼≃⊑.
-
-_≼_ : A ⊥ → A ⊥ → Set a
-x ≼ y = ∀ z → x ⇓ z → y ⇓ z
-
--- _≼_ is propositional.
-
-≼-propositional : ∀ {x y} → Is-proposition (x ≼ y)
-≼-propositional =
-  Π-closure ext 1 λ _ →
-  Π-closure ext 1 λ _ →
-  ⊥-is-set _ _
-
--- _≼_ is transitive.
-
-≼-trans : ∀ {x y z} → x ≼ y → y ≼ z → x ≼ z
-≼-trans {x} {y} {z} x≼y y≼z u =
-  x ⇓ u  ↝⟨ x≼y u ⟩
-  y ⇓ u  ↝⟨ y≼z u ⟩□
-  z ⇓ u  □
-
--- Box and diamond.
-
-□ : ∀ {ℓ} → (A → Set ℓ) → A ⊥ → Set (a ⊔ ℓ)
+□ : ∀ {ℓ} → (A → Set ℓ) → Type → Set (a ⊔ p ⊔ ℓ)
 □ P x = ∀ y → x ⇓ y → P y
 
-◇ : ∀ {ℓ} → (A → Set ℓ) → A ⊥ → Set (a ⊔ ℓ)
+-- Diamond.
+
+◇ : ∀ {ℓ} → (A → Set ℓ) → Type → Set (a ⊔ p ⊔ ℓ)
 ◇ P x = ∥ (∃ λ y → x ⇓ y × P y) ∥
 
 -- All h-levels are closed under box.
@@ -162,20 +153,33 @@ x ≼ y = ∀ z → x ⇓ z → y ⇓ z
   ∀ {x} → P x → ◇ P (now x)
 ◇-now p = ∣ _ , refl , p ∣
 
--- Runs the computation. The given number is used to decide which
--- element to choose in sequences that are encountered.
+------------------------------------------------------------------------
+-- An alternative characterisation of _⊑_
 
-approximate : A ⊥ → ℕ → ∥ Maybe A ∥
-approximate x n = ⊥-rec-⊥
-  (record
-     { pe = ∣ nothing ∣
-     ; po = λ x → ∣ just x ∣
-     ; pl = λ _ rec → rec n
-     ; pp = λ _ → truncation-is-proposition
-     })
-  x
+-- A relation which, /for the partiality monad/, is pointwise
+-- equivalent to _⊑_ (assuming propositional extensionality). See
+-- Partiality-monad.Inductive.Alternative-order.≼≃⊑ for the proof.
 
-----------------------------------------------------------------------
+_≼_ : Type → Type → Set (a ⊔ p)
+x ≼ y = ∀ z → x ⇓ z → y ⇓ z
+
+-- _≼_ is propositional.
+
+≼-propositional : ∀ {x y} → Is-proposition (x ≼ y)
+≼-propositional =
+  Π-closure ext 1 λ _ →
+  Π-closure ext 1 λ _ →
+  Type-is-set _ _
+
+-- _≼_ is transitive.
+
+≼-trans : ∀ {x y z} → x ≼ y → y ≼ z → x ≼ z
+≼-trans {x} {y} {z} x≼y y≼z u =
+  x ⇓ u  ↝⟨ x≼y u ⟩
+  y ⇓ u  ↝⟨ y≼z u ⟩□
+  z ⇓ u  □
+
+------------------------------------------------------------------------
 -- Combinators that can be used to prove that two least upper bounds
 -- are equal
 
@@ -186,7 +190,7 @@ approximate x n = ⊥-rec-⊥
 
 infix 4 _≳[_]_
 
-record _≳[_]_ (s₁ : ℕ → A ⊥) (n : ℕ) (s₂ : ℕ → A ⊥) : Set a where
+record _≳[_]_ (s₁ : ℕ → Type) (n : ℕ) (s₂ : ℕ → Type) : Set p where
   constructor wrap
   field
     run : ∃ λ k → s₁ (k + n) ≡ s₂ n

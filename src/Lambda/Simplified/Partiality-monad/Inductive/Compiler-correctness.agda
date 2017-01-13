@@ -16,7 +16,6 @@ open import Monad equality-with-J
 open import Partiality-monad.Inductive
 open import Partiality-monad.Inductive.Fixpoints hiding (comp)
 open import Partiality-monad.Inductive.Monad
-open import Partiality-monad.Inductive.Properties
 
 open import Lambda.Simplified.Compiler
 open import Lambda.Simplified.Partiality-monad.Inductive.Interpreter

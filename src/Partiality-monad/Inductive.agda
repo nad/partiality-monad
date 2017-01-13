@@ -37,6 +37,10 @@ module _ {a} {A : Set a} where
                equality-characterisation-⊥
              )
 
+  open import
+    Partiality-monad.Inductive.Partiality-algebra.Properties
+      (partiality-algebra A) public
+
 -- The partiality monad.
 
 infix 10 _⊥

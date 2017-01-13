@@ -18,7 +18,6 @@ open import Univalence-axiom equality-with-J
 open import Partiality-monad.Inductive
 open import Partiality-monad.Inductive.Fixpoints
 open import Partiality-monad.Inductive.Monad
-open import Partiality-monad.Inductive.Properties
 
 open import Lambda.Simplified.Syntax
 

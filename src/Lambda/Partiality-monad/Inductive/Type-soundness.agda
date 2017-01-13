@@ -23,7 +23,6 @@ open import Univalence-axiom equality-with-J
 open import Partiality-monad.Inductive
 open import Partiality-monad.Inductive.Alternative-order
 open import Partiality-monad.Inductive.Monad
-open import Partiality-monad.Inductive.Properties
 
 open import Lambda.Partiality-monad.Inductive.Interpreter
 open import Lambda.Syntax

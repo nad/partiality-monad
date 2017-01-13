@@ -30,7 +30,6 @@ open import Nat equality-with-J as Nat
 
 open import Partiality-monad.Inductive
 open import Partiality-monad.Inductive.Eliminators
-open import Partiality-monad.Inductive.Properties
 
 ------------------------------------------------------------------------
 -- The alternative characterisation

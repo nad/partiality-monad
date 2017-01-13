@@ -16,7 +16,6 @@ open import Function-universe equality-with-J hiding (id; _∘_)
 open import H-level.Closure equality-with-J
 
 open import Partiality-monad.Inductive
-open import Partiality-monad.Inductive.Properties
 
 -- Definition of monotone functions.
 

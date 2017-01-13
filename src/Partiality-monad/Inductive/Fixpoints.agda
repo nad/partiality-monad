@@ -23,7 +23,6 @@ open import Partiality-monad.Inductive
 open import Partiality-monad.Inductive.Monad
 open import Partiality-monad.Inductive.Monotone
 open import Partiality-monad.Inductive.Omega-continuous
-open import Partiality-monad.Inductive.Properties
 
 ------------------------------------------------------------------------
 -- A fixpoint combinator

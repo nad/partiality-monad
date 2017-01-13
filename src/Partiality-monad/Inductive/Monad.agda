@@ -26,7 +26,6 @@ import Partiality-monad.Inductive.Alternative-order as Alternative-order
 open import Partiality-monad.Inductive.Eliminators
 open import Partiality-monad.Inductive.Monotone
 open import Partiality-monad.Inductive.Omega-continuous
-open import Partiality-monad.Inductive.Properties
 
 ------------------------------------------------------------------------
 -- The monad instance

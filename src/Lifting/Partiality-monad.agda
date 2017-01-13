@@ -22,7 +22,6 @@ import Lifting
 open import Omega-CPO
 import Partiality-monad.Inductive as I
 import Partiality-monad.Inductive.Eliminators as IE
-import Partiality-monad.Inductive.Properties as IP
 
 private
   module L {A : Set a} = Lifting (Type→ω-CPO A)
@@ -65,7 +64,7 @@ private
     ; ql = λ _ _ _ → I.least-upper-bound
     ; qm = λ { refl → I.⊑-refl _ }
     ; q⨆ = λ s →
-             I.now (proj₁ s 0)                    IP.⊑⟨ I.upper-bound _ 0 ⟩■
+             I.now (proj₁ s 0)                    I.⊑⟨ I.upper-bound _ 0 ⟩■
              I.⨆ ((λ n → I.now (proj₁ s n)) , _)  ■
     ; qp = λ _ _ _ → I.⊑-proof-irrelevant
     }

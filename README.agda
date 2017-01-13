@@ -28,6 +28,10 @@ import Partiality-monad.Inductive.Preliminary-sketch
 
 import Partiality-monad.Inductive.Partiality-algebra
 
+-- Partiality algebra properties that do not depend on initiality.
+
+import Partiality-monad.Inductive.Partiality-algebra.Properties
+
 -- A higher inductive-inductive definition of the partiality monad
 -- (§3.1).
 
@@ -37,9 +41,9 @@ import Partiality-monad.Inductive
 
 import Partiality-monad.Inductive.Eliminators
 
--- Some definitions and properties.
+-- A function that runs computations.
 
-import Partiality-monad.Inductive.Properties
+import Partiality-monad.Inductive.Approximate
 
 -- An alternative characterisation of the information ordering, along
 -- with related results (§3.3).

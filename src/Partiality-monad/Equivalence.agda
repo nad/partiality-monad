@@ -34,10 +34,9 @@ import Delay-monad.Weak-bisimilarity as W
 import Partiality-monad.Coinductive as C
 import Partiality-monad.Coinductive.Alternative as CA
 open import Partiality-monad.Inductive as I
-  hiding (_⊥; _⊑_; Increasing-sequence)
+  hiding (_⊥; _⊑_; Increasing-sequence; _⇓_)
 open import Partiality-monad.Inductive.Alternative-order
 open import Partiality-monad.Inductive.Eliminators
-open import Partiality-monad.Inductive.Properties as IP hiding (_⇓_)
 
 ------------------------------------------------------------------------
 -- A function from the partiality monad defined in
@@ -112,21 +111,21 @@ Delay→⊥-≈→≡ A-set x y =
 ------------------------------------------------------------------------
 -- A lemma
 
--- IP._⇓_ and A._⇓_ are pointwise logically equivalent (via Delay→⊥),
+-- I._⇓_ and A._⇓_ are pointwise logically equivalent (via Delay→⊥),
 -- for sets, assuming propositional extensionality.
 
 ⇓⇔⇓ :
   Is-set A → Propositional-extensionality a →
-  ∀ x {y} → Delay→⊥ x IP.⇓ y ⇔ x A.⇓ y
+  ∀ x {y} → Delay→⊥ x I.⇓ y ⇔ x A.⇓ y
 ⇓⇔⇓ A-set prop-ext x@(f , _) {y} =
-  Delay→⊥ x IP.⇓ y                    ↝⟨ F.id ⟩
-  ⨆ (Delay→Inc-seq x) IP.⇓ y          ↔⟨ ⨆⇓≃∥∃⇓∥ prop-ext (Delay→Inc-seq x) ⟩
-  ∥ (∃ λ n → Maybe→⊥ (f n) IP.⇓ y) ∥  ↝⟨ ∥∥-cong-⇔ (∃-cong λ _ → record { to = to _; from = cong Maybe→⊥ }) ⟩
-  ∥ (∃ λ n → f n ↓ y) ∥               ↝⟨ F.id ⟩
-  x A.∥⇓∥ y                           ↝⟨ inverse (A.⇓⇔∥⇓∥ A-set x) ⟩□
-  x A.⇓ y                             □
+  Delay→⊥ x I.⇓ y                    ↝⟨ F.id ⟩
+  ⨆ (Delay→Inc-seq x) I.⇓ y          ↔⟨ ⨆⇓≃∥∃⇓∥ prop-ext (Delay→Inc-seq x) ⟩
+  ∥ (∃ λ n → Maybe→⊥ (f n) I.⇓ y) ∥  ↝⟨ ∥∥-cong-⇔ (∃-cong λ _ → record { to = to _; from = cong Maybe→⊥ }) ⟩
+  ∥ (∃ λ n → f n ↓ y) ∥              ↝⟨ F.id ⟩
+  x A.∥⇓∥ y                          ↝⟨ inverse (A.⇓⇔∥⇓∥ A-set x) ⟩□
+  x A.⇓ y                            □
   where
-  to : ∀ n → Maybe→⊥ (f n) IP.⇓ y → f n ↓ y
+  to : ∀ n → Maybe→⊥ (f n) I.⇓ y → f n ↓ y
   to n f⇓y with f n
   ... | nothing = ⊥-elim $ now≢never prop-ext _ (sym f⇓y)
   ... | just y′ =
@@ -160,10 +159,10 @@ Delay→⊥-injective A-set prop-ext x y x≡y =
   lemma A-set prop-ext x y x⊑y z =
     x A.∥⇓∥ z            ↝⟨ _⇔_.from (A.⇓⇔∥⇓∥ A-set x) ⟩
     x A.⇓ z              ↝⟨ _⇔_.from (⇓⇔⇓ A-set prop-ext x) ⟩
-    Delay→⊥ x IP.⇓ z     ↔⟨ ⇓≃now⊑ prop-ext ⟩
+    Delay→⊥ x I.⇓ z      ↔⟨ ⇓≃now⊑ prop-ext ⟩
     now z I.⊑ Delay→⊥ x  ↝⟨ flip ⊑-trans x⊑y ⟩
     now z I.⊑ Delay→⊥ y  ↔⟨ inverse (⇓≃now⊑ prop-ext) ⟩
-    Delay→⊥ y IP.⇓ z     ↝⟨ _⇔_.to (⇓⇔⇓ A-set prop-ext y) ⟩
+    Delay→⊥ y I.⇓ z      ↝⟨ _⇔_.to (⇓⇔⇓ A-set prop-ext y) ⟩
     y A.⇓ z              ↝⟨ _⇔_.to (A.⇓⇔∥⇓∥ A-set y) ⟩□
     y A.∥⇓∥ z            □
 
@@ -246,11 +245,11 @@ Delay→⊥-surjective A-set prop-ext cc =
       y ≡ y′
     termination-value-unique-f₂ {m} {n} {y} {m′} {n′} {y′} =
       f₂ m n ↓ y × f₂ m′ n′ ↓ y′  ↝⟨ f₂↓→⨆s⇓ ×-cong f₂↓→⨆s⇓ ⟩
-      ⨆ s IP.⇓ y × ⨆ s IP.⇓ y′    ↝⟨ uncurry (termination-value-merely-unique prop-ext) ⟩
+      ⨆ s I.⇓ y × ⨆ s I.⇓ y′      ↝⟨ uncurry (termination-value-merely-unique prop-ext) ⟩
       ∥ y ≡ y′ ∥                  ↔⟨ ∥∥↔ (A-set _ _) ⟩□
       y ≡ y′                      □
       where
-      f₂↓→⨆s⇓ : ∀ {y m n} → f₂ m n ↓ y → ⨆ s IP.⇓ y
+      f₂↓→⨆s⇓ : ∀ {y m n} → f₂ m n ↓ y → ⨆ s I.⇓ y
       f₂↓→⨆s⇓ {y} {m} f₂↓ =
         terminating-element-is-⨆ prop-ext s
           (s [ m ]        ≡⟨ sym (h m) ⟩
@@ -301,7 +300,7 @@ Delay→⊥-surjective A-set prop-ext cc =
       n₁ = proj₁ (_↔_.to ℕ↔ℕ² n)
       n₂ = proj₂ (_↔_.to ℕ↔ℕ² n)
 
-      f⇓ : Delay→⊥ (f n₁) IP.⇓ y
+      f⇓ : Delay→⊥ (f n₁) I.⇓ y
       f⇓ =
         _≃_.from (⇓≃now⊑ prop-ext)
           (now y                        ⊑⟨ cong Maybe→⊥ $ sym $ proj₂ f₁↓ ⟩≡
