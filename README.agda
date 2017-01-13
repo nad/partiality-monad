@@ -8,21 +8,24 @@
 -- Comments of the form (§n) indicate that (parts of) the given
 -- module(s) correspond to (parts of) Section n in the paper.
 
+-- Parts of the code are heavily inspired by the section on Cauchy
+-- reals in the HoTT book (first edition).
+
 {-# OPTIONS --without-K #-}
 
 module README where
 
 ------------------------------------------------------------------------
--- The partiality monad
-
--- The code is heavily inspired by the section on Cauchy reals in the
--- HoTT book (first edition).
+-- Preliminaries
 
 -- A partial inductive-recursive definition of the partiality monad,
 -- without path or truncation constructors, in order to get the basics
 -- right.
 
 import Partiality-monad.Inductive.Preliminary-sketch
+
+------------------------------------------------------------------------
+-- Partiality algebras
 
 -- Partiality algebras (§3.1).
 
@@ -31,6 +34,30 @@ import Partiality-monad.Inductive.Partiality-algebra
 -- Partiality algebra properties that do not depend on initiality.
 
 import Partiality-monad.Inductive.Partiality-algebra.Properties
+
+-- Monotone functions (§5.1).
+
+import Partiality-monad.Inductive.Partiality-algebra.Monotone
+
+-- ω-continuous functions (§5.1).
+
+import Partiality-monad.Inductive.Partiality-algebra.Omega-continuous
+
+-- Strict ω-continuous functions.
+
+import
+  Partiality-monad.Inductive.Partiality-algebra.Strict-omega-continuous
+
+-- Fixpoint combinators (§5.1).
+
+import Partiality-monad.Inductive.Partiality-algebra.Fixpoints
+
+-- Pi with partiality algebra families as codomains (§5.1).
+
+import Partiality-monad.Inductive.Partiality-algebra.Pi
+
+------------------------------------------------------------------------
+-- The partiality monad
 
 -- A higher inductive-inductive definition of the partiality monad
 -- (§3.1).

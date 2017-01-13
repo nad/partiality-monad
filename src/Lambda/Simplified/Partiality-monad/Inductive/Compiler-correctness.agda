@@ -14,7 +14,7 @@ open import Prelude hiding (⊥)
 open import Monad equality-with-J
 
 open import Partiality-monad.Inductive
-open import Partiality-monad.Inductive.Fixpoints hiding (comp)
+open import Partiality-monad.Inductive.Fixpoints hiding (comp; app)
 open import Partiality-monad.Inductive.Monad
 
 open import Lambda.Simplified.Compiler
@@ -33,13 +33,13 @@ open Trans-⊑
 -- Some abbreviations.
 
 evalⁿ : ∀ {n} → Tm n → T.Env n → ℕ → T.Value ⊥
-evalⁿ t ρ n = app→ (function eval) n (_ , t , ρ)
+evalⁿ t ρ n = app→ eval n (_ , t , ρ)
 
 _∙ⁿ_ : T.Value → T.Value → ℕ → T.Value ⊥
-(v₁ ∙ⁿ v₂) n = function (v₁ ∙ v₂) (app→ (function eval) n)
+(v₁ ∙ⁿ v₂) n = function (v₁ ∙ v₂) (app→ eval n)
 
 execⁿ : State → ℕ → Maybe C.Value ⊥
-execⁿ s n = app→ (function (transformer execP)) n s
+execⁿ s n = app→ (transformer execP) n s
 
 -- Compiler correctness.
 

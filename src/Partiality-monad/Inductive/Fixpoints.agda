@@ -21,162 +21,30 @@ open import Univalence-axiom equality-with-J
 
 open import Partiality-monad.Inductive
 open import Partiality-monad.Inductive.Monad
-open import Partiality-monad.Inductive.Monotone
+open import Partiality-monad.Inductive.Monotone using ([_⊥→_⊥]⊑)
 open import Partiality-monad.Inductive.Omega-continuous
+open import Partiality-monad.Inductive.Partiality-algebra
+  using (Partiality-algebra)
+import Partiality-monad.Inductive.Partiality-algebra.Fixpoints as PAF
+open import Partiality-monad.Inductive.Partiality-algebra.Monotone
+open import
+  Partiality-monad.Inductive.Partiality-algebra.Omega-continuous
+open import Partiality-monad.Inductive.Partiality-algebra.Pi as Pi
+  hiding (at)
 
 ------------------------------------------------------------------------
--- A fixpoint combinator
-
--- The development below, up to fix-is-least, is (very similar to)
--- Kleene's fixed-point theorem.
+-- The fixpoint combinator machinery instantiated with the partiality
+-- monad
 
 module _ {a} {A : Set a} where
 
-  -- Repeated composition of a monotone function with itself.
-
-  comp : [ A ⊥→ A ⊥]⊑ → ℕ → [ A ⊥→ A ⊥]⊑
-  comp f zero    = id⊑
-  comp f (suc n) = f ∘⊑ comp f n
-
-  -- Pre-composition with the function is equal to post-composition
-  -- with the function.
-
-  pre≡post : ∀ f n → comp f n ∘⊑ f ≡ f ∘⊑ comp f n
-  pre≡post f zero    = f  ∎
-  pre≡post f (suc n) =
-    (f ∘⊑ comp f n) ∘⊑ f  ≡⟨ ∘⊑-assoc f (comp f n) ⟩
-    f ∘⊑ (comp f n ∘⊑ f)  ≡⟨ cong (f ∘⊑_) $ pre≡post f n ⟩∎
-    f ∘⊑ (f ∘⊑ comp f n)  ∎
-
-  -- An increasing sequence consisting of repeated applications of the
-  -- given monotone function to never.
-
-  fix-sequence : [ A ⊥→ A ⊥]⊑ → Increasing-sequence A
-  fix-sequence f =
-      (λ n → proj₁ (comp f n) never)
-    , fix-sequence-increasing
-    where
-    abstract
-      fix-sequence-increasing :
-        ∀ n → proj₁ (comp f n) never ⊑ proj₁ (f ∘⊑ comp f n) never
-      fix-sequence-increasing n =
-        proj₁ (comp f n) never            ⊑⟨ proj₂ (comp f n) (never⊑ (proj₁ f never)) ⟩
-        proj₁ (comp f n) (proj₁ f never)  ⊑⟨⟩
-        proj₁ (comp f n ∘⊑ f) never       ⊑⟨ cong (λ g → proj₁ g never) $ pre≡post f n ⟩≡
-        proj₁ (f ∘⊑ comp f n) never       ■
-
-  -- Taking the tail of this sequence amounts to the same thing as
-  -- applying the function to each element in the sequence.
-
-  tailˢ-fix-sequence :
-    (f : [ A ⊥→ A ⊥]⊑) →
-    tailˢ (fix-sequence f) ≡ [ f $ fix-sequence f ]-inc
-  tailˢ-fix-sequence f =
-    _↔_.to equality-characterisation-increasing λ _ → refl
-
-  -- The sequence has the same least upper bound as the sequence you
-  -- get if you apply the function to each element of the sequence.
-
-  ⨆-fix-sequence :
-    (f : [ A ⊥→ A ⊥]⊑) →
-    ⨆ (fix-sequence f) ≡ ⨆ [ f $ fix-sequence f ]-inc
-  ⨆-fix-sequence f =
-    ⨆ (fix-sequence f)            ≡⟨ sym $ ⨆tail≡⨆ _ ⟩
-    ⨆ (tailˢ (fix-sequence f))    ≡⟨ cong ⨆ (tailˢ-fix-sequence f) ⟩∎
-    ⨆ [ f $ fix-sequence f ]-inc  ∎
-
-  -- A fixpoint combinator.
-
-  fix : [ A ⊥→ A ⊥]⊑ → A ⊥
-  fix f = ⨆ (fix-sequence f)
-
-  -- The fixpoint combinator produces fixpoints for ω-continuous
-  -- arguments.
-
-  fix-is-fixpoint-combinator :
-    (fω : [ A ⊥→ A ⊥]) →
-    let f⊑ : [ A ⊥→ A ⊥]⊑
-        f⊑ = proj₁ fω
-
-        f : A ⊥ → A ⊥
-        f = proj₁ f⊑
-    in fix f⊑ ≡ f (fix f⊑)
-  fix-is-fixpoint-combinator fω =
-    fix f⊑                          ≡⟨⟩
-    ⨆ (fix-sequence f⊑)             ≡⟨ ⨆-fix-sequence f⊑ ⟩
-    ⨆ [ f⊑ $ fix-sequence f⊑ ]-inc  ≡⟨ sym $ proj₂ fω _ ⟩
-    f (⨆ (fix-sequence f⊑))         ≡⟨ refl ⟩∎
-    f (fix f⊑)                      ∎
-    where
-    f⊑ : [ A ⊥→ A ⊥]⊑
-    f⊑ = proj₁ fω
-
-    f : A ⊥ → A ⊥
-    f = proj₁ f⊑
-
-  -- The result of the fixpoint combinator is smaller than or equal to
-  -- every post-fixpoint.
-
-  fix-is-least :
-    (f : [ A ⊥→ A ⊥]⊑) →
-    ∀ x → proj₁ f x ⊑ x → fix f ⊑ x
-  fix-is-least f x fx⊑x = least-upper-bound _ _ lemma
-    where
-    lemma : ∀ n → proj₁ (comp f n) never ⊑ x
-    lemma zero    = never⊑ x
-    lemma (suc n) =
-      proj₁ (f ∘⊑ comp f n) never       ⊑⟨⟩
-      proj₁ f (proj₁ (comp f n) never)  ⊑⟨ proj₂ f (lemma n) ⟩
-      proj₁ f x                         ⊑⟨ fx⊑x ⟩■
-      x                                 ■
-
-  -- The function flip comp n is homomorphic with respect to _∘⊑_.
-
-  comp-∘ : ∀ f n → comp (f ∘⊑ f) n ≡ comp f n ∘⊑ comp f n
-  comp-∘ f zero    = id⊑  ∎
-  comp-∘ f (suc n) =
-    (f ∘⊑ f) ∘⊑ comp (f ∘⊑ f) n         ≡⟨ cong ((f ∘⊑ f) ∘⊑_) (comp-∘ f n) ⟩
-    (f ∘⊑ f) ∘⊑ (comp f n ∘⊑ comp f n)  ≡⟨ lemma f f (comp f n) _ ⟩
-    f ∘⊑ ((f ∘⊑ comp f n) ∘⊑ comp f n)  ≡⟨ cong ((_∘⊑ comp f n) ∘ (f ∘⊑_)) $ sym $ pre≡post f n ⟩
-    f ∘⊑ ((comp f n ∘⊑ f) ∘⊑ comp f n)  ≡⟨ sym $ lemma f (comp f n) f _ ⟩∎
-    (f ∘⊑ comp f n) ∘⊑ (f ∘⊑ comp f n)  ∎
-    where
-    lemma : (f g h k : [ A ⊥→ A ⊥]⊑) →
-            (f ∘⊑ g) ∘⊑ (h ∘⊑ k) ≡ f ∘⊑ ((g ∘⊑ h) ∘⊑ k)
-    lemma f g h k =
-      (f ∘⊑ g) ∘⊑ (h ∘⊑ k)  ≡⟨ ∘⊑-assoc f g ⟩
-      f ∘⊑ (g ∘⊑ (h ∘⊑ k))  ≡⟨ cong (f ∘⊑_) $ ∘⊑-assoc g h ⟩∎
-      f ∘⊑ ((g ∘⊑ h) ∘⊑ k)  ∎
-
-  -- The function comp f is homomorphic with respect to _+_/_∘⊑_.
-
-  comp-+∘ : ∀ f m {n} → comp f (m + n) ≡ comp f m ∘⊑ comp f n
-  comp-+∘ f zero    {n} = comp f n  ∎
-  comp-+∘ f (suc m) {n} =
-    f ∘⊑ comp f (m + n)          ≡⟨ cong (f ∘⊑_) $ comp-+∘ f m ⟩
-    f ∘⊑ (comp f m ∘⊑ comp f n)  ≡⟨ ∘⊑-assoc f (comp f m) ⟩∎
-    (f ∘⊑ comp f m) ∘⊑ comp f n  ∎
-
-  -- Taking steps that are "twice as large" does not affect the end
-  -- result.
-
-  fix-∘ : (f : [ A ⊥→ A ⊥]⊑) → fix (f ∘⊑ f) ≡ fix f
-  fix-∘ f = antisymmetry
-    (least-upper-bound _ _ λ n →
-       proj₁ (comp (f ∘⊑ f) n) never       ⊑⟨ cong (λ f → proj₁ f never) $ comp-∘ f n ⟩≡
-       proj₁ (comp f n ∘⊑ comp f n) never  ⊑⟨ cong (λ f → proj₁ f never) $ sym $ comp-+∘ f n ⟩≡
-       proj₁ (comp f (n + n)) never        ⊑⟨ upper-bound (fix-sequence f) (n + n) ⟩■
-       ⨆ (fix-sequence f)                  ■)
-    (⨆-mono λ n →
-       proj₁ (comp f n) never                     ⊑⟨ proj₂ (comp f n) (never⊑ _) ⟩
-       proj₁ (comp f n) (proj₁ (comp f n) never)  ⊑⟨⟩
-       proj₁ (comp f n ∘⊑ comp f n) never         ⊑⟨ cong (λ f → proj₁ f never) $ sym $ comp-∘ f n ⟩≡
-       proj₁ (comp (f ∘⊑ f) n) never              ■)
+  open PAF.Fix {P = partiality-algebra A} public
+  open [_⊥→_⊥]
 
   -- A variant of fix.
 
   fix′ : (A → A ⊥) → A ⊥
-  fix′ f = fix (proj₁ (f ∗))
+  fix′ f = fix (monotone-function (f ∗))
 
   -- This variant also produces a kind of least fixpoint.
 
@@ -184,30 +52,43 @@ module _ {a} {A : Set a} where
     (f : A → A ⊥) →
     fix′ f ≡ fix′ f >>= f
   fix′-is-fixpoint-combinator f =
-    fix′ f                   ≡⟨⟩
-    fix (proj₁ (f ∗))        ≡⟨ fix-is-fixpoint-combinator (f ∗) ⟩∎
-    fix (proj₁ (f ∗)) >>= f  ∎
+    fix′ f                               ≡⟨⟩
+    fix (monotone-function (f ∗))        ≡⟨ fix-is-fixpoint-combinator (f ∗) ⟩∎
+    fix (monotone-function (f ∗)) >>= f  ∎
 
   fix′-is-least :
     (f : A → A ⊥) →
     ∀ x → x >>= f ⊑ x → fix′ f ⊑ x
-  fix′-is-least f = fix-is-least (proj₁ (f ∗))
+  fix′-is-least f = fix-is-least (monotone-function (f ∗))
 
   -- Taking steps that are "twice as large" does not affect the end
   -- result.
 
   fix′-∘ : (f : A → A ⊥) → fix′ (λ x → f x >>= f) ≡ fix′ f
   fix′-∘ f =
-    fix′ (λ x → f x >>= f)             ≡⟨⟩
+    fix′ (λ x → f x >>= f)                                    ≡⟨⟩
 
-    fix (proj₁ ((λ x → f x >>= f) ∗))  ≡⟨ cong fix (_↔_.to equality-characterisation-monotone λ x →
+    fix (monotone-function ((λ x → f x >>= f) ∗))             ≡⟨ cong fix (_↔_.to equality-characterisation-monotone λ x →
 
-        (x >>= λ y → f y >>= f)             ≡⟨ associativity x f f ⟩∎
-        x >>= f >>= f                       ∎) ⟩
+        (x >>= λ y → f y >>= f)                                    ≡⟨ associativity x f f ⟩∎
+        x >>= f >>= f                                              ∎) ⟩
 
-    fix (proj₁ (f ∗) ∘⊑ proj₁ (f ∗))   ≡⟨ fix-∘ (proj₁ (f ∗)) ⟩∎
+    fix (monotone-function (f ∗) ∘⊑ monotone-function (f ∗))  ≡⟨ fix-∘ (monotone-function (f ∗)) ⟩∎
 
-    fix′ f                             ∎
+    fix′ f                                                    ∎
+
+  -- Unary Scott induction for fix′.
+
+  fix′-induction₁ :
+    ∀ {p}
+    (P : A ⊥ → Set p)
+    (P⊥ : P never)
+    (P⨆ : ∀ s → (∀ n → P (s [ n ])) → P (⨆ s))
+    (f : A → A ⊥) →
+    (∀ x → P x → P (x >>= f)) →
+    P (fix′ f)
+  fix′-induction₁ P P⊥ P⨆ f =
+    fix-induction₁ P P⊥ P⨆ ([_⊥→_⊥].monotone-function (f ∗))
 
 -- N-ary Scott induction.
 
@@ -218,201 +99,88 @@ module _ {a p} n
   (P⨆ : ∀ ss → (∀ n → P (λ i → ss i [ n ])) → P (⨆ ∘ ss))
   where
 
-  fix-induction :
-    (fs : ∀ i → [ As i ⊥→ As i ⊥]⊑) →
-    (∀ xs → P xs → P (λ i → proj₁ (fs i) (xs i))) →
-    P (fix ∘ fs)
-  fix-induction fs⊑ step =
-                                                    $⟨ lemma ⟩
-    (∀ n → P (λ i → proj₁ (comp (fs⊑ i) n) never))  ↝⟨ P⨆ _ ⟩
-    P (⨆ ∘ fix-sequence ∘ fs⊑)                      ↝⟨ id ⟩□
-    P (fix ∘ fs⊑)                                   □
-    where
-    fs : ∀ i → As i ⊥ → As i ⊥
-    fs = proj₁ ∘ fs⊑
-
-    lemma : ∀ n → P (λ i → proj₁ (comp (fs⊑ i) n) never)
-    lemma zero    = P⊥
-    lemma (suc n) =
-                                                     $⟨ lemma n ⟩
-      P (λ i → proj₁ (comp (fs⊑ i) n) never)         ↝⟨ step _ ⟩□
-      P (λ i → fs i (proj₁ (comp (fs⊑ i) n) never))  □
+  open PAF.N-ary n As (λ i → partiality-algebra (As i)) P P⊥ P⨆ public
 
   fix′-induction :
     (fs : ∀ i → As i → As i ⊥) →
     (∀ xs → P xs → P (λ i → xs i >>= fs i)) →
     P (fix′ ∘ fs)
-  fix′-induction fs = fix-induction (λ i → proj₁ (fs i ∗))
-
--- Unary Scott induction.
-
-module _ {a p}
-  {A : Set a}
-  (P : A ⊥ → Set p)
-  (P⊥ : P never)
-  (P⨆ : ∀ s → (∀ n → P (s [ n ])) → P (⨆ s))
-  where
-
-  fix-induction₁ :
-    (f : [ A ⊥→ A ⊥]⊑) →
-    (∀ x → P x → P (proj₁ f x)) →
-    P (fix f)
-  fix-induction₁ f step =
-    fix-induction
-      1
-      [ const A , ⊥-elim ]
-      (P ∘ (_$ fzero))
-      P⊥
-      (P⨆ ∘ (_$ fzero))
-      [ const f , (λ x → ⊥-elim x) ]
-      (step ∘ (_$ fzero))
-
-  fix′-induction₁ :
-    (f : A → A ⊥) →
-    (∀ x → P x → P (x >>= f)) →
-    P (fix′ f)
-  fix′-induction₁ f = fix-induction₁ (proj₁ (f ∗))
+  fix′-induction fs =
+    fix-induction (λ i → [_⊥→_⊥].monotone-function (fs i ∗))
 
 ------------------------------------------------------------------------
--- Another fixpoint combinator
+-- The fixpoint combinator machinery instantiated with dependent
+-- functions to the partiality monad
 
--- TODO: Is it possible to find some suitable abstraction and have
--- only one implementation of a fixpoint combinator?
+module _ {a b} (A : Set a) (B : A → Set b) where
 
--- Partial function transformers.
+  -- Partial function transformers.
 
-Trans : ∀ {a b} (A : Set a) → (A → Set b) → Set (a ⊔ b)
-Trans A B = ((x : A) → B x ⊥) → ((x : A) → B x ⊥)
+  Trans : Set (a ⊔ b)
+  Trans = ((x : A) → B x ⊥) → ((x : A) → B x ⊥)
 
--- Monotone partial function transformers.
+  -- A partiality algebra.
 
-record Trans-⊑ {a b} (A : Set a) (B : A → Set b) : Set (a ⊔ b) where
-  field
-    function : Trans A B
-    monotone : ∀ {g₁ g₂} →
-               (∀ x → g₁ x ⊑ g₂ x) →
-               ∀ x → function g₁ x ⊑ function g₂ x
+  Pi : Partiality-algebra (a ⊔ b) (a ⊔ b) ((x : A) → B x)
+  Pi = Π A (partiality-algebra ∘ B)
 
--- Monotone partial function transformers can be turned into
--- parametrised increasing sequence transformers.
+  -- Monotone partial function transformers.
 
-[_$_at_]-inc :
-  ∀ {a b} {A : Set a} {B : A → Set b} →
-  Trans-⊑ A B →
-  ((x : A) → Increasing-sequence (B x)) →
-  ((x : A) → Increasing-sequence (B x))
-[ f $ s at x ]-inc =
-    (λ n → function f (λ x → s x [ n ]) x)
-  , (λ n → monotone f (λ x → increasing (s x) n) x)
-  where
-  open Trans-⊑
+  Trans-⊑ : Set (a ⊔ b)
+  Trans-⊑ = [ Pi ⟶ Pi ]⊑
 
--- Partial function transformers that are ω-continuous.
+  private
 
-record Trans-ω {a b} (A : Set a) (B : A → Set b) : Set (a ⊔ b) where
-  field
-    transformer : Trans-⊑ A B
+    sanity-check : Trans-⊑ → Trans
+    sanity-check = [_⟶_]⊑.function
 
-  open Trans-⊑ transformer public
+  -- Partial function transformers that are ω-continuous.
 
-  field
-    ω-continuous : (s : (x : A) → Increasing-sequence (B x)) (x : A) →
-                   function (⨆ ∘ s) x ≡ ⨆ [ transformer $ s at x ]-inc
+  Trans-ω : Set (a ⊔ b)
+  Trans-ω = [ Pi ⟶ Pi ]
 
 module _ {a b} {A : Set a} {B : A → Set b} where
 
-  -- Repeated composition of a partial function transformer with
-  -- itself.
+  module Trans-⊑ = [_⟶_]⊑ {P₁ = Pi A B} {P₂ = Pi A B}
+  module Trans-ω = [_⟶_]  {P₁ = Pi A B} {P₂ = Pi A B}
 
-  comp→ : Trans A B → ℕ → Trans A B
-  comp→ f zero    = id
-  comp→ f (suc n) = f ∘ comp→ f n
+  private
+    module F = PAF.Fix {P = Pi A B}
 
-  -- If the function f is a monotone partial function transformer,
-  -- then comp→ f n is monotone.
+  -- Applies an increasing sequence of functions to a value.
 
-  comp→-mono :
-    ∀ (f : Trans-⊑ A B) n {g h : (x : A) → B x ⊥} →
-    (∀ x → g x ⊑ h x) →
-    ∀ x → comp→ (Trans-⊑.function f) n g x ⊑
-          comp→ (Trans-⊑.function f) n h x
-  comp→-mono f zero            g⊑h x = g⊑h x
-  comp→-mono f (suc n) {g} {h} g⊑h x =
-    function f (comp→ (function f) n g) x  ⊑⟨ monotone f (comp→-mono f n g⊑h) x ⟩
-    function f (comp→ (function f) n h) x  ■
-    where
-    open Trans-⊑
+  at :
+    (∃ λ (f : ℕ → (x : A) → B x ⊥) → ∀ n x → f n x ⊑ f (suc n) x) →
+    (x : A) → ∃ λ (f : ℕ → B x ⊥) → ∀ n → f n ⊑ f (suc n)
+  at = Pi.at (partiality-algebra ∘ B)
 
-  -- Pre-composition with the partial function transformer is equal to
-  -- post-composition.
+  -- Repeated application of a monotone partial function transformer
+  -- to the least element.
 
-  pre≡post→ : ∀ f n → comp→ f n ∘ f ≡ f ∘ comp→ f n
-  pre≡post→ f zero    = f  ∎
-  pre≡post→ f (suc n) =
-    f ∘ comp→ f n ∘ f  ≡⟨ cong (f ∘_) (pre≡post→ f n) ⟩
-    f ∘ f ∘ comp→ f n  ∎
+  app→ : Trans-⊑ A B → ℕ → ((x : A) → B x ⊥)
+  app→ = F.app
 
-  -- The function flip comp n is homomorphic with respect to _∘_.
+  -- The increasing sequence fix→-sequence f consists of the elements
+  -- const never, Trans-⊑.function f (const never), and so on. This
+  -- sequence is used in the implementation of fix→.
 
-  comp→-∘ : ∀ f n → comp→ (f ∘ f) n ≡ comp→ f n ∘ comp→ f n
-  comp→-∘ f zero    = id  ∎
-  comp→-∘ f (suc n) =
-    f ∘ f ∘ comp→ (f ∘ f) n        ≡⟨ cong ((f ∘ f) ∘_) (comp→-∘ f n) ⟩
-    f ∘ f ∘ comp→ f n ∘ comp→ f n  ≡⟨ cong ((_∘ comp→ f n) ∘ (f ∘_)) $ sym $ pre≡post→ f n ⟩
-    f ∘ comp→ f n ∘ f ∘ comp→ f n  ∎
-
-  -- The function comp→ f is homomorphic with respect to _+_/_∘_.
-
-  comp→-+∘ : ∀ f m n → comp→ f (m + n) ≡ comp→ f m ∘ comp→ f n
-  comp→-+∘ f zero    n = refl
-  comp→-+∘ f (suc m) n = cong (f ∘_) (comp→-+∘ f m n)
-
-  -- Repeated application of a partial function transformer to
-  -- const never.
-
-  app→ : Trans A B → ℕ → ((x : A) → B x ⊥)
-  app→ f n = comp→ f n (λ _ → never)
-
-  -- The increasing sequence fix→-sequence f x consists of the
-  -- elements never, function f (const never) x,
-  -- function f (function f (const never)) x, and so on.
-
-  fix→-sequence : (f : Trans-⊑ A B) →
-                  (x : A) → Increasing-sequence (B x)
-  fix→-sequence f x =
-      (λ n → app→ (function f) n x)
-    , (λ n →
-         app→ (function f) n       x  ⊑⟨ app→-increasing n x ⟩■
-         app→ (function f) (suc n) x  ■)
-    where
-    open Trans-⊑
-
-    app→-increasing :
-      ∀ n x → app→ (function f) n x ⊑ app→ (function f) (suc n) x
-    app→-increasing zero    = never⊑ ∘ function f (λ _ → never)
-    app→-increasing (suc n) = monotone f (app→-increasing n)
+  fix→-sequence : Trans-⊑ A B →
+                  Partiality-algebra.Increasing-sequence (Pi A B)
+  fix→-sequence = F.fix-sequence
 
   -- A fixpoint combinator.
 
   fix→ : Trans-⊑ A B → ((x : A) → B x ⊥)
-  fix→ f x = ⨆ (fix→-sequence f x)
+  fix→ = F.fix
 
   -- The fixpoint combinator produces fixpoints for ω-continuous
   -- arguments.
 
   fix→-is-fixpoint-combinator :
     (f : Trans-ω A B) →
-    fix→ (Trans-ω.transformer f) ≡
-    Trans-ω.function f (fix→ (Trans-ω.transformer f))
-  fix→-is-fixpoint-combinator f = ext λ x →
-    fix→ (transformer f) x                                        ≡⟨⟩
-    ⨆ (fix→-sequence (transformer f) x)                           ≡⟨ sym $ ⨆tail≡⨆ _ ⟩
-    ⨆ (tailˢ (fix→-sequence (transformer f) x))                   ≡⟨ cong ⨆ (_↔_.to equality-characterisation-increasing (λ _ → refl)) ⟩
-    ⨆ [ transformer f $ fix→-sequence (transformer f) at x ]-inc  ≡⟨ sym $ ω-continuous f (fix→-sequence (transformer f)) x ⟩
-    function f (⨆ ∘ fix→-sequence (transformer f)) x              ≡⟨ refl ⟩∎
-    function f (fix→ (transformer f)) x                           ∎
-    where
-    open Trans-ω
+    fix→ (Trans-ω.monotone-function f) ≡
+    Trans-ω.function f (fix→ (Trans-ω.monotone-function f))
+  fix→-is-fixpoint-combinator = F.fix-is-fixpoint-combinator
 
   -- The result of the fixpoint combinator is pointwise smaller than
   -- or equal to every "pointwise post-fixpoint".
@@ -421,42 +189,13 @@ module _ {a b} {A : Set a} {B : A → Set b} where
     (f : Trans-⊑ A B) →
     ∀ g → (∀ x → Trans-⊑.function f g x ⊑ g x) →
       ∀ x → fix→ f x ⊑ g x
-  fix→-is-least f g fg⊑g = least-upper-bound _ _ ∘ lemma
-    where
-    open Trans-⊑
-
-    lemma : ∀ x n → comp→ (function f) n (λ _ → never) x ⊑ g x
-    lemma x zero    = never⊑ (g x)
-    lemma x (suc n) =
-      function f (comp→ (function f) n (λ _ → never)) x  ⊑⟨ monotone f (λ x → lemma x n) x ⟩
-      function f g x                                     ⊑⟨ fg⊑g x ⟩■
-      g x                                                ■
-
-  -- Composition of partial function transformers.
-
-  infixr 40 _∘T_
-
-  _∘T_ : Trans-⊑ A B → Trans-⊑ A B → Trans-⊑ A B
-  Trans-⊑.function (f ∘T g) = Trans-⊑.function f ∘ Trans-⊑.function g
-  Trans-⊑.monotone (f ∘T g) = Trans-⊑.monotone f ∘ Trans-⊑.monotone g
+  fix→-is-least = F.fix-is-least
 
   -- Taking steps that are "twice as large" does not affect the end
   -- result.
 
-  fix→-∘ : (f : Trans-⊑ A B) → fix→ (f ∘T f) ≡ fix→ f
-  fix→-∘ f⊑ = ext λ x → antisymmetry
-    (least-upper-bound _ _ λ n →
-       comp→ (f ∘ f) n (λ _ → never) x          ⊑⟨ cong (λ g → g _ _) $ comp→-∘ f n ⟩≡
-       (comp→ f n ∘ comp→ f n) (λ _ → never) x  ⊑⟨ cong (λ f → f (λ _ → never) x) $ sym $ comp→-+∘ f n n ⟩≡
-       comp→ f (n + n) (λ _ → never) x          ⊑⟨ upper-bound (fix→-sequence f⊑ x) (n + n) ⟩■
-       ⨆ (fix→-sequence f⊑ x)                   ■)
-    (⨆-mono λ n →
-       comp→ f n (λ _ → never) x                ⊑⟨ comp→-mono f⊑ n (λ _ → never⊑ _) x ⟩
-       comp→ f n (comp→ f n (λ _ → never)) x    ⊑⟨⟩
-       (comp→ f n ∘ comp→ f n) (λ _ → never) x  ⊑⟨ cong (λ g → g _ _) $ sym $ comp→-∘ f n ⟩≡
-       comp→ (f ∘ f) n (λ _ → never) x          ■)
-    where
-    f = Trans-⊑.function f⊑
+  fix→-∘ : (f : Trans-⊑ A B) → fix→ (f ∘⊑ f) ≡ fix→ f
+  fix→-∘ = F.fix-∘
 
 -- N-ary Scott induction.
 
@@ -471,27 +210,22 @@ module _
         P (λ i xs → ⨆ (ss i xs)))
   (fs : ∀ i → Trans-⊑ (As i) (Bs i)) where
 
+  private
+    module N = PAF.N-ary n
+                 (λ i → (x : As i) → Bs i x)
+                 (λ i → Π (As i) (partiality-algebra ∘ Bs i))
+                 P
+                 P⊥
+                 (λ _ → P⨆ _)
+                 fs
+
   -- Generalised.
 
   fix→-induction′ :
-    (∀ n → P (λ i → app→ (Trans-⊑.function (fs i)) n) →
-           P (λ i → app→ (Trans-⊑.function (fs i)) (suc n))) →
+    (∀ n → P (λ i → app→ (fs i) n) →
+           P (λ i → app→ (fs i) (suc n))) →
     P (λ i → fix→ (fs i))
-  fix→-induction′ step =              $⟨ lemma ⟩
-    (∀ n → P (λ i → app→ (ffs i) n))  ↝⟨ P⨆ _ ⟩
-    P ((⨆ ∘_) ∘ fix→-sequence ∘ fs)   ↝⟨ id ⟩□
-    P (fix→ ∘ fs)                     □
-    where
-    open Trans-⊑
-
-    ffs : ∀ i → Trans (As i) (Bs i)
-    ffs = function ∘ fs
-
-    lemma : ∀ n → P (λ i → app→ (ffs i) n)
-    lemma zero    = P⊥
-    lemma (suc n) =                           $⟨ lemma n ⟩
-      P (λ i xs → app→ (ffs i) n xs)          ↝⟨ step n ⟩□
-      P (λ i xs → ffs i (app→ (ffs i) n) xs)  □
+  fix→-induction′ = N.fix-induction′
 
   -- Basic.
 
@@ -499,7 +233,7 @@ module _
     ((gs : ∀ i (x : As i) → Bs i x ⊥) →
      P gs → P (λ i → Trans-⊑.function (fs i) (gs i))) →
     P (λ i → fix→ (fs i))
-  fix→-induction step = fix→-induction′ (λ _ → step _)
+  fix→-induction = N.fix-induction
 
 -- Unary Scott induction.
 
@@ -513,16 +247,7 @@ fix→-induction₁ :
   (f : Trans-⊑ A B) →
   (∀ g → P g → P (Trans-⊑.function f g)) →
   P (fix→ f)
-fix→-induction₁ P P⊥ P⨆ f step =
-  fix→-induction
-    1
-    [ const _ , ⊥-elim ]
-    [ const _ , (λ x → ⊥-elim x) ]
-    (P ∘ (_$ fzero))
-    P⊥
-    (P⨆ ∘ (_$ fzero))
-    [ const f , (λ x → ⊥-elim x) ]
-    (step ∘ (_$ fzero))
+fix→-induction₁ P P⊥ P⨆ = PAF.fix-induction₁ P P⊥ (λ _ → P⨆ _)
 
 ------------------------------------------------------------------------
 -- Some combinators that can be used to construct ω-continuous partial
@@ -595,8 +320,8 @@ transformer-ω : ∀ {a b} {A : Set a} {B : A → Set b} →
                 Propositional-extensionality b →
                 ((x : A) → Partial A B (B x)) → Trans-ω A B
 transformer-ω prop-ext f = record
-  { transformer  = transformer f
-  ; ω-continuous = λ s x → ω-continuous (f x) prop-ext s
+  { monotone-function = transformer f
+  ; ω-continuous      = λ _ → ext λ x → ω-continuous (f x) prop-ext _
   }
   where
   open Partial
@@ -661,7 +386,7 @@ fixP-∘ : ∀ {a b} {A : Set a} {B : A → Set b}
          fixP (f ∘P f) ≡ fixP f
 fixP-∘ f =
   fix→ (transformer (f ∘P f))            ≡⟨⟩
-  fix→ (transformer f ∘T transformer f)  ≡⟨ fix→-∘ (transformer f) ⟩∎
+  fix→ (transformer f ∘⊑ transformer f)  ≡⟨ fix→-∘ (transformer f) ⟩∎
   fix→ (transformer f)                   ∎
 
 -- N-ary Scott induction.
@@ -680,8 +405,8 @@ module _
   -- Generalised.
 
   fixP-induction′ :
-    (∀ n → P (λ i → app→ (flip (Partial.function ∘ fs i)) n) →
-           P (λ i → app→ (flip (Partial.function ∘ fs i)) (suc n))) →
+    (∀ n → P (λ i → app→ (transformer (fs i)) n) →
+           P (λ i → app→ (transformer (fs i)) (suc n))) →
     P (λ i → fixP (fs i))
   fixP-induction′ =
     fix→-induction′ n As Bs P P⊥ P⨆ (transformer ∘ fs)
@@ -857,15 +582,22 @@ private
     search-least = fix→-is-least Φ-⊑
 
     Φ-ω-continuous :
-      (s : Stream A → Increasing-sequence A) (xs : Stream A) →
-      Φ (⨆ ∘ s) xs ≡ ⨆ [ Φ-⊑ $ s at xs ]-inc
-    Φ-ω-continuous s xs with q (head xs)
-    ... | true  = return (head xs)               ≡⟨ sym ⨆-const ⟩∎
-                  ⨆ (constˢ (return (head xs)))  ∎
-    ... | false = ⨆ (s (tail xs))                ∎
+      (s : ∃ λ (f : ℕ → Stream A → A ⊥) →
+             ∀ n xs → f n xs ⊑ f (suc n) xs) →
+      Φ (⨆ ∘ at s) ≡ ⨆ ∘ at [ Φ-⊑ $ s ]-inc
+    Φ-ω-continuous s = ext helper
+      where
+      helper : ∀ xs → Φ (⨆ ∘ at s) xs ≡ ⨆ (at [ Φ-⊑ $ s ]-inc xs)
+      helper xs with q (head xs)
+      ... | true  = return (head xs)               ≡⟨ sym ⨆-const ⟩∎
+                    ⨆ (constˢ (return (head xs)))  ∎
+      ... | false = ⨆ (at s (tail xs))             ∎
 
     Φ-ω : Trans-ω (Stream A) (λ _ → A)
-    Φ-ω = record { transformer = Φ-⊑; ω-continuous = Φ-ω-continuous }
+    Φ-ω = record
+      { monotone-function = Φ-⊑
+      ; ω-continuous      = Φ-ω-continuous
+      }
 
     search-fixpoint : search ≡ Φ search
     search-fixpoint = fix→-is-fixpoint-combinator Φ-ω

@@ -20,16 +20,26 @@ open import Partiality-monad.Inductive.Monad
 open import Partiality-monad.Inductive.Monotone
 open import Partiality-monad.Inductive.Omega-continuous
 
+import
+  Partiality-monad.Inductive.Partiality-algebra.Strict-omega-continuous
+    as S
+
 -- Definition of strict ω-continuous functions.
 
 [_⊥→_⊥]-strict : ∀ {a b} → Set a → Set b → Set (a ⊔ b)
-[ A ⊥→ B ⊥]-strict =
-  ∃ λ (f : [ A ⊥→ B ⊥]) → proj₁ (proj₁ f) never ≡ never
+[ A ⊥→ B ⊥]-strict = S.[ partiality-algebra A ⟶ partiality-algebra B ]⊥
+
+module [_⊥→_⊥]-strict
+         {a b} {A : Set a} {B : Set b}
+         (f : [ A ⊥→ B ⊥]-strict) =
+         S.[_⟶_]⊥ f
+
+open [_⊥→_⊥]-strict
 
 -- Identity.
 
 id-strict : ∀ {a} {A : Set a} → [ A ⊥→ A ⊥]-strict
-id-strict = idω , refl
+id-strict = S.id⊥
 
 -- Composition.
 
@@ -38,20 +48,15 @@ infixr 40 _∘-strict_
 _∘-strict_ :
   ∀ {a b c} {A : Set a} {B : Set b} {C : Set c} →
   [ B ⊥→ C ⊥]-strict → [ A ⊥→ B ⊥]-strict → [ A ⊥→ C ⊥]-strict
-f ∘-strict g = proj₁ f ∘ω proj₁ g ,
-  (proj₁ (proj₁ (proj₁ f)) (proj₁ (proj₁ (proj₁ g)) never)  ≡⟨ cong (proj₁ (proj₁ (proj₁ f))) (proj₂ g) ⟩
-   proj₁ (proj₁ (proj₁ f)) never                            ≡⟨ proj₂ f ⟩∎
-   never                                                    ∎)
+_∘-strict_ = S._∘⊥_
 
 -- Equality characterisation lemma for strict ω-continuous functions.
 
 equality-characterisation-strict :
   ∀ {a b} {A : Set a} {B : Set b} {f g : [ A ⊥→ B ⊥]-strict} →
-  (∀ x → proj₁ (proj₁ (proj₁ f)) x ≡ proj₁ (proj₁ (proj₁ g)) x) ↔ f ≡ g
-equality-characterisation-strict {f = f} {g} =
-  (∀ x → proj₁ (proj₁ (proj₁ f)) x ≡ proj₁ (proj₁ (proj₁ g)) x)  ↝⟨ equality-characterisation-continuous ⟩
-  proj₁ f ≡ proj₁ g                                              ↝⟨ ignore-propositional-component (⊥-is-set _ _) ⟩□
-  f ≡ g                                                          □
+  (∀ x → function f x ≡ function g x) ↔ f ≡ g
+equality-characterisation-strict =
+  S.equality-characterisation-strict
 
 -- Composition is associative.
 
@@ -60,21 +65,19 @@ equality-characterisation-strict {f = f} {g} =
   (f : [ C ⊥→ D ⊥]-strict) (g : [ B ⊥→ C ⊥]-strict)
   (h : [ A ⊥→ B ⊥]-strict) →
   f ∘-strict (g ∘-strict h) ≡ (f ∘-strict g) ∘-strict h
-∘-strict-assoc _ _ _ =
-  _↔_.to equality-characterisation-strict λ _ → refl
+∘-strict-assoc = S.∘⊥-assoc
 
 -- Strict ω-continuous functions satisfy an extra monad law.
 
 >>=-∘-return :
   ∀ {a b} {A : Set a} {B : Set b} →
-  (fs : [ A ⊥→ B ⊥]-strict) →
-  let f = proj₁ (proj₁ (proj₁ fs)) in
-  ∀ x → x >>=′ (f ∘ return) ≡ f x
+  (f : [ A ⊥→ B ⊥]-strict) →
+  ∀ x → x >>=′ (function f ∘ return) ≡ function f x
 >>=-∘-return fs = ⊥-rec-⊥
   (record
      { P  = λ x → x >>=′ (f ∘ return) ≡ f x
      ; pe = never >>=′ f ∘ return  ≡⟨ never->>= ⟩
-            never                  ≡⟨ sym (proj₂ fs) ⟩∎
+            never                  ≡⟨ sym (strict fs) ⟩∎
             f never                ∎
      ; po = λ x →
               now x >>=′ f ∘ return  ≡⟨ now->>= ⟩∎
@@ -86,14 +89,13 @@ equality-characterisation-strict {f = f} {g} =
                 (f ∘ return) ∗-inc s [ n ]   ≡⟨ p n ⟩∎
                 [ f⊑ $ s ]-inc [ n ]         ∎) ⟩
 
-              ⨆ [ f⊑ $ s ]-inc          ≡⟨ sym $ proj₂ fω s ⟩∎
+              ⨆ [ f⊑ $ s ]-inc          ≡⟨ sym $ ω-continuous fs s ⟩∎
               f (⨆ s)                   ∎
      ; pp = λ _ → ⊥-is-set _ _
      })
   where
-  fω = proj₁ fs
-  f⊑ = proj₁ fω
-  f  = proj₁ f⊑
+  f⊑ = monotone-function fs
+  f  = function fs
 
 -- Strict ω-continuous functions from A ⊥ to B ⊥ are isomorphic to
 -- functions from A to B ⊥.
@@ -104,15 +106,18 @@ partial↔strict :
 partial↔strict {a} = record
   { surjection = record
     { logical-equivalence = record
-      { to   = λ f → f ∗ , (never >>=′ f  ≡⟨ never->>= ⟩∎
-                            never         ∎)
-      ; from = λ f x → proj₁ (proj₁ (proj₁ f)) (return x)
+      { to   = λ f → record
+                 { ω-continuous-function = f ∗
+                 ; strict                =
+                     never >>=′ f  ≡⟨ never->>= ⟩∎
+                     never         ∎
+                 }
+      ; from = λ f x → function f (return x)
       }
-    ; right-inverse-of    = λ fs →
-        let f = proj₁ (proj₁ (proj₁ fs)) in
+    ; right-inverse-of = λ f →
         _↔_.to equality-characterisation-strict λ x →
-          x >>=′ (f ∘ return)  ≡⟨ >>=-∘-return fs x ⟩∎
-          f x                  ∎
+          x >>=′ (function f ∘ return)  ≡⟨ >>=-∘-return f x ⟩∎
+          function f x                  ∎
     }
   ; left-inverse-of = λ f → ext λ x →
       return x >>=′ f  ≡⟨ Monad-laws.left-identity x f ⟩∎

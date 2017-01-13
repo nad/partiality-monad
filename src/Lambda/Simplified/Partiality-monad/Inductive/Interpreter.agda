@@ -112,17 +112,17 @@ interpreters-equal :
   ∀ {n} (t : Tm n) ρ →
   Interpreter₁.⟦ t ⟧ ρ ≡ Interpreter₂.⟦ t ⟧ ρ
 interpreters-equal = λ t ρ →
-                                                                 $⟨ ⟦⟧-lemma t ρ ⟩
+                                                                $⟨ ⟦⟧-lemma t ρ ⟩
   (∀ n → Interpreter₁.⟦ t ⟧′ ρ n ≡
-         app→ (function Interpreter₂.eval) (suc n) (_ , t , ρ))  ↝⟨ cong ⨆ ∘ _↔_.to equality-characterisation-increasing ⟩
+         app→ Interpreter₂.eval (suc n) (_ , t , ρ))            ↝⟨ cong ⨆ ∘ _↔_.to equality-characterisation-increasing ⟩
 
   ⨆ (Interpreter₁.⟦ t ⟧ˢ ρ) ≡
-  ⨆ (tailˢ (fix→-sequence Interpreter₂.eval (_ , t , ρ)))        ↝⟨ flip trans (⨆tail≡⨆ _) ⟩
+  ⨆ (tailˢ (at (fix→-sequence Interpreter₂.eval) (_ , t , ρ)))  ↝⟨ flip trans (⨆tail≡⨆ _) ⟩
 
   ⨆ (Interpreter₁.⟦ t ⟧ˢ ρ) ≡
-  ⨆ (fix→-sequence Interpreter₂.eval (_ , t , ρ))                ↝⟨ id ⟩□
+  ⨆ (at (fix→-sequence Interpreter₂.eval) (_ , t , ρ))          ↝⟨ id ⟩□
 
-  Interpreter₁.⟦ t ⟧ ρ ≡ Interpreter₂.⟦ t ⟧ ρ                    □
+  Interpreter₁.⟦ t ⟧ ρ ≡ Interpreter₂.⟦ t ⟧ ρ                   □
   where
   open Partial
   open Trans-⊑
@@ -133,7 +133,7 @@ interpreters-equal = λ t ρ →
       ∀ {n} (t : Tm n) ρ n →
       Interpreter₁.⟦ t ⟧′ ρ n ≡
       function (Interpreter₂.⟦ t ⟧′ ρ)
-               (app→ (function Interpreter₂.eval) n)
+               (app→ Interpreter₂.eval n)
     ⟦⟧-lemma (var x)   ρ n = refl
     ⟦⟧-lemma (ƛ t)     ρ n = refl
     ⟦⟧-lemma (t₁ · t₂) ρ n =
@@ -145,7 +145,7 @@ interpreters-equal = λ t ρ →
       ∀ v₁ v₂ n →
       (v₁ Interpreter₁.∙ v₂) n ≡
       function (v₁ Interpreter₂.∙ v₂)
-               (app→ (function Interpreter₂.eval) n)
+               (app→ Interpreter₂.eval n)
     ∙-lemma (ƛ t₁ ρ) v₂ zero    = refl
     ∙-lemma (ƛ t₁ ρ) v₂ (suc n) = ⟦⟧-lemma t₁ (snoc ρ v₂) n
 
@@ -203,16 +203,16 @@ interpreters-equal = λ t ρ →
     function (ω-empty ∙ ω-empty) f                      ≡⟨⟩
     f (_ , var fzero · var fzero , snoc empty ω-empty)  ∎
 
-  lemma : ∀ n → app→ (function eval) n (_ , Ω , empty) ⊑ never
+  lemma : ∀ n → app→ eval n (_ , Ω , empty) ⊑ never
   lemma zero       = never⊑ never
   lemma (suc zero) =
-    app→ (function eval) 1 (_ , Ω , empty)  ⊑⟨ reduce-twice _ ⟩≡
-    app→ (function eval) 0 (_ , Ω , empty)  ⊑⟨⟩
-    never                                   ■
+    app→ eval 1 (_ , Ω , empty)  ⊑⟨ reduce-twice _ ⟩≡
+    app→ eval 0 (_ , Ω , empty)  ⊑⟨⟩
+    never                        ■
   lemma (suc (suc n)) =
-    app→ (function eval) (suc (suc n)) (_ , Ω , empty)  ⊑⟨ reduce-twice _ ⟩≡
-    app→ (function eval) (suc n) (_ , Ω , empty)        ⊑⟨ lemma (suc n) ⟩■
-    never                                               ■
+    app→ eval (suc (suc n)) (_ , Ω , empty)  ⊑⟨ reduce-twice _ ⟩≡
+    app→ eval (suc n) (_ , Ω , empty)        ⊑⟨ lemma (suc n) ⟩■
+    never                                    ■
 
 -- Another proof for Interpreter₂. This proof uses Scott induction
 -- (and propositional extensionality).

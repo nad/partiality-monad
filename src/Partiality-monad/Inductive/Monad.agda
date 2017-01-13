@@ -27,6 +27,8 @@ open import Partiality-monad.Inductive.Eliminators
 open import Partiality-monad.Inductive.Monotone
 open import Partiality-monad.Inductive.Omega-continuous
 
+open [_⊥→_⊥]
+
 ------------------------------------------------------------------------
 -- The monad instance
 
@@ -57,11 +59,15 @@ infix 50 _∗ _∗-inc_
 
 _∗ : ∀ {a b} {A : Set a} {B : Set b} →
      (A → B ⊥) → [ A ⊥→ B ⊥]
-f ∗ =
-    (⊥-rec-nd (=<<-args f) , ⊑-rec-nd (=<<-args f))
-  , λ s →
+f ∗ = record
+  { monotone-function = record
+    { function = ⊥-rec-nd (=<<-args f)
+    ; monotone = ⊑-rec-nd (=<<-args f)
+    }
+  ; ω-continuous = λ s →
       ⊥-rec-nd (=<<-args f) (⨆ s)    ≡⟨ ⊥-rec-nd-⨆ (=<<-args f) s ⟩∎
       ⨆ (inc-rec-nd (=<<-args f) s)  ∎
+  }
 
 _∗-inc_ : ∀ {a b} {A : Set a} {B : Set b} →
           (A → B ⊥) → Increasing-sequence A → Increasing-sequence B
@@ -73,7 +79,7 @@ infixl 5 _>>=′_
 
 _>>=′_ : ∀ {a b} {A : Set a} {B : Set b} →
          A ⊥ → (A → B ⊥) → B ⊥
-x >>=′ f = proj₁ (proj₁ (f ∗)) x
+x >>=′ f = function (f ∗) x
 
 -- "Computation" rules.
 
@@ -97,7 +103,7 @@ _>>=-mono_ :
   ∀ {a b} {A : Set a} {B : Set b} {x y : A ⊥} {f g : A → B ⊥} →
   x ⊑ y → (∀ z → f z ⊑ g z) → x >>=′ f ⊑ y >>=′ g
 _>>=-mono_ {x = x} {y} {f} {g} x⊑y f⊑g =
-  x >>=′ f ⊑⟨ proj₂ (proj₁ (f ∗)) x⊑y ⟩
+  x >>=′ f ⊑⟨ monotone (f ∗) x⊑y ⟩
   y >>=′ f ⊑⟨ ⊥-rec-⊥ (record
                 { P  = λ y → y >>=′ f ⊑ y >>=′ g
                 ; pe = never >>=′ f  ⊑⟨ never->>= ⟩≡
