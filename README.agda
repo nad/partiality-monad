@@ -252,23 +252,23 @@ import Partiality-monad.Coinductive.Alternative
 import Partiality-monad.Equivalence
 
 ------------------------------------------------------------------------
--- ω-CPOs
+-- ω-cpos
 
--- Pointed and non-pointed ω-CPOs.
+-- Pointed and non-pointed ω-cpos.
 
-import Omega-CPO
+import Omega-cpo
 
 -- The code in the following three modules is based on a suggestion
 -- from Paolo Capriotti.
 
 -- A partial inductive-recursive definition of the lifting
--- construction on ω-CPOs, without path or truncation constructors, in
+-- construction on ω-cpos, without path or truncation constructors, in
 -- order to get the basics right.
 
 import Lifting.Preliminary-sketch
 
 -- A higher inductive-inductive definition of the lifting construction
--- on ω-CPOs.
+-- on ω-cpos.
 
 import Lifting
 

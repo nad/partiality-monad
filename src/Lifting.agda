@@ -8,9 +8,9 @@
 
 {-# OPTIONS --without-K #-}
 
-open import Omega-CPO
+open import Omega-cpo
 
-module Lifting {ℓ} (cpo : ω-CPO ℓ) where
+module Lifting {ℓ} (cpo : ω-cpo ℓ) where
 
 open import Equality.Propositional
 open import Interval using (ext)
@@ -24,10 +24,10 @@ open import H-level equality-with-J
 open import H-level.Closure equality-with-J
 
 private
-  module CPO = ω-CPO cpo
+  module CPO = ω-cpo cpo
 
 ------------------------------------------------------------------------
--- An ω-CPPO
+-- An ω-cppo
 
 -- The carrier type (Carrier) and the information ordering (_⊑_) are
 -- defined simultaneously.
@@ -93,9 +93,9 @@ postulate
                        now (CPO.⨆ s) ⊑ ⨆ (Σ-map (now ∘_) (now-mono ∘_) s)
   ⊑-proof-irrelevant : ∀ {x y} → Proof-irrelevant (x ⊑ y)
 
--- The construction above is an ω-CPPO.
+-- The construction above is an ω-cppo.
 
-cppo : ω-CPPO ℓ
+cppo : ω-cppo ℓ
 cppo = record
   { cpo = record
     { Carrier           = Carrier

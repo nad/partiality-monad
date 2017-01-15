@@ -1,19 +1,19 @@
 ------------------------------------------------------------------------
 -- A partial inductive-recursive definition of the lifting
--- construction on ω-CPOs, without path or truncation constructors, in
+-- construction on ω-cpos, without path or truncation constructors, in
 -- order to get the basics right
 ------------------------------------------------------------------------
 
 {-# OPTIONS --without-K #-}
 
-open import Omega-CPO
+open import Omega-cpo
 
-module Lifting.Preliminary-sketch {ℓ} (cpo : ω-CPO ℓ) where
+module Lifting.Preliminary-sketch {ℓ} (cpo : ω-cpo ℓ) where
 
 open import Prelude hiding (⊥)
 
 private
-  module CPO = ω-CPO cpo
+  module CPO = ω-cpo cpo
 
 -- The carrier type (Carrier) and the information ordering (_⊑_) are
 -- defined as a single inductive family D. A boolean index is used to

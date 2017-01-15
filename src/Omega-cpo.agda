@@ -1,17 +1,17 @@
 ------------------------------------------------------------------------
--- Pointed and non-pointed ω-CPOs
+-- Pointed and non-pointed ω-cpos
 ------------------------------------------------------------------------
 
 {-# OPTIONS --without-K #-}
 
-module Omega-CPO where
+module Omega-cpo where
 
 open import Equality.Propositional
 open import Prelude
 
--- Possibly non-pointed ω-CPOs.
+-- Possibly non-pointed ω-cpos.
 
-record ω-CPO ℓ : Set (lsuc ℓ) where
+record ω-cpo ℓ : Set (lsuc ℓ) where
 
   infix 4 _⊑_
 
@@ -52,10 +52,10 @@ record ω-CPO ℓ : Set (lsuc ℓ) where
     upper-bound       : ∀ s → Is-upper-bound s (⨆ s)
     least-upper-bound : ∀ {s ub} → Is-upper-bound s ub → ⨆ s ⊑ ub
 
--- Every type can be turned into an ω-CPO.
+-- Every type can be turned into an ω-cpo.
 
-Type→ω-CPO : ∀ {ℓ} → Set ℓ → ω-CPO ℓ
-Type→ω-CPO A = record
+Type→ω-cpo : ∀ {ℓ} → Set ℓ → ω-cpo ℓ
+Type→ω-cpo A = record
   { Carrier           = A
   ; _⊑_               = _≡_
   ; reflexivity       = refl
@@ -74,13 +74,13 @@ Type→ω-CPO A = record
     f n        ≡⟨ upper-bound f inc n ⟩∎
     f 0        ∎
 
--- Pointed ω-CPOs.
+-- Pointed ω-cpos.
 
-record ω-CPPO ℓ : Set (lsuc ℓ) where
+record ω-cppo ℓ : Set (lsuc ℓ) where
   field
-    cpo : ω-CPO ℓ
+    cpo : ω-cpo ℓ
 
-  open ω-CPO cpo public
+  open ω-cpo cpo public
 
   field
     least  : Carrier

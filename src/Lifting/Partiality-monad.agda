@@ -19,16 +19,16 @@ open import Function-universe equality-with-J hiding (⊥↔⊥)
 open import H-level equality-with-J
 
 import Lifting
-open import Omega-CPO
+open import Omega-cpo
 import Partiality-monad.Inductive as I
 import Partiality-monad.Inductive.Eliminators as IE
 
 private
-  module L {A : Set a} = Lifting (Type→ω-CPO A)
+  module L {A : Set a} = Lifting (Type→ω-cpo A)
 
--- The partiality monad as an ω-CPPO.
+-- The partiality monad as an ω-cppo.
 
-partiality-monad : Set a → ω-CPPO a
+partiality-monad : Set a → ω-cppo a
 partiality-monad A = L.cppo {A = A}
 
 -- The partiality monad.
@@ -37,10 +37,10 @@ infix 10 _⊥
 infix  4 _⊑_
 
 _⊥ : Set a → Set a
-A ⊥ = ω-CPPO.Carrier (partiality-monad A)
+A ⊥ = ω-cppo.Carrier (partiality-monad A)
 
 _⊑_ : ∀ {A} → A ⊥ → A ⊥ → Set a
-_⊑_ {A = A} = ω-CPPO._⊑_ (partiality-monad A)
+_⊑_ {A = A} = ω-cppo._⊑_ (partiality-monad A)
 
 -- This definition of the partiality monad is isomorphic to the
 -- definition in Partiality-monad.Inductive.
