@@ -345,6 +345,37 @@ now⊑⨆≃∥∃now⊑∥ {s} {x} =
   ∥ (∃ λ n → now x ≲ s [ n ]) ∥  ↝⟨ ∥∥-cong (∃-cong λ _ → inverse ⊑≃≲) ⟩□
   ∥ (∃ λ n → now x ⊑ s [ n ]) ∥  □
 
+-- If x is larger than or equal to now y, then x is equal to now y.
+
+now⊑→⇓ : ∀ {x} {y : A} → now y ⊑ x → x ⇓ y
+now⊑→⇓ {x} {y} = ⊥-rec-⊥ (record
+  { P  = λ x → now y ⊑ x → x ⇓ y
+  ; pe = now y ⊑ never  ↝⟨ now⋢never y ⟩
+         Prelude.⊥      ↝⟨ ⊥-elim ⟩□
+         never ≡ now y  □
+  ; po = λ x →
+           now y ⊑ now x  ↔⟨ now⊑now≃∥≡∥ ⟩
+           ∥ y ≡ x ∥      ↝⟨ ∥∥-map sym ⟩
+           ∥ x ≡ y ∥      ↝⟨ Trunc.rec (⊥-is-set _ _) (cong now) ⟩□
+           now x ≡ now y  □
+  ; pl = λ s hyp →
+           now y ⊑ ⨆ s                                  ↝⟨ (λ p → p , _≃_.to now⊑⨆≃∥∃now⊑∥ p) ⟩
+           now y ⊑ ⨆ s × ∥ (∃ λ n → now y ⊑ s [ n ]) ∥  ↝⟨ uncurry (λ p → Trunc.rec (⊥-is-set _ _) (uncurry λ n →
+
+               now y ⊑ s [ n ]                               ↝⟨ (λ now⊑ _ n≤m → ⊑-trans now⊑ (later-larger s n≤m)) ⟩
+               (∀ m → n ≤ m → now y ⊑ s [ m ])               ↝⟨ (∀-cong-→ λ _ → ∀-cong-→ λ _ → hyp _) ⟩
+               (∀ m → n ≤ m → s [ m ] ≡ now y)               ↝⟨ (∀-cong-→ λ _ → ∀-cong-→ λ _ → flip (subst (_ ⊑_)) (⊑-refl _)) ⟩
+               (∀ m → n ≤ m → s [ m ] ⊑ now y)               ↝⟨ upper-bound-≤→upper-bound s ⟩
+               (∀ n → s [ n ] ⊑ now y)                       ↝⟨ least-upper-bound _ _ ⟩
+               ⨆ s ⊑ now y                                   ↝⟨ flip antisymmetry p ⟩□
+               ⨆ s ≡ now y                                   □)) ⟩□
+
+           ⨆ s ≡ now y                                  □
+  ; pp = λ _ → Π-closure ext 1 λ _ →
+               ⊥-is-set _ _
+  })
+  x
+
 -- If a computation terminates with a certain value, then all larger
 -- computations terminate with the same value.
 --
@@ -352,53 +383,7 @@ now⊑⨆≃∥∃now⊑∥ {s} {x} =
 -- Coinductive Types".
 
 larger-terminate-with-same-value : {x y : A ⊥} → x ⊑ y → x ≼ y
-larger-terminate-with-same-value = ⊑-rec-⊑
-  (record
-     { Q  = λ {x y} _ → x ≼ y
-     ; qr = λ x z →
-              x ⇓ z  ↝⟨ id ⟩□
-              x ⇓ z  □
-     ; qt = λ _ _ → ≼-trans
-     ; qe = λ x z →
-              never ⇓ z  ↝⟨ now≢never z ∘ sym ⟩
-              ⊥₀         ↝⟨ ⊥-elim ⟩□
-              x ⇓ z      □
-     ; qu = λ s q n x s[n]⇓x →                         $⟨ (λ _ n≤m → lemma s (flip q x) n≤m s[n]⇓x) ⟩
-              (∀ m → n ≤ m → s [ m ] ≡ now x)          ↝⟨ (λ hyp m n≤m → proj₁ (_≃_.from equality-characterisation-⊥ (hyp m n≤m))) ⟩
-              (∀ m → n ≤ m → s [ m ] ⊑ now x)          ↝⟨ upper-bound-≤→upper-bound s ⟩
-              (∀ m → s [ m ] ⊑ now x)                  ↝⟨ least-upper-bound s (now x) ⟩
-              ⨆ s ⊑ now x                              ↝⟨ flip antisymmetry (
-
-                now x                                       ⊑⟨ sym s[n]⇓x ⟩≡
-                s [ n ]                                     ⊑⟨ upper-bound s n ⟩■
-                ⨆ s                                         ■) ⟩□
-
-              ⨆ s ⇓ x                                  □
-     ; ql = λ s ub _ q qu x →
-         ⨆ s ⇓ x                                                  ↔⟨ inverse equality-characterisation-⊥ ⟩
-         ⨆ s ⊑ now x × ⨆ s ⊒ now x                                ↔⟨ ⊑≃≲ ×-cong ⊑≃≲ ⟩
-         ⨆ s ≲ now x × now x ≲ ⨆ s                                ↔⟨ ≡⇒↝ bijection ⨆≲ ×-cong ≡⇒↝ bijection now≲⨆ ⟩
-         (∀ n → s [ n ] ≲ now x) × ∥ ∃ (λ n → now x ≲ s [ n ]) ∥  ↝⟨ (uncurry λ all → ∥∥-map (Σ-map id (λ {n} →
-
-           now x ≲ s [ n ]                                             ↝⟨ (λ now-x≲s[n] → now-x≲s[n] , all n) ⟩
-           now x ≲ s [ n ] × s [ n ] ≲ now x                           ↔⟨ inverse (⊑≃≲ ×-cong ⊑≃≲) ⟩
-           now x ⊑ s [ n ] × s [ n ] ⊑ now x                           ↔⟨ equality-characterisation-⊥ ⟩
-           now x ≡ s [ n ]                                             ↝⟨ sym ⟩□
-           s [ n ] ⇓ x                                                 □))) ⟩
-
-         ∥ ∃ (λ n → s [ n ] ⇓ x) ∥                                ↝⟨ Trunc.rec (⊥-is-set _ _) (uncurry (flip qu x)) ⟩□
-         ub ⇓ x                                                   □
-     ; qp = λ _ → ≼-propositional
-     })
-  where
-  lemma : ∀ s {x} →
-          (∀ n → s [ n ] ⇓ x → s [ suc n ] ⇓ x) →
-          ∀ {m n} → m ≤ n → s [ m ] ⇓ x → s [ n ] ⇓ x
-  lemma s     hyp     (≤-refl′ refl)           = id
-  lemma s {x} hyp {m} (≤-step′ {k = n} p refl) =
-    s [ m ]     ⇓ x  ↝⟨ lemma s hyp p ⟩
-    s [ n ]     ⇓ x  ↝⟨ hyp n ⟩□
-    s [ suc n ] ⇓ x  □
+larger-terminate-with-same-value now-x⊑y _ refl = now⊑→⇓ now-x⊑y
 
 -- If one element in an increasing sequence terminates with a given
 -- value, then this value is the sequence's least upper bound.
