@@ -238,30 +238,27 @@ map-∘ f g =
 >>=-⇓ {x = x} {f} {y} prop-ext-a prop-ext-b = ⊥-rec-⊥
   (record
      { P  = λ x → (x >>=′ f ⇓ y) ≃ ∥ ∃ (λ z → x ⇓ z × f z ⇓ y) ∥
-     ; pe = never >>=′ f ⇓ y                         ↔⟨ ≡⇒↝ bijection (cong (_⇓ y) never->>=) ⟩
-            never ⇓ y                                ↝⟨ B.⇓≃now≲ ⟩
-            now y B.≲ never                          ↔⟨ ≡⇒↝ bijection B.now≲never ⟩
-            Prelude.⊥                                ↔⟨ inverse (not-inhabited⇒∥∥↔⊥ id) ⟩
-            ∥ Prelude.⊥ ∥                            ↔⟨ ∥∥-cong (inverse ×-right-zero) ⟩
-            ∥ ∃ (λ z → ⊥₀) ∥                         ↔⟨ ∥∥-cong (∃-cong (λ _ → inverse ×-left-zero)) ⟩
-            ∥ ∃ (λ z → Prelude.⊥       × f z ⇓ y) ∥  ↝⟨ ∥∥-cong (∃-cong (λ _ → ≡⇒↝ _ (sym A.now≲never) ×-cong F.id)) ⟩
-            ∥ ∃ (λ z → now z A.≲ never × f z ⇓ y) ∥  ↔⟨ ∥∥-cong (∃-cong (λ _ → inverse (Alternative-order.⇓≃now≲ prop-ext-a) ×-cong F.id)) ⟩□
-            ∥ ∃ (λ z → never ⇓ z       × f z ⇓ y) ∥  □
+     ; pe = never >>=′ f ⇓ y                   ↝⟨ ≡⇒↝ _ (cong (_⇓ y) never->>=) ⟩
+            never ⇓ y                          ↝⟨ B.now≡never≃⊥ ⟩
+            Prelude.⊥                          ↔⟨ inverse (not-inhabited⇒∥∥↔⊥ id) ⟩
+            ∥ Prelude.⊥ ∥                      ↔⟨ ∥∥-cong (inverse ×-right-zero) ⟩
+            ∥ ∃ (λ z → ⊥₀) ∥                   ↔⟨ ∥∥-cong (∃-cong (λ _ → inverse ×-left-zero)) ⟩
+            ∥ ∃ (λ z → Prelude.⊥ × f z ⇓ y) ∥  ↝⟨ ∥∥-cong (∃-cong (λ _ → inverse A.now≡never≃⊥ ×-cong F.id)) ⟩□
+            ∥ ∃ (λ z → never ⇓ z × f z ⇓ y) ∥  □
      ; po = λ x →
-              now x >>=′ f ⇓ y                                   ↔⟨ ≡⇒↝ bijection (cong (_⇓ y) now->>=) ⟩
+              now x >>=′ f ⇓ y                                   ↝⟨ ≡⇒↝ _ (cong (_⇓ y) now->>=) ⟩
               f x ⇓ y                                            ↔⟨ inverse (∥∥↔ (⊥-is-set _ _)) ⟩
               ∥ f x ⇓ y ∥                                        ↔⟨ ∥∥-cong (inverse $ drop-⊤-left-Σ $ inverse $
-                                                                      _⇔_.to contractible⇔⊤↔ (singleton-contractible _)) ⟩
-              ∥ ∃ (λ (p : ∃ (λ z → z ≡ x)) → f (proj₁ p) ⇓ y) ∥  ↔⟨ ∥∥-cong (inverse Σ-assoc) ⟩
-              ∥ ∃ (λ z → z ≡ x × f z ⇓ y) ∥                      ↔⟨ inverse $ Trunc.flatten′
+                                                                      _⇔_.to contractible⇔⊤↔ (other-singleton-contractible _)) ⟩
+              ∥ ∃ (λ (p : ∃ (λ z → x ≡ z)) → f (proj₁ p) ⇓ y) ∥  ↔⟨ ∥∥-cong (inverse Σ-assoc) ⟩
+              ∥ ∃ (λ z → x ≡ z × f z ⇓ y) ∥                      ↔⟨ inverse $ Trunc.flatten′
                                                                       (λ F → ∃ (λ _ → F (_ ≡ _) × _))
                                                                       (λ f → Σ-map id (Σ-map f id))
                                                                       (λ { (x , y , z) → ∥∥-map ((x ,_) ∘ (_, z)) y }) ⟩
-              ∥ ∃ (λ z → ∥ z ≡ x ∥       × f z ⇓ y) ∥            ↝⟨ ∥∥-cong (∃-cong λ _ → ≡⇒↝ _ (sym A.now≲now) ×-cong F.id) ⟩
-              ∥ ∃ (λ z → now z A.≲ now x × f z ⇓ y) ∥            ↝⟨ ∥∥-cong (∃-cong λ _ → inverse A.⇓≃now≲ ×-cong F.id) ⟩□
-              ∥ ∃ (λ z → now x ⇓ z       × f z ⇓ y) ∥            □
+              ∥ ∃ (λ z → ∥ x ≡ z ∥ × f z ⇓ y) ∥                  ↝⟨ ∥∥-cong (∃-cong λ _ → inverse A.now≡now≃∥≡∥ ×-cong F.id) ⟩□
+              ∥ ∃ (λ z → now x ⇓ z × f z ⇓ y) ∥                  □
      ; pl = λ s ih →
-              ⨆ s >>=′ f ⇓ y                                     ↔⟨ ≡⇒↝ bijection (cong (_⇓ y) ⨆->>=) ⟩
+              ⨆ s >>=′ f ⇓ y                                     ↝⟨ ≡⇒↝ _ (cong (_⇓ y) ⨆->>=) ⟩
               ⨆ (f ∗-inc s) ⇓ y                                  ↝⟨ B.⨆⇓≃∥∃⇓∥ ⟩
               ∥ (∃ λ n → s [ n ] >>=′ f ⇓ y) ∥                   ↝⟨ ∥∥-cong (∃-cong ih) ⟩
               ∥ (∃ λ n → ∥ ∃ (λ z → s [ n ] ⇓ z × f z ⇓ y) ∥) ∥  ↔⟨ Trunc.flatten′ (λ F → ∃ λ _ → F (∃ λ _ → _ × _))
