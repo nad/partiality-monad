@@ -333,6 +333,18 @@ termination-value-merely-unique {x} {y} {z} x⇓y x⇓z =
     x      ≡⟨ x⇓z ⟩∎
     now z  ∎)
 
+-- There is an equivalence between now x ⊑ ⨆ s and
+-- ∥ ∃ (λ n → now x ⊑ s [ n ]) ∥.
+
+now⊑⨆≃∥∃now⊑∥ :
+  ∀ {s : Increasing-sequence A} {x} →
+  (now x ⊑ ⨆ s) ≃ ∥ ∃ (λ n → now x ⊑ s [ n ]) ∥
+now⊑⨆≃∥∃now⊑∥ {s} {x} =
+  now x ⊑ ⨆ s                    ↝⟨ ⊑≃≲ ⟩
+  now x ≲ ⨆ s                    ↝⟨ ≡⇒↝ _ now≲⨆ ⟩
+  ∥ (∃ λ n → now x ≲ s [ n ]) ∥  ↝⟨ ∥∥-cong (∃-cong λ _ → inverse ⊑≃≲) ⟩□
+  ∥ (∃ λ n → now x ⊑ s [ n ]) ∥  □
+
 -- If a computation terminates with a certain value, then all larger
 -- computations terminate with the same value.
 --
