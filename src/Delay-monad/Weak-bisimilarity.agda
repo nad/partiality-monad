@@ -7,11 +7,13 @@
 module Delay-monad.Weak-bisimilarity {a} {A : Set a} where
 
 open import Equality.Propositional
+open import Interval using (ext)
 open import Logical-equivalence using (_⇔_)
 open import Prelude
 
 open import H-level equality-with-J
-open import Function-universe equality-with-J
+open import H-level.Closure equality-with-J
+open import Function-universe equality-with-J hiding (_∘_)
 
 open import Delay-monad
 open import Delay-monad.Strong-bisimilarity as Strong
@@ -351,3 +353,43 @@ syntax finally-≈ x y p = x ≈⟨ p ⟩∎ y ∎
 
   proof₂ : never ≈ never
   proof₂ = laterˡ proof₁
+
+-- However, if A is a set, then the termination predicate is
+-- propositional.
+
+Terminates-propositional :
+  Is-set A → ∀ {i x y} → Is-proposition (Terminates i x y)
+Terminates-propositional A-set {i} =
+  _⇔_.from propositional⇔irrelevant (λ p q → irr p q refl)
+  where
+  irr :
+    ∀ {x y y′}
+    (p : Weakly-bisimilar i (now y)  x)
+    (q : Weakly-bisimilar i (now y′) x)
+    (y≡y′ : y ≡ y′) →
+    subst (flip (Weakly-bisimilar i) x ∘ now) y≡y′ p ≡ q
+  irr         (laterʳ p) (laterʳ q) refl = cong laterʳ (irr p q refl)
+  irr {y = y} now-cong   now-cong   y≡y  =
+    subst (flip (Weakly-bisimilar i) (now y) ∘ now) y≡y  now-cong  ≡⟨ cong (λ eq → subst _ eq _) (_⇔_.to set⇔UIP A-set y≡y refl) ⟩
+    subst (flip (Weakly-bisimilar i) (now y) ∘ now) refl now-cong  ≡⟨⟩
+    now-cong                                                       ∎
+
+-- An alternative definition of weak bisimilarity (basically the one
+-- used in the paper).
+--
+-- This definition is logically equivalent to the one above, see
+-- Delay-monad.Partial-order.≈⇔≈′.
+
+infix 4 _≈′_
+
+_≈′_ : Delay A ∞ → Delay A ∞ → Set a
+x ≈′ y = ∀ z → x ⇓ z ⇔ y ⇓ z
+
+-- If A is a set, then the alternative definition of weak bisimilarity
+-- is propositional.
+
+≈′-propositional : Is-set A → ∀ {x y} → Is-proposition (x ≈′ y)
+≈′-propositional A-set =
+  Π-closure ext 1 λ _ →
+  ⇔-closure ext 1 (Terminates-propositional A-set)
+                  (Terminates-propositional A-set)
