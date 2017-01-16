@@ -466,9 +466,9 @@ terminating-element-is-⨆ s {n} {x} =
 -- A corollary of ⇓≃now≲.
 
 ⨆⇓≃∥∃⇓∥ :
-  ∀ (s : Increasing-sequence A) {x} →
+  ∀ {s : Increasing-sequence A} {x} →
   (⨆ s ⇓ x) ≃ ∥ ∃ (λ n → s [ n ] ⇓ x) ∥
-⨆⇓≃∥∃⇓∥ s {x} =
+⨆⇓≃∥∃⇓∥ {s} {x} =
   ⨆ s ⇓ x                        ↝⟨ ⇓≃now≲ ⟩
   now x ≲ ⨆ s                    ↔⟨ ≡⇒↝ bijection now≲⨆ ⟩
   ∥ ∃ (λ n → now x ≲ s [ n ]) ∥  ↝⟨ ∥∥-cong (∃-cong λ _ → inverse ⇓≃now≲) ⟩□
@@ -487,7 +487,7 @@ terminating-element-is-⨆ s {n} {x} =
               ⊥₀             ↝⟨ ⊥-elim ⟩□
               now x ⇑        □
      ; pl = λ s ih →
-              ¬ ∃ (⨆ s ⇓_)                           ↔⟨ →-cong ext (∃-cong (λ _ → ⨆⇓≃∥∃⇓∥ s)) F.id ⟩
+              ¬ ∃ (⨆ s ⇓_)                           ↔⟨ →-cong ext (∃-cong (λ _ → ⨆⇓≃∥∃⇓∥)) F.id ⟩
               ¬ ∃ (λ x → ∥ ∃ (λ n → s [ n ] ⇓ x) ∥)  ↝⟨ (λ { hyp (n , x , s[n]⇓x) → hyp (x , ∣ n , s[n]⇓x ∣) }) ⟩
               ¬ ∃ (λ n → ∃ λ x → s [ n ] ⇓ x)        ↝⟨ (λ hyp n → ih n (hyp ∘ (n ,_))) ⟩
               (∀ n → s [ n ] ⇑)                      ↝⟨ sym ∘ _↔_.to equality-characterisation-increasing ⟩
@@ -534,11 +534,9 @@ now-or-never x = run (map (⊎-map id ¬⇓→⇑) excluded-middle)
   (∀ x → Is-proposition (P x)) →
   ∀ {s} → (∀ n → □ P (s [ n ])) → □ P (⨆ s)
 □-⨆ {P = P} P-prop {s} p y =
-  ⨆ s ⇓ y                        ↔⟨ ⇓≃now≲ ⟩
-  now y ≲ ⨆ s                    ↔⟨ ≡⇒↝ bijection now≲⨆ ⟩
-  ∥ ∃ (λ n → now y ≲ s [ n ]) ∥  ↔⟨ ∥∥-cong (∃-cong λ _ → inverse ⇓≃now≲) ⟩
-  ∥ ∃ (λ n → s [ n ] ⇓ y) ∥      ↝⟨ Trunc.rec (P-prop y) (uncurry λ n s[n]⇓y → p n y s[n]⇓y) ⟩□
-  P y                            □
+  ⨆ s ⇓ y                    ↔⟨ ⨆⇓≃∥∃⇓∥ ⟩
+  ∥ ∃ (λ n → s [ n ] ⇓ y) ∥  ↝⟨ Trunc.rec (P-prop y) (uncurry λ n s[n]⇓y → p n y s[n]⇓y) ⟩□
+  P y                        □
 
 -- One "non-constructor" and one "constructor" for ◇.
 

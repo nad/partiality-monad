@@ -119,7 +119,7 @@ Delay→⊥-≈→≡ A-set x y =
   ∀ x {y} → Delay→⊥ x I.⇓ y ⇔ x A.⇓ y
 ⇓⇔⇓ A-set prop-ext x@(f , _) {y} =
   Delay→⊥ x I.⇓ y                    ↝⟨ F.id ⟩
-  ⨆ (Delay→Inc-seq x) I.⇓ y          ↔⟨ ⨆⇓≃∥∃⇓∥ prop-ext (Delay→Inc-seq x) ⟩
+  ⨆ (Delay→Inc-seq x) I.⇓ y          ↔⟨ ⨆⇓≃∥∃⇓∥ prop-ext ⟩
   ∥ (∃ λ n → Maybe→⊥ (f n) I.⇓ y) ∥  ↝⟨ ∥∥-cong-⇔ (∃-cong λ _ → record { to = to _; from = cong Maybe→⊥ }) ⟩
   ∥ (∃ λ n → f n ↓ y) ∥              ↝⟨ F.id ⟩
   x A.∥⇓∥ y                          ↝⟨ inverse (A.⇓⇔∥⇓∥ A-set x) ⟩□

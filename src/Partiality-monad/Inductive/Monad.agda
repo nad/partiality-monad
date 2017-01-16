@@ -262,7 +262,7 @@ map-∘ f g =
               ∥ ∃ (λ z → now x ⇓ z       × f z ⇓ y) ∥            □
      ; pl = λ s ih →
               ⨆ s >>=′ f ⇓ y                                     ↔⟨ ≡⇒↝ bijection (cong (_⇓ y) ⨆->>=) ⟩
-              ⨆ (f ∗-inc s) ⇓ y                                  ↝⟨ B.⨆⇓≃∥∃⇓∥ _ ⟩
+              ⨆ (f ∗-inc s) ⇓ y                                  ↝⟨ B.⨆⇓≃∥∃⇓∥ ⟩
               ∥ (∃ λ n → s [ n ] >>=′ f ⇓ y) ∥                   ↝⟨ ∥∥-cong (∃-cong ih) ⟩
               ∥ (∃ λ n → ∥ ∃ (λ z → s [ n ] ⇓ z × f z ⇓ y) ∥) ∥  ↔⟨ Trunc.flatten′ (λ F → ∃ λ _ → F (∃ λ _ → _ × _))
                                                                                    (λ f → Σ-map id f)
@@ -273,7 +273,7 @@ map-∘ f g =
                                                                       (λ F → (∃ λ _ → F (∃ λ _ → _ ⇓ _) × _))
                                                                       (λ f → Σ-map id (Σ-map f id))
                                                                       (λ { (x , y , z) → ∥∥-map ((x ,_) ∘ (_, z)) y }) ⟩
-              ∥ (∃ λ z → ∥ (∃ λ n → s [ n ] ⇓ z) ∥ × f z ⇓ y) ∥  ↝⟨ ∥∥-cong (∃-cong λ _ → inverse (A.⨆⇓≃∥∃⇓∥ _) ×-cong F.id) ⟩□
+              ∥ (∃ λ z → ∥ (∃ λ n → s [ n ] ⇓ z) ∥ × f z ⇓ y) ∥  ↝⟨ ∥∥-cong (∃-cong λ _ → inverse A.⨆⇓≃∥∃⇓∥ ×-cong F.id) ⟩□
               ∥ ∃ (λ z → ⨆ s ⇓ z × f z ⇓ y) ∥                    □
      ; pp = λ _ → Eq.right-closure ext 0 truncation-is-proposition
      })
@@ -334,7 +334,7 @@ map-∘ f g =
    _≃_.to (Alternative-order.≼≃⊑ prop-ext-b) $ λ z →
 
      s [ n ] >>=′ ⨆ ∘ f ⇓ z                                   ↔⟨ >>=-⇓ prop-ext-a prop-ext-b ⟩
-     ∥ (∃ λ y → s [ n ] ⇓ y × ⨆ (f y) ⇓ z) ∥                  ↔⟨ ∥∥-cong (∃-cong λ _ → F.id ×-cong Alternative-order.⨆⇓≃∥∃⇓∥ prop-ext-b _) ⟩
+     ∥ (∃ λ y → s [ n ] ⇓ y × ⨆ (f y) ⇓ z) ∥                  ↔⟨ ∥∥-cong (∃-cong λ _ → F.id ×-cong Alternative-order.⨆⇓≃∥∃⇓∥ prop-ext-b) ⟩
      ∥ (∃ λ y → s [ n ] ⇓ y × ∥ (∃ λ m → f y [ m ] ⇓ z) ∥) ∥  ↔⟨ Trunc.flatten′
                                                                    (λ F → ∃ λ _ → _ × F (∃ λ _ → _ ⇓ _))
                                                                    (λ f → Σ-map id (Σ-map id f))
@@ -347,7 +347,7 @@ map-∘ f g =
                                                                    (λ f → Σ-map id f)
                                                                    (λ { (m , p) → ∥∥-map (m ,_) p }) ⟩
      ∥ (∃ λ m → ∥ (∃ λ y → s [ m ] ⇓ y × f y [ m ] ⇓ z) ∥) ∥  ↔⟨ ∥∥-cong (∃-cong λ _ → inverse $ >>=-⇓ prop-ext-a prop-ext-b) ⟩
-     ∥ (∃ λ m → (s [ m ] >>=′ λ y → f y [ m ]) ⇓ z) ∥         ↔⟨ inverse $ Alternative-order.⨆⇓≃∥∃⇓∥ prop-ext-b _ ⟩□
+     ∥ (∃ λ m → (s [ m ] >>=′ λ y → f y [ m ]) ⇓ z) ∥         ↔⟨ inverse $ Alternative-order.⨆⇓≃∥∃⇓∥ prop-ext-b ⟩□
      ⨆ ((λ m → s [ m ] >>=′ λ y → f y [ m ]) , _) ⇓ z         □)
 
   (⨆-mono λ n →
