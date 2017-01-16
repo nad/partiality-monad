@@ -26,7 +26,7 @@ open import Function-universe equality-with-J as F hiding (id; _∘_)
 open import H-level equality-with-J
 open import H-level.Closure equality-with-J
 open import Monad equality-with-J
-open import Nat equality-with-J as Nat
+open import Nat equality-with-J
 
 open import Partiality-monad.Inductive
 open import Partiality-monad.Inductive.Eliminators
@@ -353,13 +353,7 @@ larger-terminate-with-same-value = ⊑-rec-⊑
               x ⇓ z      □
      ; qu = λ s q n x s[n]⇓x →                         $⟨ (λ _ n≤m → lemma s (flip q x) n≤m s[n]⇓x) ⟩
               (∀ m → n ≤ m → s [ m ] ≡ now x)          ↝⟨ (λ hyp m n≤m → proj₁ (_≃_.from equality-characterisation-⊥ (hyp m n≤m))) ⟩
-              (∀ m → n ≤ m → s [ m ] ⊑ now x)          ↝⟨ (λ hyp m → [ (λ m≤n →
-
-                s [ m ]                                     ⊑⟨ later-larger s m≤n ⟩
-                s [ n ]                                     ⊑⟨ s[n]⇓x ⟩≡
-                now x                                       ■) , hyp m ]) ⟩
-
-              (∀ m → m ≤ n ⊎ n ≤ m → s [ m ] ⊑ now x)  ↝⟨ (λ hyp m → hyp m (Nat.total m n)) ⟩
+              (∀ m → n ≤ m → s [ m ] ⊑ now x)          ↝⟨ upper-bound-≤→upper-bound s ⟩
               (∀ m → s [ m ] ⊑ now x)                  ↝⟨ least-upper-bound s (now x) ⟩
               ⨆ s ⊑ now x                              ↝⟨ flip antisymmetry (
 

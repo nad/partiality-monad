@@ -16,7 +16,7 @@ open import Prelude
 open import Function-universe equality-with-J hiding (id; _∘_)
 open import H-level equality-with-J hiding (Type)
 open import H-level.Closure equality-with-J
-open import Nat equality-with-J
+open import Nat equality-with-J as Nat
 
 open Partiality-algebra P
 
@@ -83,6 +83,20 @@ later-larger s {m} (≤-step′ {k = n} p refl) =
   s [ m ]      ⊑⟨ later-larger s p ⟩
   s [ n ]      ⊑⟨ increasing s n ⟩■
   s [ suc n ]  ■
+
+-- If the final elements of an increasing sequence have an upper
+-- bound, then all elements have this upper bound.
+
+upper-bound-≤→upper-bound :
+  ∀ (s : Increasing-sequence) {m x} →
+  (∀ n → m ≤ n → s [ n ] ⊑ x) →
+  ∀ n → s [ n ] ⊑ x
+upper-bound-≤→upper-bound s {m} {x} is-ub n with Nat.total m n
+... | inj₁ m≤n = is-ub n m≤n
+... | inj₂ n≤m =
+  s [ n ]  ⊑⟨ later-larger s n≤m ⟩
+  s [ m ]  ⊑⟨ is-ub m ≤-refl ⟩■
+  x        ■
 
 -- Only never is smaller than or equal to never.
 
