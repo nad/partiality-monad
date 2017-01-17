@@ -305,31 +305,19 @@ Delay→⊥-surjective A-set prop-ext cc =
            Delay→Inc-seq (f n₁) [ n₂ ]  ⊑⟨ upper-bound (Delay→Inc-seq (f n₁)) _ ⟩■
            Delay→⊥ (f n₁)               ■)
 
-    -- Furthermore every potential value in f₂ is (in a certain sense)
-    -- smaller than or equal to x.
+    -- Furthermore every potential value in f is smaller than or equal
+    -- to x.
 
-    f₂⊑x : ∀ m n → Maybe→⊥ (f₂ m n) I.⊑ Delay→⊥ x
-    f₂⊑x m n with inspect (f₂ m n)
-    f₂⊑x m n | nothing , f₂↑ =
-      Maybe→⊥ (f₂ m n)  ⊑⟨ cong Maybe→⊥ f₂↑ ⟩≡
-      never             ⊑⟨ never⊑ _ ⟩■
-      Delay→⊥ x         ■
-    f₂⊑x m n | just y , f₂↓ =
-      Maybe→⊥ (f₂ m n)  ⊑⟨ cong Maybe→⊥ f₂↓ ⟩≡
-      now y             ⊑⟨ sym (_⇔_.from (⇓⇔∥⇓∥ A-set prop-ext x) ∣ x⇓ ∣) ⟩≡
-      Delay→⊥ x         ■
-      where
-      k = _↔_.from ℕ↔ℕ² (m , n)
+    f⊑x : ∀ m → f m A.⊑ x
+    f⊑x m y =
+      f m A.⇓ y                                                 ↝⟨ Σ-map (_↔_.from ℕ↔ℕ² ∘ (m ,_)) (λ {n} →
 
-      f₁↓ : f₁ k ↓ y
-      f₁↓ =
-        f₁ k                        ≡⟨⟩
-        uncurry f₂ (_↔_.to ℕ↔ℕ² k)  ≡⟨ cong (uncurry f₂) (_↔_.right-inverse-of ℕ↔ℕ² (m , n)) ⟩
-        f₂ m n                      ≡⟨ f₂↓ ⟩∎
-        just y                      ∎
+          f₂ m n ↓ y                                                 ↝⟨ ≡⇒→ (cong ((_↓ y) ∘ uncurry f₂) $ sym $ _↔_.right-inverse-of ℕ↔ℕ² (m , n)) ⟩
+          uncurry f₂ (_↔_.to ℕ↔ℕ² (_↔_.from ℕ↔ℕ² (m , n))) ↓ y       ↝⟨ F.id ⟩□
+          f₁ (_↔_.from ℕ↔ℕ² (m , n)) ↓ y                             □) ⟩
 
-      x⇓ : x A.⇓ y
-      x⇓ = _⇔_.from (proj₂ completed-f₁) (k , f₁↓)
+      (∃ λ n → f₁ n ↓ y)                                        ↝⟨ _⇔_.from (proj₂ completed-f₁) ⟩□
+      x A.⇓ y                                                   □
 
     -- Thus x is correctly defined.
 
@@ -339,10 +327,9 @@ Delay→⊥-surjective A-set prop-ext cc =
          Delay→Inc-seq x [ n ]  ⊑⟨ proj₂ (x⊑s n) ⟩■
          s [ proj₁ (x⊑s n) ]    ■)
       (least-upper-bound _ _ λ m →
-         s [ m ]                  ⊑⟨ sym (h m) ⟩≡
-         Delay→⊥ (f m)            ⊑⟨⟩
-         ⨆ (Delay→Inc-seq (f m))  ⊑⟨ least-upper-bound _ _ (f₂⊑x m) ⟩■
-         Delay→⊥ x                ■)
+         s [ m ]        ⊑⟨ sym (h m) ⟩≡
+         Delay→⊥ (f m)  ⊑⟨ Delay→⊥-mono A-set (f m) x (∥∥-map ∘ f⊑x m) ⟩■
+         Delay→⊥ x      ■)
 
 -- ⊥→⊥ A-set is surjective (assuming propositional extensionality and
 -- countable choice).
