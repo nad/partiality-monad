@@ -70,21 +70,19 @@ Delay→⊥ = ⨆ ∘ Delay→Inc-seq
 
 Delay→⊥-mono :
   Is-set A → ∀ x y → x A.∥⊑∥ y → Delay→⊥ x I.⊑ Delay→⊥ y
-Delay→⊥-mono A-set x@(f , _) y@(g , _) x⊑y =
-  least-upper-bound (Delay→Inc-seq x) (Delay→⊥ y) is-ub
+Delay→⊥-mono A-set x@(f , _) y@(g , _) x⊑y = ∃⊑→⨆⊑⨆ inc
   where
-  is-ub : ∀ n → Delay→Inc-seq x [ n ] I.⊑ Delay→⊥ y
-  is-ub n with inspect (f n)
-  is-ub n | nothing , fn↑  = Maybe→⊥ (f n)  ⊑⟨ cong Maybe→⊥ fn↑ ⟩≡
-                             never          ⊑⟨ never⊑ _ ⟩■
-                             Delay→⊥ y      ■
-  is-ub n | just z  , fn↓z =
-    Maybe→⊥ (f n)     ⊑⟨ cong Maybe→⊥ fn↓z ⟩≡
-    Maybe→⊥ (just z)  ⊑⟨ cong Maybe→⊥ (sym $ proj₂ y⇓z) ⟩≡
-    Maybe→⊥ (g k)     ⊑⟨ upper-bound (Delay→Inc-seq y) k ⟩■
-    Delay→⊥ y         ■
+  inc : ∀ m → ∃ λ n → Maybe→⊥ (f m) I.⊑ Maybe→⊥ (g n)
+  inc m with inspect (f m)
+  inc m | nothing , fm↑  = 0 , (Maybe→⊥ (f m)  ⊑⟨ cong Maybe→⊥ fm↑ ⟩≡
+                                never          ⊑⟨ never⊑ _ ⟩■
+                                Maybe→⊥ (g 0)  ■)
+  inc m | just z  , fm↓z =
+    k , (Maybe→⊥ (f m)     ⊑⟨ cong Maybe→⊥ fm↓z ⟩≡
+         Maybe→⊥ (just z)  ⊑⟨ cong Maybe→⊥ (sym $ proj₂ y⇓z) ⟩≡
+         Maybe→⊥ (g k)     ■)
     where
-    y⇓z =        $⟨ ∣ n , fn↓z ∣ ⟩
+    y⇓z =        $⟨ ∣ m , fm↓z ∣ ⟩
       x A.∥⇓∥ z  ↝⟨ x⊑y z ⟩
       y A.∥⇓∥ z  ↝⟨ _⇔_.from (A.⇓⇔∥⇓∥ A-set y) ⟩□
       y A.⇓ z    □
@@ -340,10 +338,9 @@ Delay→⊥-surjective A-set prop-ext cc =
 
     x-correct : Delay→⊥ x ≡ ⨆ s
     x-correct = antisymmetry
-      (least-upper-bound _ _ λ n →
-         Delay→Inc-seq x [ n ]  ⊑⟨ proj₂ (x⊑s n) ⟩
-         s [ proj₁ (x⊑s n) ]    ⊑⟨ upper-bound s _ ⟩■
-         ⨆ s                    ■)
+      (⊑→⨆⊑⨆ λ n →
+         Delay→Inc-seq x [ n ]  ⊑⟨ proj₂ (x⊑s n) ⟩■
+         s [ proj₁ (x⊑s n) ]    ■)
       (least-upper-bound _ _ λ m →
          s [ m ]                  ⊑⟨ sym (h m) ⟩≡
          Delay→⊥ (f m)            ⊑⟨⟩

@@ -64,15 +64,29 @@ syntax finally-⊑ x y x⊑y = x ⊑⟨ x⊑y ⟩■ y ■
 ------------------------------------------------------------------------
 -- Some simple lemmas
 
+-- If every element in one increasing sequence is bounded by some
+-- element in another, then the least upper bound of the first
+-- sequence is bounded by the least upper bound of the second one.
+
+⊑→⨆⊑⨆ : ∀ {s₁ s₂} {f : ℕ → ℕ} →
+        (∀ n → s₁ [ n ] ⊑ s₂ [ f n ]) → ⨆ s₁ ⊑ ⨆ s₂
+⊑→⨆⊑⨆ {s₁} {s₂} {f} s₁⊑s₂ =
+  least-upper-bound _ _ λ n →
+    s₁ [ n ]    ⊑⟨ s₁⊑s₂ n ⟩
+    s₂ [ f n ]  ⊑⟨ upper-bound _ _ ⟩■
+    ⨆ s₂        ■
+
+-- A variant of the previous lemma.
+
+∃⊑→⨆⊑⨆ : ∀ {s₁ s₂} →
+         (∀ m → ∃ λ n → s₁ [ m ] ⊑ s₂ [ n ]) → ⨆ s₁ ⊑ ⨆ s₂
+∃⊑→⨆⊑⨆ s₁⊑s₂ = ⊑→⨆⊑⨆ (proj₂ ∘ s₁⊑s₂)
+
 -- ⨆ is monotone.
 
 ⨆-mono : {s₁ s₂ : Increasing-sequence} →
          (∀ n → s₁ [ n ] ⊑ s₂ [ n ]) → ⨆ s₁ ⊑ ⨆ s₂
-⨆-mono {s₁} {s₂} s₁⊑s₂ =
-  least-upper-bound s₁ (⨆ s₂) (λ n →
-    s₁ [ n ]  ⊑⟨ s₁⊑s₂ n ⟩
-    s₂ [ n ]  ⊑⟨ upper-bound s₂ n ⟩■
-    ⨆ s₂      ■)
+⨆-mono = ⊑→⨆⊑⨆
 
 -- Later elements in an increasing sequence are larger.
 
@@ -115,11 +129,10 @@ tailˢ = Σ-map (_∘ suc) (_∘ suc)
 
 ⨆tail≡⨆ : ∀ s → ⨆ (tailˢ s) ≡ ⨆ s
 ⨆tail≡⨆ s = antisymmetry
-  (least-upper-bound (tailˢ s) (⨆ s) (λ n →
-     s [ suc n ]  ⊑⟨ upper-bound s (suc n) ⟩■
-     ⨆ s          ■))
-  (⨆-mono (λ n → s [ n ]      ⊑⟨ increasing s n ⟩■
-                 s [ suc n ]  ■))
+  (⊑→⨆⊑⨆ λ n → s [ suc n ]  ⊑⟨⟩
+               s [ suc n ]  ■)
+  (⨆-mono λ n → s [ n ]      ⊑⟨ increasing s n ⟩■
+                s [ suc n ]  ■)
 
 ------------------------------------------------------------------------
 -- Constant sequences
@@ -221,20 +234,18 @@ steps-≳ = proj₁ ∘ run
         (∀ {n} → proj₁ s₁ ≳[ n ] proj₁ s₂ ∘ (k +_)) →
         ⨆ s₁ ≡ ⨆ s₂
 ≳→⨆≡⨆ {s₁} {s₂} k s₁≳s₂ = antisymmetry
-  (least-upper-bound _ _ λ n →
+  (⊑→⨆⊑⨆ λ n →
      let m , s₁[m+n]≡s₂[k+n] = run s₁≳s₂ in
 
      s₁ [ n ]      ⊑⟨ later-larger s₁ (m≤n+m _ m) ⟩
      s₁ [ m + n ]  ⊑⟨ s₁[m+n]≡s₂[k+n] ⟩≡
-     s₂ [ k + n ]  ⊑⟨ upper-bound _ _ ⟩■
-     ⨆ s₂          ■)
-  (least-upper-bound _ _ λ n →
+     s₂ [ k + n ]  ■)
+  (⊑→⨆⊑⨆ λ n →
      let m , s₁[m+n]≡s₂[k+n] = run s₁≳s₂ in
 
      s₂ [ n ]      ⊑⟨ later-larger s₂ (m≤n+m _ k) ⟩
      s₂ [ k + n ]  ⊑⟨ sym s₁[m+n]≡s₂[k+n] ⟩≡
-     s₁ [ m + n ]  ⊑⟨ upper-bound _ _ ⟩■
-     ⨆ s₁          ■)
+     s₁ [ m + n ]  ■)
 
 -- Preorder-like reasoning combinators.
 
