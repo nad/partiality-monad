@@ -109,19 +109,18 @@ Delay→⊥-≈→≡ A-set x y =
 ------------------------------------------------------------------------
 -- A lemma
 
--- I._⇓_ and A._⇓_ are pointwise logically equivalent (via Delay→⊥),
+-- I._⇓_ and A._∥⇓∥_ are pointwise logically equivalent (via Delay→⊥),
 -- for sets, assuming propositional extensionality.
 
-⇓⇔⇓ :
+⇓⇔∥⇓∥ :
   Is-set A → Propositional-extensionality a →
-  ∀ x {y} → Delay→⊥ x I.⇓ y ⇔ x A.⇓ y
-⇓⇔⇓ A-set prop-ext x@(f , _) {y} =
-  Delay→⊥ x I.⇓ y                    ↝⟨ F.id ⟩
+  ∀ x {y} → Delay→⊥ x I.⇓ y ⇔ x A.∥⇓∥ y
+⇓⇔∥⇓∥ A-set prop-ext x@(f , _) {y} =
+  Delay→⊥ x I.⇓ y                    ↔⟨⟩
   ⨆ (Delay→Inc-seq x) I.⇓ y          ↔⟨ ⨆⇓≃∥∃⇓∥ prop-ext ⟩
   ∥ (∃ λ n → Maybe→⊥ (f n) I.⇓ y) ∥  ↝⟨ ∥∥-cong-⇔ (∃-cong λ _ → record { to = to _; from = cong Maybe→⊥ }) ⟩
-  ∥ (∃ λ n → f n ↓ y) ∥              ↝⟨ F.id ⟩
-  x A.∥⇓∥ y                          ↝⟨ inverse (A.⇓⇔∥⇓∥ A-set x) ⟩□
-  x A.⇓ y                            □
+  ∥ (∃ λ n → f n ↓ y) ∥              ↝⟨ F.id ⟩□
+  x A.∥⇓∥ y                          □
   where
   to : ∀ n → Maybe→⊥ (f n) I.⇓ y → f n ↓ y
   to n f⇓y with f n
@@ -155,13 +154,11 @@ Delay→⊥-injective A-set prop-ext x y x≡y =
     Is-set A → Propositional-extensionality a →
     ∀ x y → Delay→⊥ x I.⊑ Delay→⊥ y → x A.∥⊑∥ y
   lemma A-set prop-ext x y x⊑y z =
-    x A.∥⇓∥ z            ↝⟨ _⇔_.from (A.⇓⇔∥⇓∥ A-set x) ⟩
-    x A.⇓ z              ↝⟨ _⇔_.from (⇓⇔⇓ A-set prop-ext x) ⟩
+    x A.∥⇓∥ z            ↝⟨ _⇔_.from (⇓⇔∥⇓∥ A-set prop-ext x) ⟩
     Delay→⊥ x I.⇓ z      ↔⟨ ⇓≃now⊑ prop-ext ⟩
     now z I.⊑ Delay→⊥ x  ↝⟨ flip ⊑-trans x⊑y ⟩
     now z I.⊑ Delay→⊥ y  ↔⟨ inverse (⇓≃now⊑ prop-ext) ⟩
-    Delay→⊥ y I.⇓ z      ↝⟨ _⇔_.to (⇓⇔⇓ A-set prop-ext y) ⟩
-    y A.⇓ z              ↝⟨ _⇔_.to (A.⇓⇔∥⇓∥ A-set y) ⟩□
+    Delay→⊥ y I.⇓ z      ↝⟨ _⇔_.to (⇓⇔∥⇓∥ A-set prop-ext y) ⟩□
     y A.∥⇓∥ z            □
 
 -- ⊥→⊥ A-set is injective (assuming propositional extensionality).
@@ -251,7 +248,7 @@ Delay→⊥-surjective A-set prop-ext cc =
       f₂↓→⨆s⇓ {y} {m} f₂↓ =
         terminating-element-is-⨆ prop-ext s
           (s [ m ]        ≡⟨ sym (h m) ⟩
-           Delay→⊥ (f m)  ≡⟨ _⇔_.from (⇓⇔⇓ A-set prop-ext (f m)) (_ , f₂↓) ⟩∎
+           Delay→⊥ (f m)  ≡⟨ _⇔_.from (⇓⇔∥⇓∥ A-set prop-ext (f m)) ∣ _ , f₂↓ ∣ ⟩∎
            now y          ∎)
 
     termination-value-unique-f₁ :
@@ -319,7 +316,7 @@ Delay→⊥-surjective A-set prop-ext cc =
       Delay→⊥ x         ■
     f₂⊑x m n | just y , f₂↓ =
       Maybe→⊥ (f₂ m n)  ⊑⟨ cong Maybe→⊥ f₂↓ ⟩≡
-      now y             ⊑⟨ sym (_⇔_.from (⇓⇔⇓ A-set prop-ext x) x⇓) ⟩≡
+      now y             ⊑⟨ sym (_⇔_.from (⇓⇔∥⇓∥ A-set prop-ext x) ∣ x⇓ ∣) ⟩≡
       Delay→⊥ x         ■
       where
       k = _↔_.from ℕ↔ℕ² (m , n)
