@@ -41,7 +41,7 @@ x ⇑ = x ≡ never
 
 infix  -1 finally-⊑
 infix  -1 _■
-infixr -2 _⊑⟨_⟩_ _⊑⟨⟩_ _⊑⟨_⟩≡_
+infixr -2 _⊑⟨_⟩_ _⊑⟨⟩_ _≡⟨_⟩⊑_
 
 _⊑⟨_⟩_ : (x {y z} : Type) → x ⊑ y → y ⊑ z → x ⊑ z
 _ ⊑⟨ x⊑y ⟩ y⊑z = ⊑-trans x⊑y y⊑z
@@ -49,9 +49,9 @@ _ ⊑⟨ x⊑y ⟩ y⊑z = ⊑-trans x⊑y y⊑z
 _⊑⟨⟩_ : (x {y} : Type) → x ⊑ y → x ⊑ y
 _ ⊑⟨⟩ x⊑y = x⊑y
 
-_⊑⟨_⟩≡_ : (x {y z} : Type) → x ≡ y →
+_≡⟨_⟩⊑_ : (x {y z} : Type) → x ≡ y →
           y ⊑ z → x ⊑ z
-_ ⊑⟨ refl ⟩≡ y⊑z = y⊑z
+_ ≡⟨ refl ⟩⊑ y⊑z = y⊑z
 
 _■ : (x : Type) → x ⊑ x
 x ■ = ⊑-refl x
@@ -238,19 +238,19 @@ steps-≳ = proj₁ ∘ run
      let m , s₁[m+n]≡s₂[k+n] = run s₁≳s₂ in
 
      s₁ [ n ]      ⊑⟨ later-larger s₁ (m≤n+m _ m) ⟩
-     s₁ [ m + n ]  ⊑⟨ s₁[m+n]≡s₂[k+n] ⟩≡
+     s₁ [ m + n ]  ≡⟨ s₁[m+n]≡s₂[k+n] ⟩⊑
      s₂ [ k + n ]  ■)
   (⊑→⨆⊑⨆ λ n →
      let m , s₁[m+n]≡s₂[k+n] = run s₁≳s₂ in
 
      s₂ [ n ]      ⊑⟨ later-larger s₂ (m≤n+m _ k) ⟩
-     s₂ [ k + n ]  ⊑⟨ sym s₁[m+n]≡s₂[k+n] ⟩≡
+     s₂ [ k + n ]  ≡⟨ sym s₁[m+n]≡s₂[k+n] ⟩⊑
      s₁ [ m + n ]  ■)
 
 -- Preorder-like reasoning combinators.
 
 infix  -1 _∎≳
-infixr -2 _≳⟨⟩_ trans-≳ trans-≡≳ trans-≡≳∀
+infixr -2 _≳⟨⟩_ trans-≳ trans-≡≳ trans-∀≡≳
 
 _∎≳ : ∀ s {n} → s ≳[ n ] s
 run (_ ∎≳) = 0 , refl
@@ -278,15 +278,15 @@ trans-≡≳ : ∀ {n} s₁ {s₂ s₃}
            s₁ ≳[ n ] s₃
 trans-≡≳ _ s₂≳s₃ s₁≡s₂ = _ ≳⟨ wrap (0 , s₁≡s₂) ⟩ s₂≳s₃
 
-trans-≡≳∀ : ∀ {n} s₁ {s₂ s₃} →
+trans-∀≡≳ : ∀ {n} s₁ {s₂ s₃} →
             s₂ ≳[ n ] s₃ →
             (∀ n → s₁ n ≡ s₂ n) →
             s₁ ≳[ n ] s₃
-trans-≡≳∀ _ s₂≳s₃ s₁≡s₂ = trans-≡≳ _ s₂≳s₃ (s₁≡s₂ _)
+trans-∀≡≳ _ s₂≳s₃ s₁≡s₂ = trans-≡≳ _ s₂≳s₃ (s₁≡s₂ _)
 
-syntax trans-≳   s₁ s₂≳s₃ s₁≳s₂ = s₁ ≳⟨ s₁≳s₂ ⟩   s₂≳s₃
-syntax trans-≡≳  s₁ s₂≳s₃ s₁≡s₂ = s₁ ≳⟨ s₁≡s₂ ⟩≡  s₂≳s₃
-syntax trans-≡≳∀ s₁ s₂≳s₃ s₁≡s₂ = s₁ ≳⟨ s₁≡s₂ ⟩≡∀ s₂≳s₃
+syntax trans-≳   s₁ s₂≳s₃ s₁≳s₂ = s₁ ≳⟨  s₁≳s₂ ⟩  s₂≳s₃
+syntax trans-≡≳  s₁ s₂≳s₃ s₁≡s₂ = s₁ ≡⟨  s₁≡s₂ ⟩≳ s₂≳s₃
+syntax trans-∀≡≳ s₁ s₂≳s₃ s₁≡s₂ = s₁ ∀≡⟨ s₁≡s₂ ⟩≳ s₂≳s₃
 
 -- Some "stepping" combinators.
 

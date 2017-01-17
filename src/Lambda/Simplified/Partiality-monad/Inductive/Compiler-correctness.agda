@@ -55,13 +55,13 @@ mutual
   ⟦⟧-correct (var x) {ρ} {c} {s} {k} hyp =
     execⁿ ⟨ var x ∷ c , s , comp-env ρ ⟩                 ≳⟨ step⇓ ⟩
     execⁿ ⟨ c , val (comp-val (ρ x)) ∷ s , comp-env ρ ⟩  ≳⟨ hyp (ρ x) ⟩
-    (λ n → k n (ρ x))                                    ≳⟨ sym now->>= ⟩≡
+    (λ n → k n (ρ x))                                    ≡⟨ sym now->>= ⟩≳
     (λ n → evalⁿ (var x) ρ (suc n) >>= k n)              ∎≳
 
   ⟦⟧-correct (ƛ t) {ρ} {c} {s} {k} hyp =
     execⁿ ⟨ clo (comp t (ret ∷ [])) ∷ c , s , comp-env ρ ⟩   ≳⟨ step⇓ ⟩
     execⁿ ⟨ c , val (comp-val (T.ƛ t ρ)) ∷ s , comp-env ρ ⟩  ≳⟨ hyp (T.ƛ t ρ) ⟩
-    (λ n → k n (T.ƛ t ρ))                                    ≳⟨ sym now->>= ⟩≡
+    (λ n → k n (T.ƛ t ρ))                                    ≡⟨ sym now->>= ⟩≳
     (λ n → evalⁿ (ƛ t) ρ (suc n) >>= k n)                    ∎≳
 
   ⟦⟧-correct (t₁ · t₂) {ρ} {c} {s} {k} {n} hyp =
@@ -70,11 +70,11 @@ mutual
     (λ n → evalⁿ t₁ ρ (suc n) >>=′ λ v₁ →
            evalⁿ t₂ ρ (suc n) >>=′ λ v₂ →
            (v₁ ∙ⁿ v₂) n >>=
-           k n)                                               ≳⟨ cong (evalⁿ t₁ ρ (suc n) >>=′_)
-                                                                      (ext λ _ → associativity (evalⁿ t₂ ρ (suc n)) _ _) ⟩≡
+           k n)                                               ≡⟨ cong (evalⁿ t₁ ρ (suc n) >>=′_)
+                                                                      (ext λ _ → associativity (evalⁿ t₂ ρ (suc n)) _ _) ⟩≳
     (λ n → evalⁿ t₁ ρ (suc n) >>=′ λ v₁ →
            (evalⁿ t₂ ρ (suc n) >>=′ λ v₂ → (v₁ ∙ⁿ v₂) n) >>=
-           k n)                                               ≳⟨ associativity (evalⁿ t₁ ρ (suc n)) _ _ ⟩≡
+           k n)                                               ≡⟨ associativity (evalⁿ t₁ ρ (suc n)) _ _ ⟩≳
 
     (λ n → evalⁿ (t₁ · t₂) ρ (suc n) >>= k n)                 ∎≳
 
@@ -93,9 +93,9 @@ mutual
     execⁿ ⟨ app ∷ c
           , val (comp-val v₂) ∷ val (comp-val (T.ƛ t₁ ρ₁)) ∷ s
           , comp-env ρ
-          ⟩                                                     ≳⟨ refl ⟩≡
+          ⟩                                                     ≡⟨ refl ⟩≳
 
-    const never                                                 ≳⟨ sym never->>= ⟩≡
+    const never                                                 ≡⟨ sym never->>= ⟩≳
 
     (λ n → (T.ƛ t₁ ρ₁ ∙ⁿ v₂) n >>= k n)                         ∎≳
 
@@ -108,8 +108,8 @@ mutual
     execⁿ ⟨ comp t₁ (ret ∷ [])
           , ret c (comp-env ρ) ∷ s
           , snoc (comp-env ρ₁) (comp-val v₂)
-          ⟩                                                     ≳⟨ (λ n → cong (λ ρ′ → execⁿ ⟨ comp t₁ (ret ∷ []) , ret c (comp-env ρ) ∷ s , ρ′ ⟩ n)
-                                                                               (sym comp-snoc)) ⟩≡∀
+          ⟩                                                     ∀≡⟨ (λ n → cong (λ ρ′ → execⁿ ⟨ comp t₁ (ret ∷ []) , ret c (comp-env ρ) ∷ s , ρ′ ⟩ n)
+                                                                                (sym comp-snoc)) ⟩≳
     execⁿ ⟨ comp t₁ (ret ∷ [])
           , ret c (comp-env ρ) ∷ s
           , comp-env (snoc ρ₁ v₂)

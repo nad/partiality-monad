@@ -74,12 +74,12 @@ Delay→⊥-mono A-set x@(f , _) y@(g , _) x⊑y = ∃⊑→⨆⊑⨆ inc
   where
   inc : ∀ m → ∃ λ n → Maybe→⊥ (f m) I.⊑ Maybe→⊥ (g n)
   inc m with inspect (f m)
-  inc m | nothing , fm↑  = 0 , (Maybe→⊥ (f m)  ⊑⟨ cong Maybe→⊥ fm↑ ⟩≡
+  inc m | nothing , fm↑  = 0 , (Maybe→⊥ (f m)  ≡⟨ cong Maybe→⊥ fm↑ ⟩⊑
                                 never          ⊑⟨ never⊑ _ ⟩■
                                 Maybe→⊥ (g 0)  ■)
   inc m | just z  , fm↓z =
-    k , (Maybe→⊥ (f m)     ⊑⟨ cong Maybe→⊥ fm↓z ⟩≡
-         Maybe→⊥ (just z)  ⊑⟨ cong Maybe→⊥ (sym $ proj₂ y⇓z) ⟩≡
+    k , (Maybe→⊥ (f m)     ≡⟨ cong Maybe→⊥ fm↓z ⟩⊑
+         Maybe→⊥ (just z)  ≡⟨ cong Maybe→⊥ (sym $ proj₂ y⇓z) ⟩⊑
          Maybe→⊥ (g k)     ■)
     where
     y⇓z =        $⟨ ∣ m , fm↓z ∣ ⟩
@@ -278,14 +278,14 @@ Delay→⊥-surjective A-set prop-ext cc =
     x⊑s m with inspect (proj₁ x m)
     x⊑s m | nothing , x↑ =
         zero
-      , (Maybe→⊥ (proj₁ x m)  ⊑⟨ cong Maybe→⊥ x↑ ⟩≡
+      , (Maybe→⊥ (proj₁ x m)  ≡⟨ cong Maybe→⊥ x↑ ⟩⊑
          never                ⊑⟨ never⊑ _ ⟩■
          s [ 0 ]              ■)
     x⊑s m | just y , x↓ =
         n₁
-      , (Maybe→⊥ (proj₁ x m)  ⊑⟨ cong Maybe→⊥ x↓ ⟩≡
-         now y                ⊑⟨ sym f⇓ ⟩≡
-         Delay→⊥ (f n₁)       ⊑⟨ h n₁ ⟩≡
+      , (Maybe→⊥ (proj₁ x m)  ≡⟨ cong Maybe→⊥ x↓ ⟩⊑
+         now y                ≡⟨ sym f⇓ ⟩⊑
+         Delay→⊥ (f n₁)       ≡⟨ h n₁ ⟩⊑
          s [ n₁ ]             ■)
       where
       f₁↓ : ∃ λ n → f₁ n ↓ y
@@ -298,7 +298,7 @@ Delay→⊥-surjective A-set prop-ext cc =
       f⇓ : Delay→⊥ (f n₁) I.⇓ y
       f⇓ =
         _≃_.from (⇓≃now⊑ prop-ext)
-          (now y                        ⊑⟨ cong Maybe→⊥ $ sym $ proj₂ f₁↓ ⟩≡
+          (now y                        ≡⟨ cong Maybe→⊥ $ sym $ proj₂ f₁↓ ⟩⊑
            Maybe→⊥ (f₁ n)               ⊑⟨⟩
            Maybe→⊥ (f₂ n₁ n₂)           ⊑⟨⟩
            Maybe→⊥ (proj₁ (f n₁) n₂)    ⊑⟨⟩
@@ -327,7 +327,7 @@ Delay→⊥-surjective A-set prop-ext cc =
          Delay→Inc-seq x [ n ]  ⊑⟨ proj₂ (x⊑s n) ⟩■
          s [ proj₁ (x⊑s n) ]    ■)
       (least-upper-bound _ _ λ m →
-         s [ m ]        ⊑⟨ sym (h m) ⟩≡
+         s [ m ]        ≡⟨ sym (h m) ⟩⊑
          Delay→⊥ (f m)  ⊑⟨ Delay→⊥-mono A-set (f m) x (∥∥-map ∘ f⊑x m) ⟩■
          Delay→⊥ x      ■)
 

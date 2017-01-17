@@ -173,11 +173,11 @@ interpreters-equal = λ t ρ →
 
   lemma : ∀ n → ⟦ Ω ⟧′ empty n ⊑ never
   lemma zero    =
-    ⟦ Ω ⟧′ empty zero         ⊑⟨ reduce-twice zero ⟩≡
+    ⟦ Ω ⟧′ empty zero         ≡⟨ reduce-twice zero ⟩⊑
     (ω-empty ∙ ω-empty) zero  ⊑⟨⟩
     never                     ■
   lemma (suc n) =
-    ⟦ Ω ⟧′ empty (suc n)  ⊑⟨ reduce-twice (suc n) ⟩≡
+    ⟦ Ω ⟧′ empty (suc n)  ≡⟨ reduce-twice (suc n) ⟩⊑
     ⟦ Ω ⟧′ empty n        ⊑⟨ lemma n ⟩■
     never                 ■
 
@@ -206,11 +206,11 @@ interpreters-equal = λ t ρ →
   lemma : ∀ n → app→ eval n (_ , Ω , empty) ⊑ never
   lemma zero       = never⊑ never
   lemma (suc zero) =
-    app→ eval 1 (_ , Ω , empty)  ⊑⟨ reduce-twice _ ⟩≡
+    app→ eval 1 (_ , Ω , empty)  ≡⟨ reduce-twice _ ⟩⊑
     app→ eval 0 (_ , Ω , empty)  ⊑⟨⟩
     never                        ■
   lemma (suc (suc n)) =
-    app→ eval (suc (suc n)) (_ , Ω , empty)  ⊑⟨ reduce-twice _ ⟩≡
+    app→ eval (suc (suc n)) (_ , Ω , empty)  ≡⟨ reduce-twice _ ⟩⊑
     app→ eval (suc n) (_ , Ω , empty)        ⊑⟨ lemma (suc n) ⟩■
     never                                    ■
 
@@ -228,24 +228,24 @@ interpreters-equal = λ t ρ →
   lemma =
     ⟦ Ω ⟧ empty                                              ⊑⟨⟩
 
-    fixP evalP (_ , Ω , empty)                               ⊑⟨ cong (_$ (_ , Ω , empty)) $
-                                                                  fixP-is-fixpoint-combinator prop-ext evalP ⟩≡
+    fixP evalP (_ , Ω , empty)                               ≡⟨ cong (_$ (_ , Ω , empty)) $
+                                                                  fixP-is-fixpoint-combinator prop-ext evalP ⟩⊑
     function eval (fixP evalP) (_ , Ω , empty)               ⊑⟨ fixP-induction₁
                                                                   (λ f → function eval f (_ , Ω , empty) ⊑ never) (
-        function eval (const never) (_ , Ω , empty)                  ⊑⟨ Ω-loops₂.reduce-twice _ ⟩≡
+        function eval (const never) (_ , Ω , empty)                  ≡⟨ Ω-loops₂.reduce-twice _ ⟩⊑
         never                                                        ■)
                                                                   (λ s hyp →
-        function eval (⨆ ∘ s) (_ , Ω , empty)                        ⊑⟨ Ω-loops₂.reduce-twice _ ⟩≡
+        function eval (⨆ ∘ s) (_ , Ω , empty)                        ≡⟨ Ω-loops₂.reduce-twice _ ⟩⊑
         ⨆ (s _)                                                      ⊑⟨ least-upper-bound _ _ (λ n →
 
-            s _ [ n ]                                                     ⊑⟨ sym $ Ω-loops₂.reduce-twice _ ⟩≡
+            s _ [ n ]                                                     ≡⟨ sym $ Ω-loops₂.reduce-twice _ ⟩⊑
             function eval (λ x → s x [ n ]) (_ , Ω , empty)               ⊑⟨ hyp n ⟩■
             never                                                         ■) ⟩
 
         never                                                        ■)
                                                                   evalP
                                                                   (λ g hyp →
-        function eval (function eval g) (_ , Ω , empty)              ⊑⟨ Ω-loops₂.reduce-twice _ ⟩≡
+        function eval (function eval g) (_ , Ω , empty)              ≡⟨ Ω-loops₂.reduce-twice _ ⟩⊑
         function eval g (_ , Ω , empty)                              ⊑⟨ hyp ⟩■
         never                                                        ■) ⟩■
 

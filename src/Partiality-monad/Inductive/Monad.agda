@@ -106,18 +106,18 @@ _>>=-mono_ {x = x} {y} {f} {g} x⊑y f⊑g =
   x >>=′ f ⊑⟨ monotone (f ∗) x⊑y ⟩
   y >>=′ f ⊑⟨ ⊥-rec-⊥ (record
                 { P  = λ y → y >>=′ f ⊑ y >>=′ g
-                ; pe = never >>=′ f  ⊑⟨ never->>= ⟩≡
+                ; pe = never >>=′ f  ≡⟨ never->>= ⟩⊑
                        never         ⊑⟨ never⊑ _ ⟩■
                        never >>=′ g  ■
                 ; po = λ x →
-                         now x >>=′ f  ⊑⟨ now->>= ⟩≡
+                         now x >>=′ f  ≡⟨ now->>= ⟩⊑
                          f x           ⊑⟨ f⊑g x ⟩
-                         g x           ⊑⟨ sym now->>= ⟩≡
+                         g x           ≡⟨ sym now->>= ⟩⊑
                          now x >>=′ g  ■
                 ; pl = λ s ih →
-                         ⨆ s >>=′ f     ⊑⟨ ⨆->>= ⟩≡
+                         ⨆ s >>=′ f     ≡⟨ ⨆->>= ⟩⊑
                          ⨆ (f ∗-inc s)  ⊑⟨ ⨆-mono ih ⟩
-                         ⨆ (g ∗-inc s)  ⊑⟨ sym ⨆->>= ⟩≡
+                         ⨆ (g ∗-inc s)  ≡⟨ sym ⨆->>= ⟩⊑
                          ⨆ s >>=′ g     ■
                 ; pp = λ _ → ⊑-propositional
                 })

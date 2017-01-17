@@ -40,19 +40,19 @@ mutual
   ⟦⟧-correct (con i) {ρ} {c} {s} {k} hyp =
     steps ⟨ con i ∷ c , s , comp-env ρ ⟩                     ≳⟨ step⇓ ⟩
     steps ⟨ c , val (comp-val (T.con i)) ∷ s , comp-env ρ ⟩  ≳⟨ hyp (T.con i) ⟩
-    (λ n → run (k n (T.con i)))                              ≳⟨ sym now->>= ⟩≡
+    (λ n → run (k n (T.con i)))                              ≡⟨ sym now->>= ⟩≳
     (λ n → run (⟦ con i ⟧′ ρ n >>= k n))                     ∎≳
 
   ⟦⟧-correct (var x) {ρ} {c} {s} {k} hyp =
     steps ⟨ var x ∷ c , s , comp-env ρ ⟩                 ≳⟨ step⇓ ⟩
     steps ⟨ c , val (comp-val (ρ x)) ∷ s , comp-env ρ ⟩  ≳⟨ hyp (ρ x) ⟩
-    (λ n → run (k n (ρ x)))                              ≳⟨ sym now->>= ⟩≡
+    (λ n → run (k n (ρ x)))                              ≡⟨ sym now->>= ⟩≳
     (λ n → run (⟦ var x ⟧′ ρ n >>= k n))                 ∎≳
 
   ⟦⟧-correct (ƛ t) {ρ} {c} {s} {k} hyp =
     steps ⟨ clo (comp t (ret ∷ [])) ∷ c , s , comp-env ρ ⟩   ≳⟨ step⇓ ⟩
     steps ⟨ c , val (comp-val (T.ƛ t ρ)) ∷ s , comp-env ρ ⟩  ≳⟨ hyp (T.ƛ t ρ) ⟩
-    (λ n → run (k n (T.ƛ t ρ)))                              ≳⟨ sym now->>= ⟩≡
+    (λ n → run (k n (T.ƛ t ρ)))                              ≡⟨ sym now->>= ⟩≳
     (λ n → run (⟦ ƛ t ⟧′ ρ n >>= k n))                       ∎≳
 
   ⟦⟧-correct (t₁ · t₂) {ρ} {c} {s} {k} {n} hyp =
@@ -60,10 +60,10 @@ mutual
 
     (λ n → run (⟦ t₁ ⟧′ ρ n >>= λ v₁ →
                 ⟦ t₂ ⟧′ ρ n >>= λ v₂ →
-                (v₁ ∙ v₂) n >>= k n))                          ≳⟨ cong (λ f → run (⟦ t₁ ⟧′ ρ n >>= f))
-                                                                       (ext λ v₁ → Monad.associativity tr (⟦ t₂ ⟧′ ρ n) _ _) ⟩≡
+                (v₁ ∙ v₂) n >>= k n))                          ≡⟨ cong (λ f → run (⟦ t₁ ⟧′ ρ n >>= f))
+                                                                       (ext λ v₁ → Monad.associativity tr (⟦ t₂ ⟧′ ρ n) _ _) ⟩≳
     (λ n → run (⟦ t₁ ⟧′ ρ n >>= λ v₁ →
-               (⟦ t₂ ⟧′ ρ n >>= λ v₂ → (v₁ ∙ v₂) n) >>= k n))  ≳⟨ cong MaybeT.run $ Monad.associativity tr (⟦ t₁ ⟧′ ρ n) _ _ ⟩≡
+               (⟦ t₂ ⟧′ ρ n >>= λ v₂ → (v₁ ∙ v₂) n) >>= k n))  ≡⟨ cong MaybeT.run $ Monad.associativity tr (⟦ t₁ ⟧′ ρ n) _ _ ⟩≳
 
     (λ n → run (⟦ t₁ · t₂ ⟧′ ρ n >>= k n))                     ∎≳
     where
@@ -84,7 +84,7 @@ mutual
           , comp-env ρ
           ⟩                                        ≳⟨⟩
 
-    const (run fail)                               ≳⟨ sym now->>= ⟩≡
+    const (run fail)                               ≡⟨ sym now->>= ⟩≳
 
     (λ n → run ((T.con i ∙ v₂) n >>= k n))         ∎≳
 
@@ -92,11 +92,11 @@ mutual
     steps ⟨ app ∷ c
           , val (comp-val v₂) ∷ val (comp-val (T.ƛ t₁ ρ₁)) ∷ s
           , comp-env ρ
-          ⟩                                   ≳⟨ refl ⟩≡
+          ⟩                                   ≡⟨ refl ⟩≳
 
-    const never                               ≳⟨ sym never->>= ⟩≡
+    const never                               ≡⟨ sym never->>= ⟩≳
 
-    const (never >>= _)                       ≳⟨ cong (_>>= maybe (MaybeT.run ∘ k 0) (return nothing)) (sym never->>=) ⟩≡
+    const (never >>= _)                       ≡⟨ cong (_>>= maybe (MaybeT.run ∘ k 0) (return nothing)) (sym never->>=) ⟩≳
 
     (λ n → run ((T.ƛ t₁ ρ₁ ∙ v₂) n >>= k n))  ∎≳
 
@@ -110,8 +110,8 @@ mutual
     steps ⟨ comp t₁ (ret ∷ [])
           , ret c (comp-env ρ) ∷ s
           , snoc (comp-env ρ₁) (comp-val v₂)
-          ⟩                                               ≳⟨ (λ n → cong (λ ρ′ → steps ⟨ comp t₁ (ret ∷ []) , ret c (comp-env ρ) ∷ s , ρ′ ⟩ n) $
-                                                                         sym comp-snoc) ⟩≡∀
+          ⟩                                               ∀≡⟨ (λ n → cong (λ ρ′ → steps ⟨ comp t₁ (ret ∷ []) , ret c (comp-env ρ) ∷ s , ρ′ ⟩ n) $
+                                                                          sym comp-snoc) ⟩≳
     steps ⟨ comp t₁ (ret ∷ [])
           , ret c (comp-env ρ) ∷ s
           , comp-env (snoc ρ₁ v₂)

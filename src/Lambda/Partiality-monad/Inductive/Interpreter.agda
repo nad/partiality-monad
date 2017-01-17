@@ -100,7 +100,7 @@ module Interpreter₁ where
     ∙-increasing (con i)  v₂ n       = run fail ■
     ∙-increasing (ƛ t₁ ρ) v₂ (suc n) = ⟦⟧′-increasing t₁ (snoc ρ v₂) n
     ∙-increasing (ƛ t₁ ρ) v₂ zero    =
-      never >>= return ∘ just      ⊑⟨ never->>= ⟩≡
+      never >>= return ∘ just      ≡⟨ never->>= ⟩⊑
       never                        ⊑⟨ never⊑ _ ⟩■
       run (⟦ t₁ ⟧′ (snoc ρ v₂) 0)  ■
 
@@ -212,10 +212,10 @@ open Interpreter₁ public
 
   lemma : ∀ n → run (⟦ Ω ⟧′ empty n) ⊑ never
   lemma zero    =
-    run (⟦ Ω ⟧′ empty zero)         ⊑⟨ reduce-twice zero ⟩≡
-    run ((ω-empty ∙ ω-empty) zero)  ⊑⟨ never->>= ⟩≡
+    run (⟦ Ω ⟧′ empty zero)         ≡⟨ reduce-twice zero ⟩⊑
+    run ((ω-empty ∙ ω-empty) zero)  ≡⟨ never->>= ⟩⊑
     never                           ■
   lemma (suc n) =
-    run (⟦ Ω ⟧′ empty (suc n))  ⊑⟨ reduce-twice (suc n) ⟩≡
+    run (⟦ Ω ⟧′ empty (suc n))  ≡⟨ reduce-twice (suc n) ⟩⊑
     run (⟦ Ω ⟧′ empty n)        ⊑⟨ lemma n ⟩■
     never                       ■

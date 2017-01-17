@@ -72,7 +72,7 @@ private
       fix-sequence-increasing n =
         function (comp f n) never               ⊑⟨ monotone (comp f n) (never⊑ (function f never)) ⟩
         function (comp f n) (function f never)  ⊑⟨⟩
-        function (comp f n ∘⊑ f) never          ⊑⟨ cong (λ g → function g never) $ pre≡post f n ⟩≡
+        function (comp f n ∘⊑ f) never          ≡⟨ cong (λ g → function g never) $ pre≡post f n ⟩⊑
         function (f ∘⊑ comp f n) never          ■
 
   -- Taking the tail of this sequence amounts to the same thing as
@@ -167,14 +167,14 @@ private
   fix-∘ : (f : [ P ⟶ P ]⊑) → fix (f ∘⊑ f) ≡ fix f
   fix-∘ f = antisymmetry
     (least-upper-bound _ _ λ n →
-       function (comp (f ∘⊑ f) n) never       ⊑⟨ cong (λ f → function f never) $ comp-∘ f n ⟩≡
-       function (comp f n ∘⊑ comp f n) never  ⊑⟨ cong (λ f → function f never) $ sym $ comp-+∘ f n ⟩≡
+       function (comp (f ∘⊑ f) n) never       ≡⟨ cong (λ f → function f never) $ comp-∘ f n ⟩⊑
+       function (comp f n ∘⊑ comp f n) never  ≡⟨ cong (λ f → function f never) $ sym $ comp-+∘ f n ⟩⊑
        function (comp f (n + n)) never        ⊑⟨ upper-bound (fix-sequence f) (n + n) ⟩■
        ⨆ (fix-sequence f)                     ■)
     (⨆-mono λ n →
        function (comp f n) never                        ⊑⟨ monotone (comp f n) (never⊑ _) ⟩
        function (comp f n) (function (comp f n) never)  ⊑⟨⟩
-       function (comp f n ∘⊑ comp f n) never            ⊑⟨ cong (λ f → function f never) $ sym $ comp-∘ f n ⟩≡
+       function (comp f n ∘⊑ comp f n) never            ≡⟨ cong (λ f → function f never) $ sym $ comp-∘ f n ⟩⊑
        function (comp (f ∘⊑ f) n) never                 ■)
 
 open Fix₀
