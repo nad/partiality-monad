@@ -272,7 +272,7 @@ import Lifting.Preliminary-sketch
 
 import Lifting
 
--- An alternative but equivalent definition of the partiality monad,
--- based on the lifting construction in Lifting.
+-- An alternative but equivalent definition of the partiality monad
+-- (but only for sets), based on the lifting construction in Lifting.
 
 import Lifting.Partiality-monad

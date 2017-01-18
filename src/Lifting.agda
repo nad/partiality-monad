@@ -98,14 +98,15 @@ postulate
 cppo : ω-cppo ℓ
 cppo = record
   { cpo = record
-    { Carrier           = Carrier
-    ; _⊑_               = _⊑_
-    ; reflexivity       = ⊑-refl _
-    ; antisymmetry      = antisymmetry
-    ; transitivity      = ⊑-trans _ _ _
-    ; ⨆                 = ⨆
-    ; upper-bound       = upper-bound
-    ; least-upper-bound = least-upper-bound _ _
+    { Carrier            = Carrier
+    ; _⊑_                = _⊑_
+    ; reflexivity        = ⊑-refl _
+    ; antisymmetry       = antisymmetry
+    ; transitivity       = ⊑-trans _ _ _
+    ; ⊑-proof-irrelevant = ⊑-proof-irrelevant
+    ; ⨆                  = ⨆
+    ; upper-bound        = upper-bound
+    ; least-upper-bound  = least-upper-bound _ _
     }
   ; least  = never
   ; least⊑ = never⊑ _

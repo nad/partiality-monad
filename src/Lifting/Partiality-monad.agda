@@ -1,6 +1,6 @@
 ------------------------------------------------------------------------
--- An alternative but equivalent definition of the partiality monad,
--- based on the lifting construction in Lifting
+-- An alternative but equivalent definition of the partiality monad
+-- (but only for sets), based on the lifting construction in Lifting
 ------------------------------------------------------------------------
 
 {-# OPTIONS --without-K #-}
@@ -24,11 +24,11 @@ import Partiality-monad.Inductive as I
 import Partiality-monad.Inductive.Eliminators as IE
 
 private
-  module L {A : Set a} = Lifting (Type→ω-cpo A)
+  module L {A : SET a} = Lifting (Set→ω-cpo A)
 
 -- The partiality monad as an ω-cppo.
 
-partiality-monad : Set a → ω-cppo a
+partiality-monad : SET a → ω-cppo a
 partiality-monad A = L.cppo {A = A}
 
 -- The partiality monad.
@@ -36,7 +36,7 @@ partiality-monad A = L.cppo {A = A}
 infix 10 _⊥
 infix  4 _⊑_
 
-_⊥ : Set a → Set a
+_⊥ : SET a → Set a
 A ⊥ = ω-cppo.Carrier (partiality-monad A)
 
 _⊑_ : ∀ {A} → A ⊥ → A ⊥ → Set a
@@ -47,7 +47,7 @@ _⊑_ {A = A} = ω-cppo._⊑_ (partiality-monad A)
 
 private
 
-  argsL : ∀ {A} → L.Rec-args (λ (_ : A ⊥) → A I.⊥) (λ x y _ → x I.⊑ y)
+  argsL : ∀ {A} → L.Rec-args (λ (_ : A ⊥) → Type A I.⊥) (λ x y _ → x I.⊑ y)
   argsL = record
     { pe = I.never
     ; po = I.now
@@ -69,7 +69,7 @@ private
     ; qp = λ _ _ _ → I.⊑-proof-irrelevant
     }
 
-  argsI : ∀ {A} → IE.Arguments-nd a a A
+  argsI : ∀ {A} → IE.Arguments-nd a a (Type A)
   argsI {A} = record
     { P  = A ⊥
     ; Q  = _⊑_
@@ -86,7 +86,7 @@ private
     ; qp = λ _ _ → L.⊑-propositional
     }
 
-⊥↔⊥ : ∀ {A} → A ⊥ ↔ A I.⊥
+⊥↔⊥ : ∀ {A} → A ⊥ ↔ Type A I.⊥
 ⊥↔⊥ = record
   { surjection = record
     { logical-equivalence = record
