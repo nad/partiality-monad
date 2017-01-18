@@ -7,12 +7,15 @@
 module Omega-cpo where
 
 open import Equality.Propositional
+open import Interval using (ext)
 open import Logical-equivalence using (_⇔_)
 open import Prelude
 
 open import Equivalence equality-with-J as Eq using (_≃_)
 open import H-level equality-with-J hiding (Type)
 open import H-level.Closure equality-with-J
+
+open import Partiality-monad.Inductive.Partiality-algebra hiding (_∘_)
 
 -- Possibly non-pointed ω-cpos (with propositional ordering
 -- relations).
@@ -110,3 +113,67 @@ record ω-cppo ℓ : Set (lsuc ℓ) where
   field
     least  : Carrier
     least⊑ : ∀ {x} → least ⊑ x
+
+-- A pointed ω-CPO is equivalent to a partiality algebra over the
+-- empty type.
+
+ω-cppo≃Partiality-algebra-⊥ :
+  ∀ {ℓ} → ω-cppo ℓ ≃ Partiality-algebra ℓ ℓ ⊥₀
+ω-cppo≃Partiality-algebra-⊥ = Eq.↔⇒≃ record
+  { surjection = record
+    { logical-equivalence = record
+      { to   = λ X → let open ω-cppo X in record
+                 { Type               = Carrier
+                 ; _⊑_                = _⊑_
+                 ; never              = least
+                 ; now                = λ ()
+                 ; ⨆                  = ⨆
+                 ; antisymmetry       = antisymmetry
+                 ; Type-UIP-unused    = _⇔_.to set⇔UIP Carrier-is-set
+                 ; ⊑-refl             = λ _ → reflexivity
+                 ; ⊑-trans            = transitivity
+                 ; never⊑             = λ _ → least⊑
+                 ; upper-bound        = upper-bound
+                 ; least-upper-bound  = λ _ _ → least-upper-bound
+                 ; ⊑-proof-irrelevant = ⊑-proof-irrelevant
+                 }
+      ; from = λ P → let open Partiality-algebra P in record
+                 { cpo = record
+                   { Carrier            = Type
+                   ; _⊑_                = _⊑_
+                   ; reflexivity        = ⊑-refl _
+                   ; antisymmetry       = antisymmetry
+                   ; transitivity       = ⊑-trans
+                   ; ⊑-proof-irrelevant = ⊑-proof-irrelevant
+                   ; ⨆                  = ⨆
+                   ; upper-bound        = upper-bound
+                   ; least-upper-bound  = least-upper-bound _ _
+                   }
+                 ; least  = never
+                 ; least⊑ = never⊑ _
+                 }
+      }
+    ; right-inverse-of = λ P →
+        let open Partiality-algebra P in
+        cong₂ (λ now (uip : Uniqueness-of-identity-proofs Type) → record
+                 { Type               = Type
+                 ; _⊑_                = _⊑_
+                 ; never              = never
+                 ; now                = now
+                 ; ⨆                  = ⨆
+                 ; antisymmetry       = antisymmetry
+                 ; Type-UIP-unused    = uip
+                 ; ⊑-refl             = ⊑-refl
+                 ; ⊑-trans            = ⊑-trans
+                 ; never⊑             = never⊑
+                 ; upper-bound        = upper-bound
+                 ; least-upper-bound  = least-upper-bound
+                 ; ⊑-proof-irrelevant = ⊑-proof-irrelevant
+                 })
+              (ext λ ())
+              (_⇔_.to propositional⇔irrelevant
+                 (UIP-propositional ext)
+                 _ _)
+    }
+  ; left-inverse-of = λ _ → refl
+  }
