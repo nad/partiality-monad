@@ -64,6 +64,11 @@ module _ {a p q} {A : Set a} where
   module _ args where
     open Eliminators (eliminators args) public
 
+  -- Initiality.
+
+  initial : Initial p q (partiality-algebra A)
+  initial = eliminators→initiality _ eliminators
+
 -- The eliminators' arguments.
 
 Arguments : ∀ {a} p q (A : Set a) → Set (a ⊔ lsuc (p ⊔ q))
