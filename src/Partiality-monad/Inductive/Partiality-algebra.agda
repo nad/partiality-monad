@@ -485,7 +485,11 @@ eliminators→initiality {p = p} {q} P elims P′ = morphism , unique
     ; qe = λ _ → P′.never⊑
     ; qu = λ _ → P′.upper-bound
     ; ql = λ _ _ _ → P′.least-upper-bound
-    ; qp = λ _ _ _ → P′.⊑-proof-irrelevant
+    ; qp = λ _ _ _ → _⇔_.to propositional⇔irrelevant P′.⊑-propositional
+           -- If the expression above is replaced by
+           -- P′.⊑-proof-irrelevant, then
+           -- Partiality-monad.Inductive.Monad.Adjunction.join-correct
+           -- no longer type-checks.
     }
 
   module E = Eliminators (elims args)

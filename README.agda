@@ -89,6 +89,11 @@ import Partiality-monad.Inductive.Omega-continuous
 
 import Partiality-monad.Inductive.Monad
 
+-- The partiality monad's monad instance, defined via an adjunction
+-- (§3.2).
+
+import Partiality-monad.Inductive.Monad.Adjunction
+
 -- Strict ω-continuous functions.
 
 import Partiality-monad.Inductive.Strict-omega-continuous
