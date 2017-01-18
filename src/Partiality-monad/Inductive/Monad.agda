@@ -81,7 +81,12 @@ _>>=′_ : ∀ {a b} {A : Set a} {B : Set b} →
          A ⊥ → (A → B ⊥) → B ⊥
 x >>=′ f = function (f ∗) x
 
--- "Computation" rules.
+-- Join.
+
+join : ∀ {a} {A : Set a} → A ⊥ ⊥ → A ⊥
+join x = x >>=′ id
+
+-- "Computation" rules for bind.
 
 never->>= : ∀ {a b} {A : Set a} {B : Set b} {f : A → B ⊥} →
             never >>=′ f ≡ never
