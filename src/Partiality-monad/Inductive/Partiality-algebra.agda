@@ -16,6 +16,7 @@ open import Logical-equivalence using (_⇔_)
 open import Prelude hiding (id) renaming (_∘_ to _⊚_)
 
 open import Bijection equality-with-J using (_↔_)
+open import Category equality-with-J
 open import Equivalence equality-with-J as Eq using (_≃_)
 open import Function-universe equality-with-J hiding (id; _∘_)
 open import H-level equality-with-J as H-level hiding (Type)
@@ -340,6 +341,34 @@ equality-characterisation-Morphism {P₁ = P₁} {P₂} {m₁} {m₂} =
       }
     ; left-inverse-of = λ _ → refl
     }
+
+-- The type of morphisms is a set.
+
+Morphism-set :
+  ∀  {a p₁ p₂ q₁ q₂} {A : Set a}
+     {P₁ : Partiality-algebra p₁ q₁ A}
+     {P₂ : Partiality-algebra p₂ q₂ A} →
+  Is-set (Morphism P₁ P₂)
+Morphism-set {P₂ = P₂} m₁ m₂ =
+  H-level.respects-surjection
+    (_↔_.surjection equality-characterisation-Morphism)
+    1
+    ((Π-closure ext 2 λ _ → Type-is-set P₂) _ _)
+  where
+  open Partiality-algebra
+
+-- Partiality algebras form precategories.
+
+precategory :
+  ∀ {a} p q (A : Set a) → Precategory (a ⊔ lsuc (p ⊔ q)) (a ⊔ p ⊔ q)
+Precategory.precategory (precategory p q A) =
+    Partiality-algebra p q A
+  , (λ P Q → Morphism P Q , Morphism-set)
+  , id
+  , _∘_
+  , _↔_.to equality-characterisation-Morphism refl
+  , _↔_.to equality-characterisation-Morphism refl
+  , _↔_.to equality-characterisation-Morphism refl
 
 ------------------------------------------------------------------------
 -- Initiality
