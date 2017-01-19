@@ -199,8 +199,8 @@ _⇨_.functor (Partial {ℓ}) =
     lemma₂ : {A B C : Set ℓ} {f : A → B} {g : B → C} →
              Partial⊙ (g ∘ f) ≡ Partial⊙ g PA.∘ Partial⊙ f
     lemma₂ {f = f} {g} = Partial⊙-unique λ x →
-      function (Partial⊙ g PA.∘ Partial⊙ f) (PI.now x)  ≡⟨ cong (function (Partial⊙ g)) $ PI.⊥-rec-now _ _ ⟩
-      function (Partial⊙ g) (PI.now (f x))              ≡⟨ PI.⊥-rec-now _ _ ⟩∎
+      function (Partial⊙ g PA.∘ Partial⊙ f) (PI.now x)  ≡⟨ cong (function (Partial⊙ g)) Partial⊙-now ⟩
+      function (Partial⊙ g) (PI.now (f x))              ≡⟨ Partial⊙-now ⟩∎
       PI.now (g (f x))                                  ∎
 
 -- Partial is a left adjoint of Forget.
@@ -214,7 +214,7 @@ Partial⊣Forget {ℓ} =
        _↔_.to equality-characterisation-Morphism $ ext $
        ⊥-rec-⊥ record
          { pe = fun P (function (Partial⊙ PI.now) PI.never)  ≡⟨ cong (fun P) $ strict (Partial⊙ PI.now) ⟩
-                fun P PI.never                               ≡⟨ strict (m P _) ⟩∎
+                fun P PI.never                               ≡⟨ strict (m P) ⟩∎
                 PI.never                                     ∎
          ; po = λ x →
                   fun P (function (Partial⊙ PI.now) (PI.now x))  ≡⟨ cong (fun P) Partial⊙-now ⟩
@@ -222,7 +222,7 @@ Partial⊣Forget {ℓ} =
                   PI.now x                                       ∎
          ; pl = λ s hyp →
                   fun P (function (Partial⊙ PI.now) (PI.⨆ s))  ≡⟨ cong (fun P) $ ω-continuous (Partial⊙ PI.now) _ ⟩
-                  fun P (PI.⨆ _)                               ≡⟨ ω-continuous (m P _) _ ⟩
+                  fun P (PI.⨆ _)                               ≡⟨ ω-continuous (m P) _ ⟩
                   PI.⨆ _                                       ≡⟨ cong PI.⨆ $ _↔_.to PI.equality-characterisation-increasing hyp ⟩∎
                   PI.⨆ s                                       ∎
          ; pp = λ _ → PI.⊥-is-set _ _
@@ -239,18 +239,17 @@ Partial⊣Forget {ℓ} =
   _⇾_.natural-transformation η =
       PI.now
     , (λ {X Y f} → ext λ x →
-         PI.⊥-rec (record { po = PI.now ∘ f }) (PI.now x)  ≡⟨ PI.⊥-rec-now _ x ⟩∎
-         PI.now (f x)                                      ∎)
+         function (Partial⊙ f) (PI.now x)  ≡⟨ Partial⊙-now ⟩∎
+         PI.now (f x)                      ∎)
 
-  m : (X : ω-cppo ℓ ℓ) {A : Set ℓ} → (A → Type X) →
-      Morphism (Partial⊚ A) X
-  m X {A} =
-    (A → Type X)                        ↝⟨ proj₁ ∘ Partial⊙′ X ⟩
-    Morphism (Partial⊚ A) (drop-now X)  ↝⟨ drop-convert ⟩□
-    Morphism (Partial⊚ A) X             □
+  m : (X : ω-cppo ℓ ℓ) → Morphism (Partial⊚ (Type X)) X
+  m X =                                        $⟨ id ⟩
+    (Type X → Type X)                          ↝⟨ proj₁ ∘ Partial⊙′ X ⟩
+    Morphism (Partial⊚ (Type X)) (drop-now X)  ↝⟨ drop-convert ⟩□
+    Morphism (Partial⊚ (Type X)) X             □
 
   fun : (X : ω-cppo ℓ ℓ) → Type X ⊥ → Type X
-  fun X = function (m X id)
+  fun X = function (m X)
 
   fun-now : ∀ (X : ω-cppo ℓ ℓ) {x} → fun X (PI.now x) ≡ x
   fun-now X = proj₁ (proj₂ (Partial⊙′ X _)) _
@@ -264,14 +263,14 @@ Partial⊣Forget {ℓ} =
 
   ε : Partial ∙⇨ Forget ⇾ id⇨
   _⇾_.natural-transformation ε =
-      (λ {X} → m X id)
+      (λ {X} → m X)
     , (λ {X Y f} →
          let m′ = (Partial ∙⇨ Forget) ⊙ f in
          _↔_.to equality-characterisation-Morphism $ ext $
          ⊥-rec-⊥ record
-           { pe = function f (fun X PI.never)   ≡⟨ cong (function f) (strict (m X _)) ⟩
+           { pe = function f (fun X PI.never)   ≡⟨ cong (function f) (strict (m X)) ⟩
                   function f (never X)          ≡⟨ strict f ⟩
-                  never Y                       ≡⟨ sym $ strict (m Y _) ⟩
+                  never Y                       ≡⟨ sym $ strict (m Y) ⟩
                   fun Y PI.never                ≡⟨ cong (fun Y) $ sym $ strict m′ ⟩∎
                   fun Y (function m′ PI.never)  ∎
            ; po = λ x →
@@ -280,10 +279,10 @@ Partial⊣Forget {ℓ} =
                     fun Y (PI.now (function f x))   ≡⟨ cong (fun Y) $ sym Partial⊙-now ⟩∎
                     fun Y (function m′ (PI.now x))  ∎
            ; pl = λ s hyp →
-                    function f (fun X (PI.⨆ s))   ≡⟨ cong (function f) (ω-continuous (m X _) _) ⟩
+                    function f (fun X (PI.⨆ s))   ≡⟨ cong (function f) (ω-continuous (m X) _) ⟩
                     function f (⨆ X _)            ≡⟨ ω-continuous f _ ⟩
                     ⨆ Y _                         ≡⟨ cong (⨆ Y) $ _↔_.to (equality-characterisation-increasing Y) hyp ⟩
-                    ⨆ Y _                         ≡⟨ sym $ ω-continuous (m Y _) _ ⟩
+                    ⨆ Y _                         ≡⟨ sym $ ω-continuous (m Y) _ ⟩
                     fun Y (PI.⨆ _)                ≡⟨ cong (fun Y) $ sym $ ω-continuous m′ _ ⟩∎
                     fun Y (function m′ (PI.⨆ s))  ∎
            ; pp = λ _ → Type-is-set Y _ _
