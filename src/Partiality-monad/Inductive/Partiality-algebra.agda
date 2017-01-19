@@ -280,6 +280,54 @@ _∘_ {P₁ = P₁} {P₂} {P₃} m₁ m₂ = record
   open Morphism
   open Partiality-algebra
 
+-- An alternative definition of morphisms.
+
+Morphism-as-Σ :
+  ∀ {a p₁ p₂ q₁ q₂} {A : Set a} →
+  Partiality-algebra p₁ q₁ A → Partiality-algebra p₂ q₂ A → Set _
+Morphism-as-Σ P₁ P₂ =
+  ∃ λ (f : P₁.Type → P₂.Type) →
+  ∃ λ (m : ∀ {x y} → x P₁.⊑ y → f x P₂.⊑ f y) →
+  f P₁.never ≡ P₂.never
+    ×
+  (∀ x → f (P₁.now x) ≡ P₂.now x)
+    ×
+  (∀ s → f (P₁.⨆ s) ≡ P₂.⨆ (Σ-map (f ⊚_) (m ⊚_) s))
+  where
+  module P₁ = Partiality-algebra P₁
+  module P₂ = Partiality-algebra P₂
+
+-- The two definitions are isomorphic.
+
+Morphism↔Morphism-as-Σ :
+  ∀ {a p₁ p₂ q₁ q₂} {A : Set a}
+    {P₁ : Partiality-algebra p₁ q₁ A}
+    {P₂ : Partiality-algebra p₂ q₂ A} →
+  Morphism P₁ P₂ ↔ Morphism-as-Σ P₁ P₂
+Morphism↔Morphism-as-Σ = record
+  { surjection = record
+    { logical-equivalence = record
+      { to   = λ m → function m
+                   , monotone m
+                   , strict m
+                   , now-to-now m
+                   , ω-continuous m
+      ; from = λ { (f , m , s , n , ω) → record
+                   { function     = f
+                   ; monotone     = m
+                   ; strict       = s
+                   ; now-to-now   = n
+                   ; ω-continuous = ω
+                   }
+                 }
+      }
+    ; right-inverse-of = λ _ → refl
+    }
+  ; left-inverse-of = λ _ → refl
+  }
+  where
+  open Morphism
+
 -- An equality characterisation lemma for morphisms.
 
 equality-characterisation-Morphism :
@@ -292,55 +340,21 @@ equality-characterisation-Morphism :
     ↔
   m₁ ≡ m₂
 equality-characterisation-Morphism {P₁ = P₁} {P₂} {m₁} {m₂} =
-  function m₁ ≡ function m₂                  ↝⟨ ignore-propositional-component
-                                                  (Σ-closure 1 (implicit-Π-closure ext 1 λ _ →
-                                                                implicit-Π-closure ext 1 λ _ →
-                                                                Π-closure ext 1 λ _ →
-                                                                P₂.⊑-propositional) λ _ →
-                                                   ×-closure 1 (P₂.Type-is-set _ _) $
-                                                   ×-closure 1 (Π-closure ext 1 λ _ →
-                                                                P₂.Type-is-set _ _) $
-                                                   Π-closure ext 1 λ _ →
-                                                   P₂.Type-is-set _ _) ⟩
-  _↔_.to rearrange m₁ ≡ _↔_.to rearrange m₂  ↔⟨ Eq.≃-≡ (Eq.↔⇒≃ rearrange) ⟩□
-  m₁ ≡ m₂                                    □
+  function m₁ ≡ function m₂                                            ↝⟨ ignore-propositional-component
+                                                                            (Σ-closure 1 (implicit-Π-closure ext 1 λ _ →
+                                                                                          implicit-Π-closure ext 1 λ _ →
+                                                                                          Π-closure ext 1 λ _ →
+                                                                                          P₂.⊑-propositional) λ _ →
+                                                                             ×-closure 1 (P₂.Type-is-set _ _) $
+                                                                             ×-closure 1 (Π-closure ext 1 λ _ →
+                                                                                          P₂.Type-is-set _ _) $
+                                                                             Π-closure ext 1 λ _ →
+                                                                             P₂.Type-is-set _ _) ⟩
+  _↔_.to Morphism↔Morphism-as-Σ m₁ ≡ _↔_.to Morphism↔Morphism-as-Σ m₂  ↔⟨ Eq.≃-≡ (Eq.↔⇒≃ Morphism↔Morphism-as-Σ) ⟩□
+  m₁ ≡ m₂                                                              □
   where
   open Morphism
-
-  module P₁ = Partiality-algebra P₁
   module P₂ = Partiality-algebra P₂
-
-  rearrange :
-    Morphism P₁ P₂
-      ↔
-    ∃ λ (f : P₁.Type → P₂.Type) →
-    ∃ λ (m : ∀ {x y} → x P₁.⊑ y → f x P₂.⊑ f y) →
-    f P₁.never ≡ P₂.never
-      ×
-    (∀ x → f (P₁.now x) ≡ P₂.now x)
-      ×
-    (∀ s → f (P₁.⨆ s) ≡ P₂.⨆ (Σ-map (f ⊚_) (m ⊚_) s))
-  rearrange = record
-    { surjection = record
-      { logical-equivalence = record
-        { to   = λ m → function m
-                     , monotone m
-                     , strict m
-                     , now-to-now m
-                     , ω-continuous m
-        ; from = λ { (f , m , s , n , ω) → record
-                     { function     = f
-                     ; monotone     = m
-                     ; strict       = s
-                     ; now-to-now   = n
-                     ; ω-continuous = ω
-                     }
-                   }
-        }
-      ; right-inverse-of = λ _ → refl
-      }
-    ; left-inverse-of = λ _ → refl
-    }
 
 -- The type of morphisms is a set.
 
