@@ -20,7 +20,7 @@ open import Logical-equivalence using (_⇔_)
 open import Prelude hiding (⊥)
 
 open import Bijection equality-with-J using (_↔_)
-open import Double-negation equality-with-J
+open import Double-negation equality-with-J as DN
 open import Equivalence equality-with-J as Eq using (_≃_)
 open import Function-universe equality-with-J as F hiding (id; _∘_)
 open import H-level equality-with-J
@@ -405,6 +405,32 @@ now≡never≃⊥ {x = x} =
 
 now-or-never : (x : A ⊥) → ¬ ¬ ((∃ λ y → x ⇓ y) ⊎ x ⇑)
 now-or-never x = run (map (⊎-map id ¬⇓→⇑) excluded-middle)
+
+-- _⊑_ is a flat order, in the sense that distinct elements that are
+-- distinct from never are unrelated.
+
+flat-order : {x y : A ⊥} → x ≢ y → ¬ x ⇑ → ¬ y ⇑ → ¬ (x ⊑ y)
+flat-order {x} {y} x≢y never≢x never≢y x⊑y = ¬¬¬⊥ $ DN.map′ ⊥-elim $
+  ¬⇑→¬¬⇓ never≢x >>= λ x⇓ →
+  ¬⇑→¬¬⇓ never≢y >>= λ y⇓ →
+  return (⊥-elim $ ¬x⇓×y⇓ (x⇓ , y⇓))
+  where
+  -- The computations x and y cannot both terminate.
+
+  ¬x⇓×y⇓ : ¬ ((∃ λ z → x ⇓ z) × (∃ λ z → y ⇓ z))
+  ¬x⇓×y⇓ ((xz , refl) , (yz , refl)) = x≢y (
+    now xz      ≡⟨ _≃_.to now⊑now≃now≡now (
+
+        now xz       ⊑⟨ x⊑y ⟩■
+        now yz       ■) ⟩∎
+
+    now yz      ∎)
+
+  -- Computations that fail to be equal to never do not fail to
+  -- terminate.
+
+  ¬⇑→¬¬⇓ : {x : A ⊥} → ¬ x ⇑ → ¬¬ (∃ λ y → x ⇓ y)
+  run (¬⇑→¬¬⇓ ¬x⇑) = ¬x⇑ ∘ ¬⇓→⇑
 
 -- Some "constructors" for □.
 
