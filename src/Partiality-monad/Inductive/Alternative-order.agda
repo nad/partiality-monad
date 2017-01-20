@@ -213,6 +213,15 @@ now≡now≃∥≡∥ {x} {y} =
                                                    }) ⟩□
   ∥ x ≡ y ∥                      □
 
+-- There is an equivalence between "now x is smaller than or equal to
+-- now y" and "now x is equal to now y".
+
+now⊑now≃now≡now : {x y : A} → (now x ⊑ now y) ≃ (now x ≡ now y)
+now⊑now≃now≡now {x} {y} =
+  now x ⊑ now y  ↝⟨ now⊑now≃∥≡∥ ⟩
+  ∥ x ≡ y ∥      ↝⟨ inverse now≡now≃∥≡∥ ⟩□
+  now x ≡ now y  □
+
 -- A computation can terminate with at most one value.
 
 termination-value-merely-unique :
