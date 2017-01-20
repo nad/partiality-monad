@@ -168,7 +168,7 @@ record Arguments {a p′ q′} {A : Set a} p q
          (p-x : P x) (p-y : P y)
          (q-x⊑y : Q p-x p-y x⊑y) (q-x⊒y : Q p-y p-x x⊒y) →
          subst P (antisymmetry x⊑y x⊒y) p-x ≡ p-y
-    pp : ∀ {x} {p₁ p₂ : P x} → Proof-irrelevant (p₁ ≡ p₂)
+    pp : ∀ {x} → Uniqueness-of-identity-proofs (P x)
     qr : ∀ x (p : P x) → Q p p (⊑-refl x)
     qt : ∀ {x y z} (x⊑y : x ⊑ y) (y⊑z : y ⊑ z) →
          (px : P x) (py : P y) (pz : P z) →
