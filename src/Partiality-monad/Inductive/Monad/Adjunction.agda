@@ -58,19 +58,21 @@ convert : ∀ {a b p q} {A : Set a} {B : Set b} →
           (B → Partiality-algebra.Type P) →
           Partiality-algebra p q B
 convert P f = record
-  { Type               = Type
-  ; _⊑_                = _⊑_
-  ; never              = never
-  ; now                = f
-  ; ⨆                  = ⨆
-  ; antisymmetry       = antisymmetry
-  ; Type-UIP-unused    = Type-UIP-unused
-  ; ⊑-refl             = ⊑-refl
-  ; ⊑-trans            = ⊑-trans
-  ; never⊑             = never⊑
-  ; upper-bound        = upper-bound
-  ; least-upper-bound  = least-upper-bound
-  ; ⊑-proof-irrelevant = ⊑-proof-irrelevant
+  { Type                    = Type
+  ; partiality-algebra-with = record
+    { _⊑_                = _⊑_
+    ; never              = never
+    ; now                = f
+    ; ⨆                  = ⨆
+    ; antisymmetry       = antisymmetry
+    ; Type-UIP-unused    = Type-UIP-unused
+    ; ⊑-refl             = ⊑-refl
+    ; ⊑-trans            = ⊑-trans
+    ; never⊑             = never⊑
+    ; upper-bound        = upper-bound
+    ; least-upper-bound  = least-upper-bound
+    ; ⊑-proof-irrelevant = ⊑-proof-irrelevant
+    }
   }
   where
   open Partiality-algebra P
@@ -103,7 +105,9 @@ drop-now-constant :
   ∀ {p q} {P : ω-cppo p q} →
   drop-now P ≡ P
 drop-now-constant =
-  cong (λ now → record { now = now }) (ext λ x → ⊥-elim x)
+  cong (λ now → record { partiality-algebra-with =
+                           record { now = now } })
+       (ext λ x → ⊥-elim x)
 
 -- Converts types to ω-cppos.
 

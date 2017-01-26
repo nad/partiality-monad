@@ -123,19 +123,21 @@ record ω-cppo ℓ : Set (lsuc ℓ) where
   { surjection = record
     { logical-equivalence = record
       { to   = λ X → let open ω-cppo X in record
-                 { Type               = Carrier
-                 ; _⊑_                = _⊑_
-                 ; never              = least
-                 ; now                = λ ()
-                 ; ⨆                  = ⨆
-                 ; antisymmetry       = antisymmetry
-                 ; Type-UIP-unused    = _⇔_.to set⇔UIP Carrier-is-set
-                 ; ⊑-refl             = λ _ → reflexivity
-                 ; ⊑-trans            = transitivity
-                 ; never⊑             = λ _ → least⊑
-                 ; upper-bound        = upper-bound
-                 ; least-upper-bound  = λ _ _ → least-upper-bound
-                 ; ⊑-proof-irrelevant = ⊑-proof-irrelevant
+                 { Type                    = Carrier
+                 ; partiality-algebra-with = record
+                   { _⊑_                = _⊑_
+                   ; never              = least
+                   ; now                = λ ()
+                   ; ⨆                  = ⨆
+                   ; antisymmetry       = antisymmetry
+                   ; Type-UIP-unused    = _⇔_.to set⇔UIP Carrier-is-set
+                   ; ⊑-refl             = λ _ → reflexivity
+                   ; ⊑-trans            = transitivity
+                   ; never⊑             = λ _ → least⊑
+                   ; upper-bound        = upper-bound
+                   ; least-upper-bound  = λ _ _ → least-upper-bound
+                   ; ⊑-proof-irrelevant = ⊑-proof-irrelevant
+                   }
                  }
       ; from = λ P → let open Partiality-algebra P in record
                  { cpo = record
@@ -156,19 +158,21 @@ record ω-cppo ℓ : Set (lsuc ℓ) where
     ; right-inverse-of = λ P →
         let open Partiality-algebra P in
         cong₂ (λ now (uip : Uniqueness-of-identity-proofs Type) → record
-                 { Type               = Type
-                 ; _⊑_                = _⊑_
-                 ; never              = never
-                 ; now                = now
-                 ; ⨆                  = ⨆
-                 ; antisymmetry       = antisymmetry
-                 ; Type-UIP-unused    = uip
-                 ; ⊑-refl             = ⊑-refl
-                 ; ⊑-trans            = ⊑-trans
-                 ; never⊑             = never⊑
-                 ; upper-bound        = upper-bound
-                 ; least-upper-bound  = least-upper-bound
-                 ; ⊑-proof-irrelevant = ⊑-proof-irrelevant
+                 { Type                    = Type
+                 ; partiality-algebra-with = record
+                   { _⊑_                = _⊑_
+                   ; never              = never
+                   ; now                = now
+                   ; ⨆                  = ⨆
+                   ; antisymmetry       = antisymmetry
+                   ; Type-UIP-unused    = uip
+                   ; ⊑-refl             = ⊑-refl
+                   ; ⊑-trans            = ⊑-trans
+                   ; never⊑             = never⊑
+                   ; upper-bound        = upper-bound
+                   ; least-upper-bound  = least-upper-bound
+                   ; ⊑-proof-irrelevant = ⊑-proof-irrelevant
+                   }
                  })
               (ext λ ())
               (_⇔_.to propositional⇔irrelevant

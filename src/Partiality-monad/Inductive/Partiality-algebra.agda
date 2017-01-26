@@ -26,18 +26,18 @@ open import Surjection equality-with-J using (_↠_)
 ------------------------------------------------------------------------
 -- Partiality algebras
 
--- Partiality algebras for certain universe levels and types.
+-- Partiality algebras for certain universe levels and types, with a
+-- certain underlying type.
 
-record Partiality-algebra {a} p q (A : Set a) :
-                          Set (a ⊔ lsuc (p ⊔ q)) where
+record Partiality-algebra-with
+  {a p} (Type : Set p) q (A : Set a) : Set (a ⊔ p ⊔ lsuc q) where
 
-  -- A type and a binary relation on that type.
+  -- A binary relation on the type.
 
   infix 4 _⊑_ _⊒_
 
   field
-    Type : Set p
-    _⊑_  : Type → Type → Set q
+    _⊑_ : Type → Type → Set q
 
   _⊒_ : Type → Type → Set q
   _⊒_ x y = y ⊑ x
@@ -130,6 +130,22 @@ record Partiality-algebra {a} p q (A : Set a) :
                                       (Π-closure ext 1 λ _ →
                                        ⊑-propositional) ⟩□
     s₁ ≡ s₂                      □
+
+-- Partiality algebras for certain universe levels and types.
+
+record Partiality-algebra {a} p q (A : Set a) :
+                          Set (a ⊔ lsuc (p ⊔ q)) where
+  constructor ⟨_⟩
+  field
+    -- A type.
+
+    {Type} : Set p
+
+    -- A partiality-algebra with that type as the underlying type.
+
+    partiality-algebra-with : Partiality-algebra-with Type q A
+
+  open Partiality-algebra-with partiality-algebra-with public
 
 ------------------------------------------------------------------------
 -- Eliminators
@@ -409,29 +425,31 @@ lower-initiality {p₁ = p₁} {q₁} p₂ q₂ {A} P initial P′ =
 
   P″ : Partiality-algebra (p₁ ⊔ p₂) (q₁ ⊔ q₂) A
   P″ = record
-    { Type               = ↑ p₂ Type
-    ; _⊑_                = λ x y → ↑ q₂ (lower x ⊑ lower y)
-    ; never              = lift never
-    ; now                = lift ⊚ now
-    ; ⨆                  = lift ⊚ ⨆ ⊚ Σ-map (lower ⊚_) (lower ⊚_)
-    ; antisymmetry       = λ x⊑y y⊑x →
-                             cong lift (antisymmetry (lower x⊑y)
-                                                     (lower y⊑x))
-    ; Type-UIP-unused    = λ _ _ →
-                             _⇔_.to set⇔UIP
-                               (↑-closure 2 Type-is-set) _ _
-    ; ⊑-refl             = lift ⊚ ⊑-refl ⊚ lower
-    ; ⊑-trans            = λ x⊑y y⊑z →
-                             lift (⊑-trans (lower x⊑y)
-                                           (lower y⊑z))
-    ; never⊑             = lift ⊚ never⊑ ⊚ lower
-    ; upper-bound        = λ _ → lift ⊚ upper-bound _
-    ; least-upper-bound  = λ _ _ →
-                             lift ⊚
-                             least-upper-bound _ _ ⊚
-                             (lower ⊚_)
-    ; ⊑-proof-irrelevant = _⇔_.to propositional⇔irrelevant
-                             (↑-closure 1 ⊑-propositional)
+    { Type                    = ↑ p₂ Type
+    ; partiality-algebra-with = record
+      { _⊑_                = λ x y → ↑ q₂ (lower x ⊑ lower y)
+      ; never              = lift never
+      ; now                = lift ⊚ now
+      ; ⨆                  = lift ⊚ ⨆ ⊚ Σ-map (lower ⊚_) (lower ⊚_)
+      ; antisymmetry       = λ x⊑y y⊑x →
+                               cong lift (antisymmetry (lower x⊑y)
+                                                       (lower y⊑x))
+      ; Type-UIP-unused    = λ _ _ →
+                               _⇔_.to set⇔UIP
+                                 (↑-closure 2 Type-is-set) _ _
+      ; ⊑-refl             = lift ⊚ ⊑-refl ⊚ lower
+      ; ⊑-trans            = λ x⊑y y⊑z →
+                               lift (⊑-trans (lower x⊑y)
+                                             (lower y⊑z))
+      ; never⊑             = lift ⊚ never⊑ ⊚ lower
+      ; upper-bound        = λ _ → lift ⊚ upper-bound _
+      ; least-upper-bound  = λ _ _ →
+                               lift ⊚
+                               least-upper-bound _ _ ⊚
+                               (lower ⊚_)
+      ; ⊑-proof-irrelevant = _⇔_.to propositional⇔irrelevant
+                               (↑-closure 1 ⊑-propositional)
+      }
     }
 
   lower-morphism : Morphism P P″ → Morphism P P′
@@ -570,36 +588,38 @@ initiality→eliminators {p = p} {q} {p′} {q′} {A} {PA} initial args =
 
     ∃PA : Partiality-algebra (p ⊔ p′) (q ⊔ q′) A
     ∃PA = record
-      { Type               = ∃ P
-      ; _⊑_                = λ { (_ , p) (_ , q) → ∃ (Q p q) }
-      ; never              = never , pe
-      ; now                = λ x → now x , po x
-      ; ⨆                  = λ s → ⨆ (Σ-map (proj₁ ⊚_) (proj₁ ⊚_) s)
-                                 , pl _ ( proj₂ ⊚ proj₁ s
-                                        , proj₂ ⊚ proj₂ s
-                                        )
-      ; antisymmetry       = λ { {x = (x , p)} {y = (y , q)}
-                                 (x⊑y , Qx⊑y) (y⊑x , Qy⊑x) →
-                                 Σ-≡,≡→≡
-                                   (antisymmetry x⊑y y⊑x)
-                                   (pa x⊑y y⊑x p q Qx⊑y Qy⊑x)
-                               }
-      ; Type-UIP-unused    = _⇔_.to propositional⇔irrelevant
-                               (Σ-closure 2
-                                  Type-is-set
-                                  (λ _ → _⇔_.from set⇔UIP pp)
-                                  _ _)
-      ; ⊑-refl             = λ _ → _ , qr _ _
-      ; ⊑-trans            = Σ-zip ⊑-trans (qt _ _ _ _ _)
-      ; never⊑             = λ _ → _ , qe _ _
-      ; upper-bound        = λ _ _ → upper-bound _ _ , qu _ _ _
-      ; least-upper-bound  = λ _ _ ⊑qs →
-                                 least-upper-bound _ _ (proj₁ ⊚ ⊑qs)
-                               , ql _ _ _ _ _ (proj₂ ⊚ ⊑qs)
-      ; ⊑-proof-irrelevant = _⇔_.to propositional⇔irrelevant
-                               (Σ-closure 1 ⊑-propositional λ _ →
-                                  _⇔_.from propositional⇔irrelevant
-                                    (qp _ _ _))
+      { Type                    = ∃ P
+      ; partiality-algebra-with = record
+        { _⊑_                = λ { (_ , p) (_ , q) → ∃ (Q p q) }
+        ; never              = never , pe
+        ; now                = λ x → now x , po x
+        ; ⨆                  = λ s → ⨆ (Σ-map (proj₁ ⊚_) (proj₁ ⊚_) s)
+                                   , pl _ ( proj₂ ⊚ proj₁ s
+                                          , proj₂ ⊚ proj₂ s
+                                          )
+        ; antisymmetry       = λ { {x = (x , p)} {y = (y , q)}
+                                   (x⊑y , Qx⊑y) (y⊑x , Qy⊑x) →
+                                   Σ-≡,≡→≡
+                                     (antisymmetry x⊑y y⊑x)
+                                     (pa x⊑y y⊑x p q Qx⊑y Qy⊑x)
+                                 }
+        ; Type-UIP-unused    = _⇔_.to propositional⇔irrelevant
+                                 (Σ-closure 2
+                                    Type-is-set
+                                    (λ _ → _⇔_.from set⇔UIP pp)
+                                    _ _)
+        ; ⊑-refl             = λ _ → _ , qr _ _
+        ; ⊑-trans            = Σ-zip ⊑-trans (qt _ _ _ _ _)
+        ; never⊑             = λ _ → _ , qe _ _
+        ; upper-bound        = λ _ _ → upper-bound _ _ , qu _ _ _
+        ; least-upper-bound  = λ _ _ ⊑qs →
+                                   least-upper-bound _ _ (proj₁ ⊚ ⊑qs)
+                                 , ql _ _ _ _ _ (proj₂ ⊚ ⊑qs)
+        ; ⊑-proof-irrelevant = _⇔_.to propositional⇔irrelevant
+                                 (Σ-closure 1 ⊑-propositional λ _ →
+                                    _⇔_.from propositional⇔irrelevant
+                                      (qp _ _ _))
+        }
       }
 
     -- Initiality gives us a morphism from PA to ∃PA.
