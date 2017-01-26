@@ -15,13 +15,14 @@ open import Interval using (ext)
 open import Logical-equivalence using (_⇔_)
 open import Prelude hiding (id) renaming (_∘_ to _⊚_)
 
-open import Bijection equality-with-J using (_↔_)
+open import Bijection equality-with-J as Bijection using (_↔_)
 open import Category equality-with-J
 open import Equivalence equality-with-J as Eq using (_≃_)
-open import Function-universe equality-with-J hiding (id; _∘_)
+open import Function-universe equality-with-J as F hiding (id; _∘_)
 open import H-level equality-with-J as H-level hiding (Type)
 open import H-level.Closure equality-with-J
 open import Surjection equality-with-J using (_↠_)
+open import Univalence-axiom equality-with-J
 
 ------------------------------------------------------------------------
 -- Partiality algebras
@@ -232,6 +233,387 @@ Elimination-principle :
   ∀ p q → Partiality-algebra p′ q′ A → Set (a ⊔ lsuc (p ⊔ q) ⊔ p′ ⊔ q′)
 Elimination-principle p q P =
   (args : Arguments p q P) → Eliminators args
+
+------------------------------------------------------------------------
+-- Equality characterisation lemmas for Partiality-algebra-with
+
+abstract
+
+  -- An equality characterisation lemma for Partiality-algebra-with.
+
+  equality-characterisation-Partiality-algebra-with₁ :
+    ∀ {a p q} {A : Set a} {Type : Set p}
+      {P₁ P₂ : Partiality-algebra-with Type q A} →
+    let module P₁ = Partiality-algebra-with P₁
+        module P₂ = Partiality-algebra-with P₂
+    in
+    (∃ λ (⊑≡⊑ : ∀ x y → (x P₁.⊑ y) ≡ (x P₂.⊑ y)) →
+       P₁.never ≡ P₂.never
+         ×
+       (∀ x → P₁.now x ≡ P₂.now x)
+         ×
+       ∀ s → P₁.⨆ s ≡ P₂.⨆ (Σ-map Prelude.id (≡⇒→ (⊑≡⊑ _ _) ⊚_) s))
+      ↔
+    P₁ ≡ P₂
+  equality-characterisation-Partiality-algebra-with₁
+    {q = q} {A} {Type} {P₁} {P₂} =
+
+    (∃ λ (⊑≡⊑ : ∀ x y → (x P₁.⊑ y) ≡ (x P₂.⊑ y)) →
+       P₁.never ≡ P₂.never
+         ×
+       (∀ x → P₁.now x ≡ P₂.now x)
+         ×
+       ∀ s → P₁.⨆ s ≡ P₂.⨆ (Σ-map Prelude.id (≡⇒→ (⊑≡⊑ _ _) ⊚_) s))      ↔⟨ ∃-cong (λ ⊑≡⊑ → ∃-cong λ _ → ∃-cong λ _ → Eq.∀-preserves ext λ s →
+                                                                              ≡⇒↝ _ $ cong (λ (p : {f : ℕ → Type} → _) →
+                                                                                              P₁.⨆ s ≡ P₂.⨆ (Σ-map Prelude.id p s)) $
+                                                                                _⇔_.to propositional⇔irrelevant
+                                                                                  (implicit-Π-closure ext 1 λ _ →
+                                                                                   Π-closure          ext 1 λ _ →
+                                                                                   Π-closure          ext 1 λ _ →
+                                                                                   P₂.⊑-propositional)
+                                                                                  (≡⇒→ (⊑≡⊑ _ _) ⊚_)
+                                                                                  (λ {f} → ≡⇒→ (cong (λ _⊑_ → ∀ n → f n ⊑ f (suc n))
+                                                                                                     (Eq.good-ext ext (Eq.good-ext ext ⊚ ⊑≡⊑))))) ⟩
+    (∃ λ (⊑≡⊑ : ∀ x y → (x P₁.⊑ y) ≡ (x P₂.⊑ y)) →
+       P₁.never ≡ P₂.never
+         ×
+       (∀ x → P₁.now x ≡ P₂.now x)
+         ×
+       ∀ s → P₁.⨆ s ≡
+             P₂.⨆ (Σ-map Prelude.id
+                         (λ {f} →
+                            ≡⇒→ (cong (λ _⊑_ → ∀ n → f n ⊑ f (suc n))
+                                      (Eq.good-ext ext
+                                         (Eq.good-ext ext ⊚ ⊑≡⊑))))
+                         s))                                             ↝⟨ Σ-cong (Eq.∀-preserves ext λ _ →
+                                                                                    Eq.extensionality-isomorphism ext) (λ _ → F.id) ⟩
+    (∃ λ (⊑≡⊑ : ∀ x → P₁._⊑_ x ≡ P₂._⊑_ x) →
+       P₁.never ≡ P₂.never
+         ×
+       (∀ x → P₁.now x ≡ P₂.now x)
+         ×
+       ∀ s → P₁.⨆ s ≡
+             P₂.⨆ (Σ-map Prelude.id
+                         (λ {f} →
+                            ≡⇒→ (cong (λ _⊑_ → ∀ n → f n ⊑ f (suc n))
+                                      (Eq.good-ext ext ⊑≡⊑)))
+                         s))                                             ↝⟨ Σ-cong (Eq.extensionality-isomorphism ext) (λ _ → F.id) ⟩
+
+    (∃ λ (⊑≡⊑ : P₁._⊑_ ≡ P₂._⊑_) →
+       P₁.never ≡ P₂.never
+         ×
+       (∀ x → P₁.now x ≡ P₂.now x)
+         ×
+       ∀ s → P₁.⨆ s ≡
+             P₂.⨆ (Σ-map Prelude.id
+                         (λ {f} →
+                            ≡⇒→ (cong (λ _⊑_ → ∀ n → f n ⊑ f (suc n))
+                                      ⊑≡⊑))
+                         s))                                             ↔⟨⟩
+
+    (∃ λ (⊑≡⊑ : P₁._⊑_ ≡ P₂._⊑_) →
+       P₁.never ≡ P₂.never
+         ×
+       (∀ x → P₁.now x ≡ P₂.now x)
+         ×
+       ∀ s → P₁.⨆ s ≡
+             P₂.⨆ ( proj₁ s
+                  , ≡⇒→ (cong (λ _⊑_ →
+                                 ∀ n → proj₁ s n ⊑ proj₁ s (suc n))
+                              ⊑≡⊑)
+                        (proj₂ s)
+                  ))                                                     ↔⟨ ∃-cong (λ ⊑≡⊑ → ∃-cong λ _ → ∃-cong λ _ → Eq.∀-preserves ext λ _ →
+                                                                              ≡⇒↝ _ $ cong (λ eq → _ ≡ P₂.⨆ (_ , ≡⇒→ eq _)) $ sym $
+                                                                                cong-∘ _ _ ⊑≡⊑) ⟩
+    (∃ λ (⊑≡⊑ : P₁._⊑_ ≡ P₂._⊑_) →
+       P₁.never ≡ P₂.never
+         ×
+       (∀ x → P₁.now x ≡ P₂.now x)
+         ×
+       ∀ s → P₁.⨆ s ≡
+             P₂.⨆ ( proj₁ s
+                  , ≡⇒→ (cong (uncurry λ _⊑_ (f : ℕ → Type) →
+                                         ∀ n → f n ⊑ f (suc n))
+                              (cong (_, _) ⊑≡⊑))
+                        (proj₂ s)
+                  ))                                                     ↔⟨ ∃-cong (λ ⊑≡⊑ → ∃-cong λ _ → ∃-cong λ _ → Eq.∀-preserves ext λ _ →
+                                                                              ≡⇒↝ _ $ cong (λ inc → _ ≡ P₂.⨆ (_ , inc)) $ sym $
+                                                                                subst-in-terms-of-≡⇒↝ equivalence (cong (_, _) ⊑≡⊑) _ _) ⟩
+    (∃ λ (⊑≡⊑ : P₁._⊑_ ≡ P₂._⊑_) →
+       P₁.never ≡ P₂.never
+         ×
+       (∀ x → P₁.now x ≡ P₂.now x)
+         ×
+       ∀ s → P₁.⨆ s ≡
+             P₂.⨆ ( proj₁ s
+                  , subst (uncurry λ _⊑_ (f : ℕ → Type) →
+                                     ∀ n → f n ⊑ f (suc n))
+                          (cong (_, _) ⊑≡⊑)
+                          (proj₂ s)
+                  ))                                                     ↔⟨ ∃-cong (λ ⊑≡⊑ → ∃-cong λ _ → ∃-cong λ _ → Eq.∀-preserves ext λ _ →
+                                                                              ≡⇒↝ _ $ cong (λ eq → _ ≡
+                                                                                                   P₂.⨆ (_ , subst (uncurry λ _⊑_ (f : ℕ → Type) →
+                                                                                                                              ∀ n → f n ⊑ f (suc n))
+                                                                                                                   eq _)) $ sym $
+                                                                                Σ-≡,≡→≡-subst-const ⊑≡⊑ refl) ⟩
+    (∃ λ (⊑≡⊑ : P₁._⊑_ ≡ P₂._⊑_) →
+       P₁.never ≡ P₂.never
+         ×
+       (∀ x → P₁.now x ≡ P₂.now x)
+         ×
+       ∀ s → P₁.⨆ s ≡
+             P₂.⨆ ( proj₁ s
+                  , subst (uncurry λ _⊑_ (f : ℕ → Type) →
+                                     ∀ n → f n ⊑ f (suc n))
+                          (Σ-≡,≡→≡ ⊑≡⊑ (subst-const ⊑≡⊑))
+                          (proj₂ s)
+                  ))                                                     ↔⟨ ∃-cong (λ ⊑≡⊑ → ∃-cong λ _ → ∃-cong λ _ → Eq.∀-preserves ext λ _ →
+                                                                              ≡⇒↝ _ $ cong (λ s → _ ≡ P₂.⨆ s) $ sym $
+                                                                                push-subst-pair′ {y≡z = ⊑≡⊑} _ _ (subst-const ⊑≡⊑)) ⟩
+    (∃ λ (⊑≡⊑ : P₁._⊑_ ≡ P₂._⊑_) →
+       P₁.never ≡ P₂.never
+         ×
+       (∀ x → P₁.now x ≡ P₂.now x)
+         ×
+       ∀ s → P₁.⨆ s ≡
+             P₂.⨆ (subst (λ _⊑_ → ∃ λ f → ∀ n → f n ⊑ f (suc n))
+                         ⊑≡⊑ s))                                         ↔⟨ ∃-cong (λ ⊑≡⊑ → ∃-cong λ _ → ∃-cong λ _ → Eq.∀-preserves ext λ _ →
+                                                                              ≡⇒↝ _ $ cong (λ eq → _ ≡
+                                                                                                   P₂.⨆ (subst (λ _⊑_ → ∃ λ f → ∀ n →
+                                                                                                                          f n ⊑ f (suc n)) eq _)) $
+                                                                                sym $ sym-sym ⊑≡⊑) ⟩
+    (∃ λ (⊑≡⊑ : P₁._⊑_ ≡ P₂._⊑_) →
+       P₁.never ≡ P₂.never
+         ×
+       (∀ x → P₁.now x ≡ P₂.now x)
+         ×
+       ∀ s → P₁.⨆ s ≡
+             P₂.⨆ (subst (λ _⊑_ → ∃ λ f → ∀ n → f n ⊑ f (suc n))
+                         (sym (sym ⊑≡⊑)) s))                             ↔⟨ ∃-cong (λ ⊑≡⊑ → ∃-cong λ _ → ∃-cong λ _ → Eq.∀-preserves ext λ _ →
+                                                                              ≡⇒↝ _ $ cong (λ f → _ ≡ f _) $ sym $
+                                                                                subst-→-domain _ (sym ⊑≡⊑)) ⟩
+    (∃ λ (⊑≡⊑ : P₁._⊑_ ≡ P₂._⊑_) →
+       P₁.never ≡ P₂.never
+         ×
+       (∀ x → P₁.now x ≡ P₂.now x)
+         ×
+       ∀ s → P₁.⨆ s ≡
+             subst (λ _⊑_ → ∃ (λ f → ∀ n → f n ⊑ f (suc n)) → Type)
+                   (sym ⊑≡⊑) P₂.⨆ s)                                     ↔⟨ ∃-cong (λ _ → ∃-cong λ _ →
+                                                                              Eq.extensionality-isomorphism ext
+                                                                                ×-cong
+                                                                              Eq.extensionality-isomorphism ext) ⟩
+    (∃ λ (⊑≡⊑ : P₁._⊑_ ≡ P₂._⊑_) →
+       P₁.never ≡ P₂.never
+         ×
+       P₁.now ≡ P₂.now
+         ×
+       P₁.⨆ ≡ subst _ (sym ⊑≡⊑) P₂.⨆)                                    ↝⟨ ∃-cong (λ ⊑≡⊑ → ∃-cong λ _ → ∃-cong λ _ →
+                                                                              ≡⇒↝ _ $ elim (λ ⊑≡⊑ → ∀ {⨆₁ ⨆₂} →
+                                                                                              (⨆₁ ≡ subst _ (sym ⊑≡⊑) ⨆₂) ≡
+                                                                                              (subst _ ⊑≡⊑ ⨆₁ ≡ ⨆₂))
+                                                                                           (λ _ → refl) ⊑≡⊑) ⟩
+    (∃ λ (⊑≡⊑ : P₁._⊑_ ≡ P₂._⊑_) →
+       P₁.never ≡ P₂.never
+         ×
+       P₁.now ≡ P₂.now
+         ×
+       subst _ ⊑≡⊑ P₁.⨆ ≡ P₂.⨆)                                          ↝⟨ ∃-cong (λ ⊑≡⊑ →
+                                                                              ≡⇒↝ _ (cong (_≡ _) $ sym $ subst-const ⊑≡⊑)
+                                                                                ×-cong
+                                                                              ≡⇒↝ _ (cong (_≡ _) $ sym $ subst-const ⊑≡⊑)
+                                                                                ×-cong
+                                                                              F.id) ⟩
+    (∃ λ (⊑≡⊑ : P₁._⊑_ ≡ P₂._⊑_) →
+       subst _ ⊑≡⊑ P₁.never ≡ P₂.never
+         ×
+       subst _ ⊑≡⊑ P₁.now ≡ P₂.now
+         ×
+       subst _ ⊑≡⊑ P₁.⨆ ≡ P₂.⨆)                                          ↝⟨ ∃-cong (λ _ → ∃-cong λ _ → ≡×≡↔≡) ⟩
+
+    (∃ λ (⊑≡⊑ : P₁._⊑_ ≡ P₂._⊑_) →
+       subst _ ⊑≡⊑ P₁.never ≡ P₂.never
+         ×
+       (subst _ ⊑≡⊑ P₁.now , subst _ ⊑≡⊑ P₁.⨆) ≡
+       (P₂.now , P₂.⨆))                                                  ↝⟨ ∃-cong (λ _ → ≡×≡↔≡) ⟩
+
+    (∃ λ (⊑≡⊑ : P₁._⊑_ ≡ P₂._⊑_) →
+       (subst _ ⊑≡⊑ P₁.never , subst _ ⊑≡⊑ P₁.now , subst _ ⊑≡⊑ P₁.⨆) ≡
+       (P₂.never , P₂.now , P₂.⨆))                                       ↝⟨ ∃-cong (λ ⊑≡⊑ → ≡⇒↝ _ $ cong (λ x → (subst _ ⊑≡⊑ P₁.never , x) ≡ _) $
+                                                                              sym $ push-subst-, {y≡z = ⊑≡⊑} _
+                                                                                                 (λ _⊑_ → (∃ λ f → ∀ n → f n ⊑ f (suc n)) → _)) ⟩
+    (∃ λ (⊑≡⊑ : P₁._⊑_ ≡ P₂._⊑_) →
+       (subst _ ⊑≡⊑ P₁.never , subst _ ⊑≡⊑ (P₁.now , P₁.⨆)) ≡
+       (P₂.never , P₂.now , P₂.⨆))                                       ↝⟨ ∃-cong (λ ⊑≡⊑ → ≡⇒↝ _ $ cong (_≡ _) $ sym $
+                                                                              push-subst-, {y≡z = ⊑≡⊑} _ _) ⟩
+    (∃ λ (⊑≡⊑ : P₁._⊑_ ≡ P₂._⊑_) →
+       subst _ ⊑≡⊑ (P₁.never , P₁.now , P₁.⨆) ≡
+       (P₂.never , P₂.now , P₂.⨆))                                       ↔⟨⟩
+
+    (∃ λ (⊑≡⊑ : P₁._⊑_ ≡ P₂._⊑_) →
+       subst _ ⊑≡⊑ (proj₂ (proj₁ (_↔_.to rearrange P₁))) ≡
+       proj₂ (proj₁ (_↔_.to rearrange P₂)))                              ↝⟨ Bijection.Σ-≡,≡↔≡ ⟩
+
+    proj₁ (_↔_.to rearrange P₁) ≡ proj₁ (_↔_.to rearrange P₂)            ↝⟨ ignore-propositional-component
+                                                                              (×-closure 1 (implicit-Π-closure ext 1 λ _ →
+                                                                                            implicit-Π-closure ext 1 λ _ →
+                                                                                            Π-closure ext 1 λ _ →
+                                                                                            Π-closure ext 1 λ _ →
+                                                                                            P₂.Type-is-set _ _) $
+                                                                               ×-closure 1 (UIP-propositional ext) $
+                                                                               ×-closure 1 (Π-closure ext 1 λ _ →
+                                                                                            P₂.⊑-propositional) $
+                                                                               ×-closure 1 (implicit-Π-closure ext 1 λ _ →
+                                                                                            implicit-Π-closure ext 1 λ _ →
+                                                                                            implicit-Π-closure ext 1 λ _ →
+                                                                                            Π-closure ext 1 λ _ →
+                                                                                            Π-closure ext 1 λ _ →
+                                                                                            P₂.⊑-propositional) $
+                                                                               ×-closure 1 (Π-closure ext 1 λ _ →
+                                                                                            P₂.⊑-propositional) $
+                                                                               ×-closure 1 (Π-closure ext 1 λ _ →
+                                                                                            Π-closure ext 1 λ _ →
+                                                                                            P₂.⊑-propositional) $
+                                                                               ×-closure 1 (Π-closure ext 1 λ _ →
+                                                                                            Π-closure ext 1 λ _ →
+                                                                                            Π-closure ext 1 λ _ →
+                                                                                            P₂.⊑-propositional)
+                                                                                           (implicit-Π-closure ext 1 λ _ →
+                                                                                            implicit-Π-closure ext 1 λ _ →
+                                                                                            Proof-irrelevant-propositional ext)) ⟩
+    _↔_.to rearrange P₁ ≡ _↔_.to rearrange P₂                            ↔⟨ Eq.≃-≡ (Eq.↔⇒≃ rearrange) ⟩□
+
+    P₁ ≡ P₂                                                              □
+    where
+    module P₁ = Partiality-algebra-with P₁
+    module P₂ = Partiality-algebra-with P₂
+
+    rearrange :
+      Partiality-algebra-with Type q A
+        ↔
+      ∃ λ R →
+        let _⊑_ : Type → Type → Set q
+            _⊑_ = proj₁ R
+
+            never : Type
+            never = proj₁ (proj₂ R)
+
+            now : A → Type
+            now = proj₁ (proj₂ (proj₂ R))
+
+            ⨆ : (∃ λ (f : ℕ → Type) → ∀ n → f n ⊑ f (suc n)) → Type
+            ⨆ = proj₂ (proj₂ (proj₂ R))
+        in
+        (∀ {x y} → x ⊑ y → y ⊑ x → x ≡ y)
+          ×
+        Uniqueness-of-identity-proofs Type
+          ×
+        (∀ x → x ⊑ x)
+          ×
+        (∀ {x y z} → x ⊑ y → y ⊑ z → x ⊑ z)
+          ×
+        (∀ x → never ⊑ x)
+          ×
+        (∀ s → ∀ n → proj₁ s n ⊑ ⨆ s)
+          ×
+        (∀ s ub → (∀ n → proj₁ s n ⊑ ub) → ⨆ s ⊑ ub)
+          ×
+        (∀ {x y} → Proof-irrelevant (x ⊑ y))
+    rearrange = record
+      { surjection = record
+        { logical-equivalence = record
+          { to   = λ P → let open Partiality-algebra-with P in
+                    ( _⊑_
+                    , never
+                    , now
+                    , ⨆
+                    )
+                  , antisymmetry
+                  , Type-UIP-unused
+                  , ⊑-refl
+                  , ⊑-trans
+                  , never⊑
+                  , upper-bound
+                  , least-upper-bound
+                  , ⊑-proof-irrelevant
+          ; from = λ where
+              ((LE , ne , n , l) , a , u , r , t , le , ub , lub , p) →
+                record
+                  { _⊑_                = LE
+                  ; never              = ne
+                  ; now                = n
+                  ; ⨆                  = l
+                  ; antisymmetry       = a
+                  ; Type-UIP-unused    = u
+                  ; ⊑-refl             = r
+                  ; ⊑-trans            = t
+                  ; never⊑             = le
+                  ; upper-bound        = ub
+                  ; least-upper-bound  = lub
+                  ; ⊑-proof-irrelevant = p
+                  }
+          }
+        ; right-inverse-of = λ _ → refl
+        }
+      ; left-inverse-of = λ _ → refl
+      }
+
+  -- Another equality characterisation lemma for
+  -- Partiality-algebra-with.
+
+  equality-characterisation-Partiality-algebra-with₂ :
+    ∀ {a p q} {A : Set a} {Type : Set p}
+      {P₁ P₂ : Partiality-algebra-with Type q A} →
+
+    Propositional-extensionality q →
+
+    let module P₁ = Partiality-algebra-with P₁
+        module P₂ = Partiality-algebra-with P₂
+    in
+    (∃ λ (⊑⇔⊑ : ∀ x y → x P₁.⊑ y ⇔ x P₂.⊑ y) →
+       P₁.never ≡ P₂.never
+         ×
+       (∀ x → P₁.now x ≡ P₂.now x)
+         ×
+       ∀ s → P₁.⨆ s ≡ P₂.⨆ (Σ-map Prelude.id (_⇔_.to (⊑⇔⊑ _ _) ⊚_) s))
+      ↔
+    P₁ ≡ P₂
+  equality-characterisation-Partiality-algebra-with₂
+    {q = q} {A} {Type} {P₁} {P₂} prop-ext =
+
+    (∃ λ (⊑⇔⊑ : ∀ x y → x P₁.⊑ y ⇔ x P₂.⊑ y) →
+       P₁.never ≡ P₂.never
+         ×
+       (∀ x → P₁.now x ≡ P₂.now x)
+         ×
+       ∀ s → P₁.⨆ s ≡ P₂.⨆ (Σ-map Prelude.id (_⇔_.to (⊑⇔⊑ _ _) ⊚_) s))  ↝⟨ Σ-cong (Eq.∀-preserves ext λ _ → Eq.∀-preserves ext λ _ →
+                                                                                     Eq.↔⇒≃ $ Eq.⇔↔≃ ext P₁.⊑-propositional P₂.⊑-propositional)
+                                                                                  (λ _ → F.id) ⟩
+    (∃ λ (⊑≃⊑ : ∀ x y → (x P₁.⊑ y) ≃ (x P₂.⊑ y)) →
+       P₁.never ≡ P₂.never
+         ×
+       (∀ x → P₁.now x ≡ P₂.now x)
+         ×
+       ∀ s → P₁.⨆ s ≡ P₂.⨆ (Σ-map Prelude.id (_≃_.to (⊑≃⊑ _ _) ⊚_) s))  ↝⟨ inverse $ Σ-cong
+                                                                             (Eq.∀-preserves ext λ _ → Eq.∀-preserves ext λ _ →
+                                                                                ≡≃≃ (_≃_.to
+                                                                                       (Propositional-extensionality-is-univalence-for-propositions
+                                                                                          ext)
+                                                                                       prop-ext
+                                                                                       P₁.⊑-propositional
+                                                                                       P₂.⊑-propositional))
+                                                                             (λ _ → F.id) ⟩
+    (∃ λ (⊑≡⊑ : ∀ x y → (x P₁.⊑ y) ≡ (x P₂.⊑ y)) →
+       P₁.never ≡ P₂.never
+         ×
+       (∀ x → P₁.now x ≡ P₂.now x)
+         ×
+       ∀ s → P₁.⨆ s ≡ P₂.⨆ (Σ-map Prelude.id (≡⇒→ (⊑≡⊑ _ _) ⊚_) s))     ↝⟨ equality-characterisation-Partiality-algebra-with₁ ⟩□
+
+    P₁ ≡ P₂                                                             □
+    where
+    module P₁ = Partiality-algebra-with P₁
+    module P₂ = Partiality-algebra-with P₂
 
 ------------------------------------------------------------------------
 -- Partiality algebra morphisms
