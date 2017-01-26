@@ -296,19 +296,45 @@ _∘_ {P₁ = P₁} {P₂} {P₃} m₁ m₂ = record
   open Morphism
   open Partiality-algebra
 
--- An alternative definition of morphisms.
+-- Is-morphism-with P Q f holds if f is a morphism from P to Q.
 
-Morphism-as-Σ :
-  ∀ {a p₁ p₂ q₁ q₂} {A : Set a} →
-  Partiality-algebra p₁ q₁ A → Partiality-algebra p₂ q₂ A → Set _
-Morphism-as-Σ P₁ P₂ =
-  ∃ λ (f : P₁.Type → P₂.Type) →
+Is-morphism-with :
+  ∀ {a p₁ p₂ q₁ q₂} {Type₁ : Set p₁} {Type₂ : Set p₂} {A : Set a}
+  (P₁ : Partiality-algebra-with Type₁ q₁ A)
+  (P₂ : Partiality-algebra-with Type₂ q₂ A) →
+  (Type₁ → Type₂) → Set _
+Is-morphism-with P₁ P₂ f =
   ∃ λ (m : ∀ {x y} → x P₁.⊑ y → f x P₂.⊑ f y) →
   f P₁.never ≡ P₂.never
     ×
   (∀ x → f (P₁.now x) ≡ P₂.now x)
     ×
   (∀ s → f (P₁.⨆ s) ≡ P₂.⨆ (Σ-map (f ⊚_) (m ⊚_) s))
+  where
+  module P₁ = Partiality-algebra-with P₁
+  module P₂ = Partiality-algebra-with P₂
+
+-- Is-morphism P Q f holds if f is a morphism from P to Q.
+
+Is-morphism :
+  let open Partiality-algebra in
+  ∀ {a p₁ p₂ q₁ q₂} {A : Set a}
+  (P₁ : Partiality-algebra p₁ q₁ A) (P₂ : Partiality-algebra p₂ q₂ A) →
+  (Type P₁ → Type P₂) → Set _
+Is-morphism P₁ P₂ =
+  Is-morphism-with P₁.partiality-algebra-with
+                   P₂.partiality-algebra-with
+  where
+  module P₁ = Partiality-algebra P₁
+  module P₂ = Partiality-algebra P₂
+
+-- An alternative definition of morphisms.
+
+Morphism-as-Σ :
+  ∀ {a p₁ p₂ q₁ q₂} {A : Set a} →
+  Partiality-algebra p₁ q₁ A → Partiality-algebra p₂ q₂ A → Set _
+Morphism-as-Σ P₁ P₂ =
+  ∃ λ (f : P₁.Type → P₂.Type) → Is-morphism P₁ P₂ f
   where
   module P₁ = Partiality-algebra P₁
   module P₂ = Partiality-algebra P₂
@@ -344,48 +370,80 @@ Morphism↔Morphism-as-Σ = record
   where
   open Morphism
 
--- An equality characterisation lemma for morphisms.
+abstract
 
-equality-characterisation-Morphism :
-  ∀ {a p₁ p₂ q₁ q₂} {A : Set a}
-    {P₁ : Partiality-algebra p₁ q₁ A}
-    {P₂ : Partiality-algebra p₂ q₂ A} →
-    {m₁ m₂ : Morphism P₁ P₂} →
+  -- Is-morphism-with is pointwise propositional.
 
-  Morphism.function m₁ ≡ Morphism.function m₂
-    ↔
-  m₁ ≡ m₂
-equality-characterisation-Morphism {P₁ = P₁} {P₂} {m₁} {m₂} =
-  function m₁ ≡ function m₂                                            ↝⟨ ignore-propositional-component
-                                                                            (Σ-closure 1 (implicit-Π-closure ext 1 λ _ →
-                                                                                          implicit-Π-closure ext 1 λ _ →
-                                                                                          Π-closure ext 1 λ _ →
-                                                                                          P₂.⊑-propositional) λ _ →
-                                                                             ×-closure 1 (P₂.Type-is-set _ _) $
-                                                                             ×-closure 1 (Π-closure ext 1 λ _ →
-                                                                                          P₂.Type-is-set _ _) $
-                                                                             Π-closure ext 1 λ _ →
-                                                                             P₂.Type-is-set _ _) ⟩
-  _↔_.to Morphism↔Morphism-as-Σ m₁ ≡ _↔_.to Morphism↔Morphism-as-Σ m₂  ↔⟨ Eq.≃-≡ (Eq.↔⇒≃ Morphism↔Morphism-as-Σ) ⟩□
-  m₁ ≡ m₂                                                              □
-  where
-  open Morphism
-  module P₂ = Partiality-algebra P₂
+  Is-morphism-with-propositional :
+    let open Partiality-algebra in
+    ∀ {a p₁ p₂ q₁ q₂} {Type₁ : Set p₁} {Type₂ : Set p₂} {A : Set a}
+      (P₁ : Partiality-algebra-with Type₁ q₁ A)
+      (P₂ : Partiality-algebra-with Type₂ q₂ A)
+      {f : Type₁ → Type₂} →
+    Is-proposition (Is-morphism-with P₁ P₂ f)
+  Is-morphism-with-propositional _ P₂ =
+    Σ-closure 1 (implicit-Π-closure ext 1 λ _ →
+                 implicit-Π-closure ext 1 λ _ →
+                 Π-closure ext 1 λ _ →
+                 P₂.⊑-propositional) λ _ →
+    ×-closure 1 (P₂.Type-is-set _ _) $
+    ×-closure 1 (Π-closure ext 1 λ _ →
+                 P₂.Type-is-set _ _) $
+    Π-closure ext 1 λ _ →
+    P₂.Type-is-set _ _
+    where
+    module P₂ = Partiality-algebra-with P₂
 
--- The type of morphisms is a set.
+  -- Is-morphism is pointwise propositional.
 
-Morphism-set :
-  ∀  {a p₁ p₂ q₁ q₂} {A : Set a}
-     {P₁ : Partiality-algebra p₁ q₁ A}
-     {P₂ : Partiality-algebra p₂ q₂ A} →
-  Is-set (Morphism P₁ P₂)
-Morphism-set {P₂ = P₂} m₁ m₂ =
-  H-level.respects-surjection
-    (_↔_.surjection equality-characterisation-Morphism)
-    1
-    ((Π-closure ext 2 λ _ → Type-is-set P₂) _ _)
-  where
-  open Partiality-algebra
+  Is-morphism-propositional :
+    let open Partiality-algebra in
+    ∀ {a p₁ p₂ q₁ q₂} {A : Set a}
+      (P₁ : Partiality-algebra p₁ q₁ A)
+      (P₂ : Partiality-algebra p₂ q₂ A)
+      {f : Type P₁ → Type P₂} →
+    Is-proposition (Is-morphism P₁ P₂ f)
+  Is-morphism-propositional P₁ P₂ =
+    Is-morphism-with-propositional
+      P₁.partiality-algebra-with
+      P₂.partiality-algebra-with
+    where
+    module P₁ = Partiality-algebra P₁
+    module P₂ = Partiality-algebra P₂
+
+  -- An equality characterisation lemma for morphisms.
+
+  equality-characterisation-Morphism :
+    ∀ {a p₁ p₂ q₁ q₂} {A : Set a}
+      {P₁ : Partiality-algebra p₁ q₁ A}
+      {P₂ : Partiality-algebra p₂ q₂ A} →
+      {m₁ m₂ : Morphism P₁ P₂} →
+
+    Morphism.function m₁ ≡ Morphism.function m₂
+      ↔
+    m₁ ≡ m₂
+  equality-characterisation-Morphism {P₁ = P₁} {P₂} {m₁} {m₂} =
+    function m₁ ≡ function m₂                                            ↝⟨ ignore-propositional-component (Is-morphism-propositional P₁ P₂) ⟩
+    _↔_.to Morphism↔Morphism-as-Σ m₁ ≡ _↔_.to Morphism↔Morphism-as-Σ m₂  ↔⟨ Eq.≃-≡ (Eq.↔⇒≃ Morphism↔Morphism-as-Σ) ⟩□
+    m₁ ≡ m₂                                                              □
+    where
+    open Morphism
+
+  -- The type of morphisms is a set.
+
+  Morphism-set :
+    ∀  {a p₁ p₂ q₁ q₂} {A : Set a}
+       {P₁ : Partiality-algebra p₁ q₁ A}
+       {P₂ : Partiality-algebra p₂ q₂ A} →
+    Is-set (Morphism P₁ P₂)
+  Morphism-set {P₂ = P₂} _ _ =
+    H-level.respects-surjection
+      (_↔_.surjection equality-characterisation-Morphism)
+      1
+      ((Π-closure ext 2 λ _ → Type-is-set P₂) _ _)
+    where
+    open Partiality-algebra
+
 
 -- Partiality algebras form precategories.
 
