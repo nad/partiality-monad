@@ -1284,7 +1284,7 @@ initiality→eliminators {p = p} {q} {p′} {q′} {A} {PA} initial args =
                  lemma (s [ n ])                                          ∎
            in
            subst (λ s → ∀ n → P (s [ n ])) lemma₁
-                 (proj₂ ⊚ function ⊚ proj₁ s) n                           ≡⟨ sym $ push-subst-application lemma₁ (λ n s → P (s [ n ])) ⟩
+                 (proj₂ ⊚ function ⊚ proj₁ s) n                           ≡⟨ sym $ push-subst-application lemma₁ (λ s n → P (s [ n ])) ⟩
 
            subst (λ s → P (s [ n ])) lemma₁
                  (proj₂ (function (s [ n ])))                             ≡⟨ subst-∘ P _[ n ] lemma₁ ⟩

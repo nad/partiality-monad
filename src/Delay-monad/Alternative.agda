@@ -450,7 +450,7 @@ module _ {a} {A : Set a} where
          subst Increasing
                (ext (proj₁∘from∘to x))
                (proj₂ (from (to x)))
-               n                        ≡⟨ sym $ push-subst-application (ext (proj₁∘from∘to x)) Increasing-at ⟩
+               n                        ≡⟨ sym $ push-subst-application (ext (proj₁∘from∘to x)) (flip Increasing-at) ⟩
 
          subst (Increasing-at n)
                (ext (proj₁∘from∘to x))
