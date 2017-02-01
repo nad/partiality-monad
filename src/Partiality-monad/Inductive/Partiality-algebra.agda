@@ -16,11 +16,12 @@ open import Logical-equivalence using (_⇔_)
 open import Prelude hiding (id) renaming (_∘_ to _⊚_)
 
 open import Bijection equality-with-J as Bijection using (_↔_)
-open import Category equality-with-J
+open import Category equality-with-J as Category
 open import Equivalence equality-with-J as Eq using (_≃_)
 open import Function-universe equality-with-J as F hiding (id; _∘_)
 open import H-level equality-with-J as H-level hiding (Type)
 open import H-level.Closure equality-with-J
+open import Structure-identity-principle equality-with-J
 open import Surjection equality-with-J using (_↠_)
 open import Univalence-axiom equality-with-J
 
@@ -826,6 +827,8 @@ abstract
     where
     open Partiality-algebra
 
+------------------------------------------------------------------------
+-- Partiality algebra categories
 
 -- Partiality algebras form precategories.
 
@@ -839,6 +842,129 @@ Precategory.precategory (precategory p q A) =
   , _↔_.to equality-characterisation-Morphism refl
   , _↔_.to equality-characterisation-Morphism refl
   , _↔_.to equality-characterisation-Morphism refl
+
+-- A "standard notion of structure" built using
+-- Partiality-algebra-with (and propositional extensionality).
+
+standard-notion-of-structure :
+  ∀ {a} p {q} (A : Set a) →
+  Propositional-extensionality q →
+  Standard-notion-of-structure _ _ (precategory-Set p ext)
+standard-notion-of-structure p {q} A prop-ext = record
+  { P               = λ B → Partiality-algebra-with (proj₁ B) q A
+  ; H               = Is-morphism-with
+  ; H-prop          = λ { {p = P} {q = Q} _ →
+                          Is-morphism-with-propositional P Q
+                        }
+  ; H-id            = λ { {p = P} →
+                          proj₂ $
+                            _↔_.to Morphism↔Morphism-as-Σ
+                              (id {P = ⟨ P ⟩})
+                        }
+  ; H-∘             = λ { {p = P} {q = Q} {r = R}
+                          f-morphism g-morphism →
+                          proj₂ $
+                            _↔_.to Morphism↔Morphism-as-Σ
+                              (_↔_.from
+                                 (Morphism↔Morphism-as-Σ
+                                    {P₁ = ⟨ Q ⟩} {P₂ = ⟨ R ⟩})
+                                 (_ , g-morphism)
+                                 ∘
+                               _↔_.from
+                                 (Morphism↔Morphism-as-Σ {P₁ = ⟨ P ⟩})
+                                 (_ , f-morphism))
+                        }
+  ; H-antisymmetric = λ P Q id-morphism-P→Q id-morphism-Q→P →
+      _↔_.to
+        (equality-characterisation-Partiality-algebra-with₂ prop-ext)
+        ( (λ x y → record { to   = proj₁ id-morphism-P→Q
+                          ; from = proj₁ id-morphism-Q→P
+                          })
+        , proj₁ (proj₂ id-morphism-P→Q)
+        , proj₁ (proj₂ (proj₂ id-morphism-P→Q))
+        , proj₂ (proj₂ (proj₂ id-morphism-P→Q))
+        )
+  }
+
+abstract
+
+  -- The precategory obtained from the standard notion of structure is
+  -- equal to the direct definition above (assuming univalence).
+
+  precategories-equal :
+    ∀ {a p q} {A : Set a} →
+    Univalence (a ⊔ lsuc (p ⊔ q)) →
+    Univalence (a ⊔ p ⊔ q) →
+    (prop-ext : Propositional-extensionality q) →
+    Standard-notion-of-structure.Str
+      (standard-notion-of-structure p A prop-ext)
+      ≡
+    precategory p q A
+  precategories-equal {p = p} {q} {A} univ₁ univ₂ prop-ext =
+    _↔_.to (equality-characterisation-Precategory ext univ₁ univ₂)
+      ( ≃Partiality-algebra
+      , (λ _ _ → Eq.↔⇒≃ $ inverse $ Morphism↔Morphism-as-Σ)
+      , (λ _ → refl)
+      , (λ _ _ _ _ _ → refl)
+      )
+    where
+    ≃Partiality-algebra :
+      (∃ λ (Type : SET p) → Partiality-algebra-with (proj₁ Type) q A)
+        ≃
+      Partiality-algebra p q A
+    ≃Partiality-algebra =
+      (∃ λ (Type : SET p) → Partiality-algebra-with (proj₁ Type) q A)  ↔⟨ inverse Σ-assoc ⟩
+
+      (∃ λ (Type : Set p) →
+         Is-set Type × Partiality-algebra-with Type q A)               ↔⟨ ∃-cong (λ _ → drop-⊤-left-× λ P → inverse $ _⇔_.to contractible⇔⊤↔ $
+                                                                            propositional⇒inhabited⇒contractible
+                                                                              (H-level-propositional ext 2)
+                                                                              (Partiality-algebra-with.Type-is-set P)) ⟩
+      (∃ λ (Type : Set p) → Partiality-algebra-with Type q A)          ↝⟨ Eq.↔⇒≃ record
+                                                                            { surjection = record
+                                                                              { logical-equivalence = record
+                                                                                { to   = uncurry λ _ P → ⟨ P ⟩
+                                                                                ; from = λ P → Type P , partiality-algebra-with P
+                                                                                }
+                                                                              ; right-inverse-of = λ _ → refl
+                                                                              }
+                                                                            ; left-inverse-of = λ _ → refl
+                                                                            } ⟩□
+      Partiality-algebra p q A                                         □
+      where
+      open Partiality-algebra
+
+-- Thus the precategory is a category (assuming univalence and
+-- propositional extensionality).
+
+category :
+  ∀ {a p q} (A : Set a) →
+  Univalence (a ⊔ lsuc (p ⊔ q)) →
+  Univalence (a ⊔ p ⊔ q) →
+  Univalence p →
+  Propositional-extensionality q →
+  Category (a ⊔ lsuc (p ⊔ q)) (a ⊔ p ⊔ q)
+Category.category (category A univ₁ univ₂ univ₃ prop-ext) =
+    precategory _ _ A
+  , subst (λ C → ∀ {P Q} → Eq.Is-equivalence
+                             (Precategory.≡→≅ C {P} {Q}))
+          (precategories-equal univ₁ univ₂ prop-ext)
+          (structure-identity-principle
+             ext
+             (category-Set _ ext (λ _ _ → univ₃))
+             (standard-notion-of-structure _ A prop-ext))
+
+private
+
+  precategory-category :
+    ∀ {a p} {q} {A : Set a}
+      {univ₁ : Univalence (a ⊔ lsuc (p ⊔ q))}
+      {univ₂ : Univalence (a ⊔ p ⊔ q)}
+      {univ₃ : Univalence p}
+      {prop-ext : Propositional-extensionality q} →
+    Category.precategory (category A univ₁ univ₂ univ₃ prop-ext) ≡
+    precategory p q A
+  precategory-category = refl
 
 ------------------------------------------------------------------------
 -- Initiality
