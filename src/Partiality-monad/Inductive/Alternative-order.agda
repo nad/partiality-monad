@@ -168,6 +168,16 @@ now⊑≃now[]≲ {x} {y} =
 -- Some properties that follow from the equivalence between now[_]≲_
 -- and λ x y → now x ⊑ y
 
+-- An equivalence between "now x ⊑ never" and an empty type.
+--
+-- This lemma was proved together with Paolo Capriotti.
+
+now⊑never≃⊥ : {x : A} → (now x ⊑ never) ≃ Prelude.⊥ {ℓ = a}
+now⊑never≃⊥ {x} =
+  now x ⊑ never    ↝⟨ now⊑≃now[]≲ ⟩
+  now[ x ]≲ never  ↝⟨ ≡⇒↝ _ now[]≲never ⟩□
+  Prelude.⊥        □
+
 -- Defined values of the form now x are never smaller than or equal
 -- to never (assuming propositional extensionality).
 --
@@ -175,10 +185,9 @@ now⊑≃now[]≲ {x} {y} =
 
 now⋢never : (x : A) → ¬ now x ⊑ never
 now⋢never x =
-  now x ⊑ never    ↔⟨ now⊑≃now[]≲ ⟩
-  now[ x ]≲ never  ↔⟨ ≡⇒↝ bijection now[]≲never ⟩
-  Prelude.⊥        ↝⟨ ⊥-elim ⟩□
-  ⊥₀               □
+  now x ⊑ never  ↔⟨ now⊑never≃⊥ ⟩
+  Prelude.⊥      ↝⟨ ⊥-elim ⟩□
+  ⊥₀             □
 
 -- Defined values of the form now x are never equal to never.
 
