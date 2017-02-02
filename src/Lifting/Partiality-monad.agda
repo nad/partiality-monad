@@ -3,6 +3,9 @@
 -- (but only for sets), based on the lifting construction in Lifting
 ------------------------------------------------------------------------
 
+-- The code in this module is based on a suggestion from Paolo
+-- Capriotti.
+
 {-# OPTIONS --without-K #-}
 
 open import Prelude hiding (⊥)

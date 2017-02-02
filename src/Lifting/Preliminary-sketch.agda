@@ -4,6 +4,9 @@
 -- order to get the basics right
 ------------------------------------------------------------------------
 
+-- The code in this module is based on a suggestion from Paolo
+-- Capriotti.
+
 {-# OPTIONS --without-K #-}
 
 open import Omega-cpo

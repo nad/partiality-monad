@@ -5,15 +5,22 @@
 -- Thorsten Altenkirch, Nils Anders Danielsson and Nicolai Kraus
 ------------------------------------------------------------------------
 
--- Comments of the form (§n) indicate that (parts of) the given
--- module(s) correspond to (parts of) Section n in the paper.
-
--- Parts of the code are heavily inspired by the section on Cauchy
--- reals in the HoTT book (first edition).
+-- Note that our definition of the partiality monad and some of the
+-- results are heavily inspired by the section on Cauchy reals in the
+-- HoTT book (first edition).
 
 {-# OPTIONS --without-K #-}
 
 module README where
+
+------------------------------------------------------------------------
+-- Pointers to results from the paper
+
+-- In order to more easily find code corresponding to results from the
+-- paper, see the following module. Note that some of the code
+-- referenced below is not discussed at all in the paper.
+
+import README.Pointers-to-results-from-the-paper
 
 ------------------------------------------------------------------------
 -- Preliminaries
@@ -27,7 +34,7 @@ import Partiality-monad.Inductive.Preliminary-sketch
 ------------------------------------------------------------------------
 -- Partiality algebras
 
--- Partiality algebras (§3.1).
+-- Partiality algebras.
 
 import Partiality-algebra
 
@@ -35,11 +42,11 @@ import Partiality-algebra
 
 import Partiality-algebra.Properties
 
--- Monotone functions (§5.1).
+-- Monotone functions.
 
 import Partiality-algebra.Monotone
 
--- ω-continuous functions (§5.1).
+-- ω-continuous functions.
 
 import Partiality-algebra.Omega-continuous
 
@@ -47,23 +54,22 @@ import Partiality-algebra.Omega-continuous
 
 import Partiality-algebra.Strict-omega-continuous
 
--- Fixpoint combinators (§5.1).
+-- Fixpoint combinators.
 
 import Partiality-algebra.Fixpoints
 
--- Pi with partiality algebra families as codomains (§5.1).
+-- Pi with partiality algebra families as codomains.
 
 import Partiality-algebra.Pi
 
 ------------------------------------------------------------------------
 -- The partiality monad
 
--- A higher inductive-inductive definition of the partiality monad
--- (§3.1).
+-- A higher inductive-inductive definition of the partiality monad.
 
 import Partiality-monad.Inductive
 
--- Specialised eliminators (§3.1).
+-- Specialised eliminators.
 
 import Partiality-monad.Inductive.Eliminators
 
@@ -72,24 +78,23 @@ import Partiality-monad.Inductive.Eliminators
 import Partiality-monad.Inductive.Approximate
 
 -- An alternative characterisation of the information ordering, along
--- with related results (§3.3).
+-- with related results.
 
 import Partiality-monad.Inductive.Alternative-order
 
--- Monotone functions (§5.1).
+-- Monotone functions.
 
 import Partiality-monad.Inductive.Monotone
 
--- ω-continuous functions (§5.1).
+-- ω-continuous functions.
 
 import Partiality-monad.Inductive.Omega-continuous
 
--- The partiality monad's monad instance (§3.2).
+-- The partiality monad's monad instance.
 
 import Partiality-monad.Inductive.Monad
 
--- The partiality monad's monad instance, defined via an adjunction
--- (§3.2).
+-- The partiality monad's monad instance, defined via an adjunction.
 
 import Partiality-monad.Inductive.Monad.Adjunction
 
@@ -97,12 +102,12 @@ import Partiality-monad.Inductive.Monad.Adjunction
 
 import Partiality-monad.Inductive.Strict-omega-continuous
 
--- Fixpoint combinators (§5.1).
+-- Fixpoint combinators.
 
 import Partiality-monad.Inductive.Fixpoints
 
 ------------------------------------------------------------------------
--- The delay monad (§4)
+-- The delay monad
 
 -- The delay monad, defined coinductively.
 
@@ -116,7 +121,7 @@ import Delay-monad.Strong-bisimilarity
 
 import Delay-monad.Weak-bisimilarity
 
--- An alternative definition of the delay monad (§4.1).
+-- An alternative definition of the delay monad.
 
 import Delay-monad.Alternative
 
@@ -135,67 +140,6 @@ import Delay-monad.Monad
 -- The "always true" predicate, □.
 
 import Delay-monad.Always
-
-------------------------------------------------------------------------
--- An example (§5.3)
-
--- Some developments from "Operational Semantics Using the Partiality
--- Monad" by Danielsson, implemented using both the higher
--- inductive-inductive partiality monad, and the delay monad.
---
--- These developments to a large extent mirror developments in
--- "Coinductive big-step operational semantics" by Leroy and Grall.
-
--- The syntax of, and a type system for, the untyped λ-calculus with
--- constants.
-
-import Lambda.Syntax
-
--- Most of a virtual machine.
-
-import Lambda.Virtual-machine
-
--- A compiler.
-
-import Lambda.Compiler
-
--- A definitional interpreter.
-
-import Lambda.Partiality-monad.Inductive.Interpreter
-import Lambda.Delay-monad.Interpreter
-
--- A type soundness result.
-
-import Lambda.Partiality-monad.Inductive.Type-soundness
-import Lambda.Delay-monad.Type-soundness
-
--- A virtual machine.
-
-import Lambda.Partiality-monad.Inductive.Virtual-machine
-import Lambda.Delay-monad.Virtual-machine
-
--- Compiler correctness.
-
-import Lambda.Partiality-monad.Inductive.Compiler-correctness
-import Lambda.Delay-monad.Compiler-correctness
-
-------------------------------------------------------------------------
--- A simplified example
-
--- A simplified variant of the example above. The example above uses a
--- well-scoped variant of the untyped λ-calculus with constants. This
--- example does not use constants. This means that the interpreter
--- cannot crash, so the type soundness result has been omitted.
-
-import Lambda.Simplified.Syntax
-import Lambda.Simplified.Virtual-machine
-import Lambda.Simplified.Compiler
-import Lambda.Simplified.Partiality-monad.Inductive.Interpreter
-import Lambda.Simplified.Delay-monad.Interpreter
-import Lambda.Simplified.Partiality-monad.Inductive.Virtual-machine
-import Lambda.Simplified.Delay-monad.Virtual-machine
-import Lambda.Simplified.Partiality-monad.Inductive.Compiler-correctness
-import Lambda.Simplified.Delay-monad.Compiler-correctness
 
 ------------------------------------------------------------------------
 -- A variant of the delay monad with a sized type parameter
@@ -232,7 +176,7 @@ import Delay-monad.Sized.Always
 ------------------------------------------------------------------------
 -- The delay monad quotiented by weak bisimilarity
 
--- The delay monad quotiented by weak bisimilarity (§4).
+-- The delay monad quotiented by weak bisimilarity.
 
 import Partiality-monad.Coinductive
 
@@ -246,7 +190,7 @@ import Partiality-monad.Coinductive.Partial-order
 import Partiality-monad.Coinductive.Alternative
 
 ------------------------------------------------------------------------
--- A proof of equivalence (§4.2)
+-- A proof of equivalence
 
 -- The partiality monads in Partiality-monad.Inductive and
 -- Partiality-monad.Coinductive are pointwise equivalent, for sets,
@@ -254,6 +198,11 @@ import Partiality-monad.Coinductive.Alternative
 -- choice.
 
 import Partiality-monad.Equivalence
+
+------------------------------------------------------------------------
+-- Examples involving simple λ-calculi
+
+import README.Lambda
 
 ------------------------------------------------------------------------
 -- ω-cpos

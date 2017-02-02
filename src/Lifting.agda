@@ -3,6 +3,9 @@
 -- on ω-CPOs
 ------------------------------------------------------------------------
 
+-- The code in this module is based on a suggestion from Paolo
+-- Capriotti.
+
 -- Note that this module is experimental: it uses postulates to encode
 -- a higher inductive-inductive type.
 

@@ -540,7 +540,7 @@ instance
 ------------------------------------------------------------------------
 -- An example
 
-private
+module Search where
 
   infixr 5 _∷_
 
