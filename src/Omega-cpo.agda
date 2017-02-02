@@ -16,6 +16,7 @@ open import H-level equality-with-J hiding (Type)
 open import H-level.Closure equality-with-J
 
 open import Partiality-algebra as PA hiding (_∘_)
+import Partiality-monad.Inductive.Monad.Adjunction as PA
 
 -- Possibly non-pointed ω-cpos (with propositional ordering
 -- relations).
@@ -117,9 +118,8 @@ record ω-cppo p q : Set (lsuc (p ⊔ q)) where
 -- A pointed ω-CPO is equivalent to a partiality algebra over the
 -- empty type.
 
-ω-cppo≃Partiality-algebra-⊥ :
-  ∀ {p q} → ω-cppo p q ≃ Partiality-algebra p q ⊥₀
-ω-cppo≃Partiality-algebra-⊥ = Eq.↔⇒≃ record
+ω-cppo≃ω-cppo : ∀ {p q} → ω-cppo p q ≃ PA.ω-cppo p q
+ω-cppo≃ω-cppo = Eq.↔⇒≃ record
   { surjection = record
     { logical-equivalence = record
       { to   = λ X → let open ω-cppo X in record
