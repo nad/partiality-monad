@@ -29,32 +29,31 @@ import Partiality-monad.Inductive.Preliminary-sketch
 
 -- Partiality algebras (§3.1).
 
-import Partiality-monad.Inductive.Partiality-algebra
+import Partiality-algebra
 
 -- Partiality algebra properties that do not depend on initiality.
 
-import Partiality-monad.Inductive.Partiality-algebra.Properties
+import Partiality-algebra.Properties
 
 -- Monotone functions (§5.1).
 
-import Partiality-monad.Inductive.Partiality-algebra.Monotone
+import Partiality-algebra.Monotone
 
 -- ω-continuous functions (§5.1).
 
-import Partiality-monad.Inductive.Partiality-algebra.Omega-continuous
+import Partiality-algebra.Omega-continuous
 
 -- Strict ω-continuous functions.
 
-import
-  Partiality-monad.Inductive.Partiality-algebra.Strict-omega-continuous
+import Partiality-algebra.Strict-omega-continuous
 
 -- Fixpoint combinators (§5.1).
 
-import Partiality-monad.Inductive.Partiality-algebra.Fixpoints
+import Partiality-algebra.Fixpoints
 
 -- Pi with partiality algebra families as codomains (§5.1).
 
-import Partiality-monad.Inductive.Partiality-algebra.Pi
+import Partiality-algebra.Pi
 
 ------------------------------------------------------------------------
 -- The partiality monad

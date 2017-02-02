@@ -4,11 +4,9 @@
 
 {-# OPTIONS --without-K #-}
 
-open import Partiality-monad.Inductive.Partiality-algebra
-  hiding (id; _∘_)
+open import Partiality-algebra as PA hiding (id; _∘_)
 
-module Partiality-monad.Inductive.Partiality-algebra.Fixpoints
- where
+module Partiality-algebra.Fixpoints where
 
 open import Equality.Propositional
 open import Interval using (ext)
@@ -23,10 +21,9 @@ open import H-level.Closure equality-with-J
 open import Monad equality-with-J
 open import Univalence-axiom equality-with-J
 
-open import Partiality-monad.Inductive.Partiality-algebra.Monotone
-open import
-  Partiality-monad.Inductive.Partiality-algebra.Omega-continuous
-import Partiality-monad.Inductive.Partiality-algebra.Properties as PAP
+open import Partiality-algebra.Monotone
+open import Partiality-algebra.Omega-continuous
+import Partiality-algebra.Properties as PAP
 
 open [_⟶_]⊑
 

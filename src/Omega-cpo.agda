@@ -15,7 +15,7 @@ open import Equivalence equality-with-J as Eq using (_≃_)
 open import H-level equality-with-J hiding (Type)
 open import H-level.Closure equality-with-J
 
-open import Partiality-monad.Inductive.Partiality-algebra hiding (_∘_)
+open import Partiality-algebra as PA hiding (_∘_)
 
 -- Possibly non-pointed ω-cpos (with propositional ordering
 -- relations).

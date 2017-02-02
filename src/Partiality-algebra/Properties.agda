@@ -2,10 +2,9 @@
 -- Partiality algebra properties that do not depend on initiality
 ------------------------------------------------------------------------
 
-open import Partiality-monad.Inductive.Partiality-algebra
-  hiding (id; _∘_)
+open import Partiality-algebra as PA hiding (id; _∘_)
 
-module Partiality-monad.Inductive.Partiality-algebra.Properties
+module Partiality-algebra.Properties
   {a p q} {A : Set a} (P : Partiality-algebra p q A) where
 
 open import Equality.Propositional

@@ -14,15 +14,12 @@ open import Bijection equality-with-J using (_↔_)
 open import Function-universe equality-with-J hiding (_∘_)
 open import Monad equality-with-J
 
+import Partiality-algebra.Strict-omega-continuous as S
 open import Partiality-monad.Inductive
 open import Partiality-monad.Inductive.Eliminators
 open import Partiality-monad.Inductive.Monad
 open import Partiality-monad.Inductive.Monotone
 open import Partiality-monad.Inductive.Omega-continuous
-
-import
-  Partiality-monad.Inductive.Partiality-algebra.Strict-omega-continuous
-    as S
 
 -- Definition of strict ω-continuous functions.
 

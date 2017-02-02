@@ -4,9 +4,7 @@
 
 {-# OPTIONS --without-K #-}
 
-module
-  Partiality-monad.Inductive.Partiality-algebra.Strict-omega-continuous
-    where
+module Partiality-algebra.Strict-omega-continuous where
 
 open import Equality.Propositional
 open import Interval using (ext)
@@ -18,9 +16,9 @@ open import Function-universe equality-with-J hiding (_∘_)
 open import H-level.Closure equality-with-J
 open import Monad equality-with-J
 
-open import Partiality-monad.Inductive.Partiality-algebra
-open import Partiality-monad.Inductive.Partiality-algebra.Monotone
-open import Partiality-monad.Inductive.Partiality-algebra.Omega-continuous
+open import Partiality-algebra as PA
+open import Partiality-algebra.Monotone
+open import Partiality-algebra.Omega-continuous
 
 -- Definition of strict ω-continuous functions.
 

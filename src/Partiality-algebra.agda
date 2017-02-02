@@ -8,7 +8,7 @@
 -- homotopy type theory" by Awodey, Gambino and Sojakova, and
 -- "Inductive Types in Homotopy Type Theory" by Sojakova.
 
-module Partiality-monad.Inductive.Partiality-algebra where
+module Partiality-algebra where
 
 open import Equality.Propositional
 open import Interval using (ext)

@@ -11,8 +11,8 @@ open import Prelude
 
 open import Bijection equality-with-J using (_↔_)
 
+import Partiality-algebra.Monotone as M
 open import Partiality-monad.Inductive
-import Partiality-monad.Inductive.Partiality-algebra.Monotone as M
 
 -- Definition of monotone functions.
 

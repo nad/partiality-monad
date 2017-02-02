@@ -20,8 +20,8 @@ open import Function-universe equality-with-J hiding (id; _∘_)
 open import H-level equality-with-J hiding (Type)
 open import H-level.Closure equality-with-J
 
-open import Partiality-monad.Inductive.Partiality-algebra as PA
-  hiding (Arguments)
+open import Partiality-algebra as PA hiding (Arguments)
+import Partiality-algebra.Properties
 
 -- The partiality monad's type formers and constructors.
 
@@ -37,9 +37,7 @@ module _ {a} {A : Set a} where
                equality-characterisation-⊥
              )
 
-  open import
-    Partiality-monad.Inductive.Partiality-algebra.Properties
-      (partiality-algebra A) public
+  open Partiality-algebra.Properties (partiality-algebra A) public
 
 -- The partiality monad.
 

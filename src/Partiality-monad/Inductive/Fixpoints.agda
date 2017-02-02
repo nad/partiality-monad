@@ -19,18 +19,15 @@ open import H-level.Closure equality-with-J
 open import Monad equality-with-J
 open import Univalence-axiom equality-with-J
 
+open import Partiality-algebra using (Partiality-algebra)
+import Partiality-algebra.Fixpoints as PAF
+open import Partiality-algebra.Monotone
+open import Partiality-algebra.Omega-continuous
+open import Partiality-algebra.Pi as Pi hiding (at)
 open import Partiality-monad.Inductive
 open import Partiality-monad.Inductive.Monad
 open import Partiality-monad.Inductive.Monotone using ([_⊥→_⊥]⊑)
 open import Partiality-monad.Inductive.Omega-continuous
-open import Partiality-monad.Inductive.Partiality-algebra
-  using (Partiality-algebra)
-import Partiality-monad.Inductive.Partiality-algebra.Fixpoints as PAF
-open import Partiality-monad.Inductive.Partiality-algebra.Monotone
-open import
-  Partiality-monad.Inductive.Partiality-algebra.Omega-continuous
-open import Partiality-monad.Inductive.Partiality-algebra.Pi as Pi
-  hiding (at)
 
 ------------------------------------------------------------------------
 -- The fixpoint combinator machinery instantiated with the partiality

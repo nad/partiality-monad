@@ -4,8 +4,7 @@
 
 {-# OPTIONS --without-K #-}
 
-module Partiality-monad.Inductive.Partiality-algebra.Omega-continuous
-  where
+module Partiality-algebra.Omega-continuous where
 
 open import Equality.Propositional
 open import Interval using (ext)
@@ -16,8 +15,8 @@ import Equivalence equality-with-J as Eq
 open import Function-universe equality-with-J
 open import H-level.Closure equality-with-J
 
-open import Partiality-monad.Inductive.Partiality-algebra
-open import Partiality-monad.Inductive.Partiality-algebra.Monotone
+open import Partiality-algebra as PA
+open import Partiality-algebra.Monotone
 
 -- Definition of ω-continuous functions.
 

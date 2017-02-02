@@ -2,7 +2,7 @@
 -- Pi with partiality algebra families as codomains
 ------------------------------------------------------------------------
 
-module Partiality-monad.Inductive.Partiality-algebra.Pi where
+module Partiality-algebra.Pi where
 
 open import Equality.Propositional
 open import Interval using (ext)
@@ -12,8 +12,7 @@ open import Prelude
 open import H-level equality-with-J hiding (Type)
 open import H-level.Closure equality-with-J
 
-open import Partiality-monad.Inductive.Partiality-algebra
-  hiding (id; _∘_)
+open import Partiality-algebra as PA hiding (id; _∘_)
 
 open Partiality-algebra-with
 open Partiality-algebra

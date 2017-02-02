@@ -4,7 +4,7 @@
 
 {-# OPTIONS --without-K #-}
 
-module Partiality-monad.Inductive.Partiality-algebra.Monotone where
+module Partiality-algebra.Monotone where
 
 open import Equality.Propositional
 open import Interval using (ext)
@@ -15,9 +15,8 @@ import Equivalence equality-with-J as Eq
 open import Function-universe equality-with-J hiding (id; _∘_)
 open import H-level.Closure equality-with-J
 
-open import Partiality-monad.Inductive.Partiality-algebra
-  hiding (id; _∘_)
-import Partiality-monad.Inductive.Partiality-algebra.Properties as PAP
+open import Partiality-algebra as PA hiding (id; _∘_)
+import Partiality-algebra.Properties as PAP
 
 -- Definition of monotone functions.
 

@@ -11,9 +11,8 @@ open import Prelude
 
 open import Bijection equality-with-J using (_↔_)
 
+import Partiality-algebra.Omega-continuous as O
 open import Partiality-monad.Inductive
-import Partiality-monad.Inductive.Partiality-algebra.Omega-continuous
-  as O
 
 -- Definition of ω-continuous functions.
 

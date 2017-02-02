@@ -19,14 +19,13 @@ open import Functor equality-with-J
 open import H-level equality-with-J hiding (Type)
 open import H-level.Closure equality-with-J
 
+open import Partiality-algebra as PA hiding (id; _∘_)
+import Partiality-algebra.Properties as PAP
 open import Partiality-monad.Inductive as PI
   using (_⊥; partiality-algebra; initial)
 open import Partiality-monad.Inductive.Eliminators
 import Partiality-monad.Inductive.Monad as PM
 import Partiality-monad.Inductive.Omega-continuous as PO
-open import Partiality-monad.Inductive.Partiality-algebra as PA
-  hiding (id; _∘_)
-import Partiality-monad.Inductive.Partiality-algebra.Properties as PAP
 
 -- A forgetful functor from partiality algebras to sets.
 
