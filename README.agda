@@ -135,10 +135,6 @@ import Delay-monad.Strong-bisimilarity
 
 import Delay-monad.Weak-bisimilarity
 
--- An alternative definition of the delay monad.
-
-import Delay-monad.Alternative
-
 -- A partial order.
 
 import Delay-monad.Partial-order
@@ -186,6 +182,39 @@ import Delay-monad.Sized.Monad
 -- The "always true" predicate, □.
 
 import Delay-monad.Sized.Always
+
+------------------------------------------------------------------------
+-- An alternative definition of the delay monad
+
+-- The delay monad, defined using increasing sequences of potential
+-- values.
+
+import Delay-monad.Alternative
+
+-- Various properties.
+
+import Delay-monad.Alternative.Properties
+
+-- Theorems relating the coinductive definition of the delay
+-- monad to the alternative one and to another type.
+
+import Delay-monad.Alternative.Equivalence
+
+-- Termination predicates.
+
+import Delay-monad.Alternative.Termination
+
+-- Information orderings.
+
+import Delay-monad.Alternative.Partial-order
+
+-- Weak bisimilarity.
+
+import Delay-monad.Alternative.Weak-bisimilarity
+
+-- Two eliminators for Delay-monad.Alternative.Delay (A / R).
+
+import Delay-monad.Alternative.Eliminators
 
 ------------------------------------------------------------------------
 -- The delay monad quotiented by weak bisimilarity

@@ -18,6 +18,8 @@ open import Function-universe equality-with-J hiding (⊥↔⊥)
 open import H-level equality-with-J
 
 import Delay-monad.Alternative as A
+import Delay-monad.Alternative.Equivalence as A
+import Delay-monad.Alternative.Weak-bisimilarity as A
 import Delay-monad.Strong-bisimilarity as Strong-bisimilarity
 import Delay-monad.Weak-bisimilarity as W
 import Partiality-monad.Coinductive as C

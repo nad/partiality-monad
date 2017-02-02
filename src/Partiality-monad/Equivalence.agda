@@ -29,6 +29,10 @@ open import Univalence-axiom equality-with-J
 
 import Delay-monad as D
 open import Delay-monad.Alternative as A using (_↓_; _↑)
+import Delay-monad.Alternative.Equivalence as A
+import Delay-monad.Alternative.Partial-order as A
+import Delay-monad.Alternative.Termination as A
+import Delay-monad.Alternative.Weak-bisimilarity as A
 import Delay-monad.Strong-bisimilarity as S
 import Delay-monad.Weak-bisimilarity as W
 import Partiality-monad.Coinductive as C

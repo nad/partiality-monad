@@ -18,6 +18,10 @@ import Univalence-axiom
 
 import Delay-monad
 import Delay-monad.Alternative
+import Delay-monad.Alternative.Equivalence
+import Delay-monad.Alternative.Partial-order
+import Delay-monad.Alternative.Termination
+import Delay-monad.Alternative.Weak-bisimilarity
 import Delay-monad.Monad
 import Delay-monad.Partial-order
 import Delay-monad.Strong-bisimilarity as Strong-bisimilarity
@@ -241,32 +245,34 @@ Seq = Delay-monad.Alternative.Delay
 
 -- Lemma 10.
 
-lemma-10 = Delay-monad.Alternative.Delay↔Delay
+lemma-10 = Delay-monad.Alternative.Equivalence.Delay↔Delay
 
 -- The relation ↓_Seq.
 
-_↓-Seq_ = Delay-monad.Alternative._⇓_
+_↓-Seq_ = Delay-monad.Alternative.Termination._⇓_
 
 -- This relation is pointwise logically equivalent to a
 -- propositionally truncated variant (when the type "A" is a set).
 
-↓-Seq⇔∥↓-Seq∥ = Delay-monad.Alternative.⇓⇔∥⇓∥
+↓-Seq⇔∥↓-Seq∥ = Delay-monad.Alternative.Termination.⇓⇔∥⇓∥
 
 -- The relation ⊑_Seq.
 
-_⊑-Seq_ = Delay-monad.Alternative._∥⊑∥_
+_⊑-Seq_ = Delay-monad.Alternative.Partial-order._∥⊑∥_
 
 -- This relation is pointwise propositional.
 
-⊑-Seq-propositional = Delay-monad.Alternative.∥⊑∥-propositional
+⊑-Seq-propositional =
+  Delay-monad.Alternative.Partial-order.∥⊑∥-propositional
 
 -- The relation ∼_Seq.
 
-_∼-Seq_ = Delay-monad.Alternative._≈_
+_∼-Seq_ = Delay-monad.Alternative.Weak-bisimilarity._≈_
 
 -- This relation is pointwise propositional.
 
-≈-Seq-propositional = Delay-monad.Alternative.≈-propositional
+≈-Seq-propositional =
+  Delay-monad.Alternative.Weak-bisimilarity.≈-propositional
 
 -- Lemma 11.
 
