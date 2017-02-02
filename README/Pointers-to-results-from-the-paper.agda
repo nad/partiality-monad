@@ -52,7 +52,7 @@ import Search
 -- Extensionality for functions.
 
 Extensionality = Equality.Extensionality
-ext = Interval.ext
+ext            = Interval.ext
 
 -- Strong bisimilarity implies equality for the delay monad.
 
@@ -141,7 +141,7 @@ Type-is-set = Partiality-algebra.Partiality-algebra-with.Type-is-set
 
 -- Lemma 3.
 
-⊥-rec-⊥ = Partiality-monad.Inductive.Eliminators.⊥-rec-⊥
+lemma-3 = Partiality-monad.Inductive.Eliminators.⊥-rec-⊥
 
 ------------------------------------------------------------------------
 -- Section 3.2
@@ -162,11 +162,11 @@ F = Adjunction.Partial
 
 -- Theorem 5.
 
-F⊣U = Adjunction.Partial⊣Forget
+theorem-5 = Adjunction.Partial⊣Forget
 
 -- Corollary 6.
 
-Partiality-monad = Adjunction.Partiality-monad
+corollary-6 = Adjunction.Partiality-monad
 
 -- A direct construction of a monad structure on _⊥.
 
