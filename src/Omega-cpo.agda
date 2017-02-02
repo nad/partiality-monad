@@ -20,15 +20,15 @@ open import Partiality-algebra as PA hiding (_∘_)
 -- Possibly non-pointed ω-cpos (with propositional ordering
 -- relations).
 
-record ω-cpo ℓ : Set (lsuc ℓ) where
+record ω-cpo p q : Set (lsuc (p ⊔ q)) where
 
   infix 4 _⊑_
 
   -- Partial order axioms.
 
   field
-    Carrier            : Set ℓ
-    _⊑_                : Carrier → Carrier → Set ℓ
+    Carrier            : Set p
+    _⊑_                : Carrier → Carrier → Set q
     reflexivity        : ∀ {x} → x ⊑ x
     antisymmetry       : ∀ {x y} → x ⊑ y → y ⊑ x → x ≡ y
     transitivity       : ∀ {x y z} → x ⊑ y → y ⊑ z → x ⊑ z
@@ -36,7 +36,7 @@ record ω-cpo ℓ : Set (lsuc ℓ) where
 
   -- Increasing sequences.
 
-  Increasing-sequence : Set ℓ
+  Increasing-sequence : Set (p ⊔ q)
   Increasing-sequence = ∃ λ (f : ℕ → Carrier) → ∀ n → f n ⊑ f (suc n)
 
   -- Projection functions for Increasing-sequence.
@@ -52,7 +52,7 @@ record ω-cpo ℓ : Set (lsuc ℓ) where
 
   -- Upper bounds.
 
-  Is-upper-bound : Increasing-sequence → Carrier → Set ℓ
+  Is-upper-bound : Increasing-sequence → Carrier → Set q
   Is-upper-bound s x = ∀ n → (s [ n ]) ⊑ x
 
   -- Upper bound axioms.
@@ -81,7 +81,7 @@ record ω-cpo ℓ : Set (lsuc ℓ) where
 
 -- Every set can be turned into an ω-cpo.
 
-Set→ω-cpo : ∀ {ℓ} → SET ℓ → ω-cpo ℓ
+Set→ω-cpo : ∀ {ℓ} → SET ℓ → ω-cpo ℓ ℓ
 Set→ω-cpo (A , A-set) = record
   { Carrier            = A
   ; _⊑_                = _≡_
@@ -104,9 +104,9 @@ Set→ω-cpo (A , A-set) = record
 
 -- Pointed ω-cpos.
 
-record ω-cppo ℓ : Set (lsuc ℓ) where
+record ω-cppo p q : Set (lsuc (p ⊔ q)) where
   field
-    cpo : ω-cpo ℓ
+    cpo : ω-cpo p q
 
   open ω-cpo cpo public
 
@@ -118,7 +118,7 @@ record ω-cppo ℓ : Set (lsuc ℓ) where
 -- empty type.
 
 ω-cppo≃Partiality-algebra-⊥ :
-  ∀ {ℓ} → ω-cppo ℓ ≃ Partiality-algebra ℓ ℓ ⊥₀
+  ∀ {p q} → ω-cppo p q ≃ Partiality-algebra p q ⊥₀
 ω-cppo≃Partiality-algebra-⊥ = Eq.↔⇒≃ record
   { surjection = record
     { logical-equivalence = record

@@ -31,7 +31,7 @@ private
 
 -- The partiality monad as an ω-cppo.
 
-partiality-monad : SET a → ω-cppo a
+partiality-monad : SET a → ω-cppo a a
 partiality-monad A = L.cppo {A = A}
 
 -- The partiality monad.

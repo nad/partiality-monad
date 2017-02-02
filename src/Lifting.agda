@@ -13,7 +13,7 @@
 
 open import Omega-cpo
 
-module Lifting {ℓ} (cpo : ω-cpo ℓ) where
+module Lifting {ℓ} (cpo : ω-cpo ℓ ℓ) where
 
 open import Equality.Propositional
 open import Interval using (ext)
@@ -98,7 +98,7 @@ postulate
 
 -- The construction above is an ω-cppo.
 
-cppo : ω-cppo ℓ
+cppo : ω-cppo ℓ ℓ
 cppo = record
   { cpo = record
     { Carrier            = Carrier

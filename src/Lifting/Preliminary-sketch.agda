@@ -11,7 +11,7 @@
 
 open import Omega-cpo
 
-module Lifting.Preliminary-sketch {ℓ} (cpo : ω-cpo ℓ) where
+module Lifting.Preliminary-sketch {ℓ} (cpo : ω-cpo ℓ ℓ) where
 
 open import Prelude hiding (⊥)
 
