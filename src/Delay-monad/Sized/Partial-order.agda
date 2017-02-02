@@ -12,7 +12,7 @@ open import Equality.Propositional
 open import Logical-equivalence using (_⇔_)
 
 open import Bijection equality-with-J using (_↔_)
-open import Function-universe equality-with-J
+open import Function-universe equality-with-J hiding (_∘_)
 
 open import Delay-monad.Sized
 open import Delay-monad.Sized.Weak-bisimilarity as W
@@ -324,3 +324,17 @@ uninhabited→other-transitivity =
 
     ∞from : ∀ x {y} → (∀ z → x ⇓ z → y ⇓ z) → x ∞⊑ y
     force (∞from x p) = from x p
+
+-- An alternative characterisation of weak bisimilarity.
+
+≈⇔≈′ : {x y : Delay A ∞} → x ≈ y ⇔ x W.≈′ y
+≈⇔≈′ {x} {y} =
+  x ≈ y                                                  ↝⟨ ≈⇔⊑×⊒ ⟩
+  x ⊑ y × y ⊑ x                                          ↝⟨ ⊑⇔⇓→⇓ ×-cong ⊑⇔⇓→⇓ ⟩
+  (∀ z → x ⇓ z → y ⇓ z) × (∀ z → y ⇓ z → x ⇓ z)          ↝⟨ ∀-cong-⇔ (λ _ → →-cong-⇔ (from-bijection ⇓↔⇓) (from-bijection ⇓↔⇓))
+                                                              ×-cong
+                                                            ∀-cong-⇔ (λ _ → →-cong-⇔ (from-bijection ⇓↔⇓) (from-bijection ⇓↔⇓)) ⟩
+  (∀ z → x W.⇓ z → y W.⇓ z) × (∀ z → y W.⇓ z → x W.⇓ z)  ↝⟨ record { to   = uncurry λ to from z → record { to = to z; from = from z }
+                                                                   ; from = λ hyp → _⇔_.to ∘ hyp , _⇔_.from ∘ hyp
+                                                                   } ⟩□
+  (∀ z → x W.⇓ z ⇔ y W.⇓ z)                              □
