@@ -406,7 +406,8 @@ abstract
 ------------------------------------------------------------------------
 -- Partiality algebra categories
 
--- Partiality algebras form precategories.
+-- Partiality algebras (with fixed levels and types) form
+-- precategories.
 
 precategory :
   ∀ {a} p q (A : Set a) → Precategory (a ⊔ lsuc (p ⊔ q)) (a ⊔ p ⊔ q)

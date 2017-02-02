@@ -392,7 +392,7 @@ Delay→⊥-surjective A-set prop-ext cc =
 
 -- The previous result has a number of preconditions. None of these
 -- preconditions are needed to translate from the delay monad to the
--- higher inductive partiality monad.
+-- quotient inductive-inductive partiality monad.
 
 Delay→⊥′ : D.Delay A ∞ → A I.⊥
 Delay→⊥′ =

@@ -1,9 +1,9 @@
 ------------------------------------------------------------------------
--- A higher inductive-inductive definition of the partiality monad
+-- A quotient inductive-inductive definition of the partiality monad
 ------------------------------------------------------------------------
 
 -- Note that this module is experimental: it uses postulates to encode
--- a higher inductive-inductive type.
+-- a quotient inductive-inductive type.
 
 {-# OPTIONS --without-K #-}
 

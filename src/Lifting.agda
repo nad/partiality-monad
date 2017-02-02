@@ -1,13 +1,13 @@
 ------------------------------------------------------------------------
--- A higher inductive-inductive definition of the lifting construction
--- on ω-CPOs
+-- A quotient inductive-inductive definition of the lifting
+-- construction on ω-cpos
 ------------------------------------------------------------------------
 
 -- The code in this module is based on a suggestion from Paolo
 -- Capriotti.
 
 -- Note that this module is experimental: it uses postulates to encode
--- a higher inductive-inductive type.
+-- a quotient inductive-inductive type.
 
 {-# OPTIONS --without-K #-}
 

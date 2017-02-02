@@ -16,6 +16,10 @@ open import Lambda.Virtual-machine
 open Closure Code
 
 -- A functional semantics for the VM.
+--
+-- For an alternative definition, see the semantics in
+-- Lambda.Simplified.Partiality-monad.Inductive.Virtual-machine, which
+-- is defined using a fixpoint combinator.
 
 steps : State → ℕ → Maybe Value ⊥
 steps s n       with step s

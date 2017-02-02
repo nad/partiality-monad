@@ -35,8 +35,10 @@ import Partiality-monad.Inductive.Preliminary-sketch
 -- Partiality algebras
 
 -- The partiality algebra code uses ideas and concepts from "Inductive
--- types in homotopy type theory" by Awodey, Gambino and Sojakova, and
--- "Inductive Types in Homotopy Type Theory" by Sojakova.
+-- types in homotopy type theory" by Awodey, Gambino and Sojakova,
+-- "Inductive Types in Homotopy Type Theory" by Sojakova, "Quotient
+-- inductive-inductive types" by Altenkirch, Capriotti, Dijkstra and
+-- Nordvall Forsberg, and Gabe Dijkstra's forthcoming PhD thesis.
 
 -- Partiality algebras.
 
@@ -77,7 +79,7 @@ import Partiality-algebra.Pi
 ------------------------------------------------------------------------
 -- The partiality monad
 
--- A higher inductive-inductive definition of the partiality monad.
+-- A quotient inductive-inductive definition of the partiality monad.
 
 import Partiality-monad.Inductive
 
@@ -232,8 +234,8 @@ import Omega-cpo
 
 import Lifting.Preliminary-sketch
 
--- A higher inductive-inductive definition of the lifting construction
--- on ω-cpos.
+-- A quotient inductive-inductive definition of the lifting
+-- construction on ω-cpos.
 
 import Lifting
 

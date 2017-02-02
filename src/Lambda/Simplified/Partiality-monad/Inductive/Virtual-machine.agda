@@ -21,6 +21,10 @@ open import Lambda.Simplified.Virtual-machine
 open Closure Code
 
 -- A functional semantics for the VM.
+--
+-- For an alternative definition, see the semantics in
+-- Lambda.Partiality-monad.Inductive.Virtual-machine, which is defined
+-- without using a fixpoint combinator.
 
 execP : State → Partial State (λ _ → Maybe Value) (Maybe Value)
 execP s with step s

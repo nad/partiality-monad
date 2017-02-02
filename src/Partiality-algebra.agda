@@ -68,7 +68,9 @@ record Partiality-algebra-with
 
     -- We have chosen to explicitly make the type set-truncated.
     -- However, this "constructor" is not used anywhere in the
-    -- development.
+    -- development (except when partiality algebras are modified, see
+    -- for instance equality-characterisation-Partiality-algebra-with₁
+    -- or Partiality-algebra.Pi.Π-with).
     Type-UIP-unused : Uniqueness-of-identity-proofs Type
 
     -- _⊑_ "constructors".
