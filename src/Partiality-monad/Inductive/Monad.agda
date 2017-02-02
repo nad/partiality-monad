@@ -244,11 +244,11 @@ map-∘ f g =
   (record
      { P  = λ x → (x >>=′ f ⇓ y) ≃ ∥ ∃ (λ z → x ⇓ z × f z ⇓ y) ∥
      ; pe = never >>=′ f ⇓ y                   ↝⟨ ≡⇒↝ _ (cong (_⇓ y) never->>=) ⟩
-            never ⇓ y                          ↝⟨ B.now≡never≃⊥ ⟩
+            never ⇓ y                          ↝⟨ B.never⇓≃⊥ ⟩
             Prelude.⊥                          ↔⟨ inverse (not-inhabited⇒∥∥↔⊥ id) ⟩
             ∥ Prelude.⊥ ∥                      ↔⟨ ∥∥-cong (inverse ×-right-zero) ⟩
             ∥ ∃ (λ z → ⊥₀) ∥                   ↔⟨ ∥∥-cong (∃-cong (λ _ → inverse ×-left-zero)) ⟩
-            ∥ ∃ (λ z → Prelude.⊥ × f z ⇓ y) ∥  ↝⟨ ∥∥-cong (∃-cong (λ _ → inverse A.now≡never≃⊥ ×-cong F.id)) ⟩□
+            ∥ ∃ (λ z → Prelude.⊥ × f z ⇓ y) ∥  ↝⟨ ∥∥-cong (∃-cong (λ _ → inverse A.never⇓≃⊥ ×-cong F.id)) ⟩□
             ∥ ∃ (λ z → never ⇓ z × f z ⇓ y) ∥  □
      ; po = λ x →
               now x >>=′ f ⇓ y                                   ↝⟨ ≡⇒↝ _ (cong (_⇓ y) now->>=) ⟩

@@ -370,8 +370,8 @@ terminating-element-is-⨆ s {n} {x} =
 
 -- Two corollaries of ⇓≃now[]≲.
 
-now≡never≃⊥ : {x : A} → (never ⇓ x) ≃ Prelude.⊥ {ℓ = a}
-now≡never≃⊥ {x = x} =
+never⇓≃⊥ : {x : A} → (never ⇓ x) ≃ Prelude.⊥ {ℓ = a}
+never⇓≃⊥ {x = x} =
   never ≡ now x    ↝⟨ ⇓≃now[]≲ ⟩
   now[ x ]≲ never  ↝⟨ ≡⇒↝ _ now[]≲never ⟩□
   Prelude.⊥        □
