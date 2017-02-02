@@ -41,6 +41,7 @@ import Partiality-monad.Inductive.Monad as Monad
 import Partiality-monad.Inductive.Monad.Adjunction as Adjunction
 import Partiality-monad.Equivalence
 import README.Lambda
+import Search
 
 ------------------------------------------------------------------------
 -- Section 2
@@ -329,7 +330,7 @@ least       = Partiality-algebra.Fixpoints.fix-is-least
 
 -- The search function.
 
-module Search = Partiality-monad.Inductive.Fixpoints.Search.Direct
+module The-search-function = Search.Direct
 
 ------------------------------------------------------------------------
 -- Section 5.3
