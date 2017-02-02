@@ -12,6 +12,7 @@ import Equality.Propositional as Equality
 import Interval
 import H-level
 import H-level.Truncation.Propositional as Truncation
+import Quotient.HIT
 import Univalence-axiom
 
 -- Code from this development.
@@ -81,7 +82,7 @@ Univalence = Univalence-axiom.Univalence
 
 -- Quotient types.
 
-import Quotient.HIT
+module Quotient = Quotient.HIT
 
 -- Countable choice.
 
