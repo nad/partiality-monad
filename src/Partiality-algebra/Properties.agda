@@ -1,5 +1,5 @@
 ------------------------------------------------------------------------
--- Partiality algebra properties that do not depend on initiality
+-- Some partiality algebra properties
 ------------------------------------------------------------------------
 
 open import Partiality-algebra as PA hiding (id; _∘_)

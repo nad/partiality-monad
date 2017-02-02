@@ -34,13 +34,25 @@ import Partiality-monad.Inductive.Preliminary-sketch
 ------------------------------------------------------------------------
 -- Partiality algebras
 
+-- The partiality algebra code uses ideas and concepts from "Inductive
+-- types in homotopy type theory" by Awodey, Gambino and Sojakova, and
+-- "Inductive Types in Homotopy Type Theory" by Sojakova.
+
 -- Partiality algebras.
 
 import Partiality-algebra
 
--- Partiality algebra properties that do not depend on initiality.
+-- Some partiality algebra properties.
 
 import Partiality-algebra.Properties
+
+-- Partiality algebra categories.
+
+import Partiality-algebra.Category
+
+-- Eliminators and initiality.
+
+import Partiality-algebra.Eliminators
 
 -- Monotone functions.
 

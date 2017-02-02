@@ -20,7 +20,8 @@ open import Function-universe equality-with-J hiding (id; _∘_)
 open import H-level equality-with-J hiding (Type)
 open import H-level.Closure equality-with-J
 
-open import Partiality-algebra as PA hiding (Arguments)
+open import Partiality-algebra as PA
+open import Partiality-algebra.Eliminators as PAE hiding (Arguments)
 import Partiality-algebra.Properties
 
 -- The partiality monad's type formers and constructors.
@@ -70,4 +71,4 @@ module _ {a p q} {A : Set a} where
 -- The eliminators' arguments.
 
 Arguments : ∀ {a} p q (A : Set a) → Set (a ⊔ lsuc (p ⊔ q))
-Arguments p q A = PA.Arguments p q (partiality-algebra A)
+Arguments p q A = PAE.Arguments p q (partiality-algebra A)

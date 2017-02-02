@@ -20,6 +20,7 @@ open import H-level equality-with-J hiding (Type)
 open import H-level.Closure equality-with-J
 
 open import Partiality-algebra as PA hiding (id; _∘_)
+open import Partiality-algebra.Category as PAC
 import Partiality-algebra.Properties as PAP
 open import Partiality-monad.Inductive as PI
   using (_⊥; partiality-algebra; initial)
@@ -30,7 +31,7 @@ import Partiality-monad.Inductive.Omega-continuous as PO
 -- A forgetful functor from partiality algebras to sets.
 
 Forget : ∀ {a p q} {A : Set a} →
-         PA.precategory p q A ⇨ precategory-Set p ext
+         PAC.precategory p q A ⇨ precategory-Set p ext
 functor Forget =
     (λ P → Type P , Type-is-set P)
   , Morphism.function
@@ -42,7 +43,7 @@ functor Forget =
 -- The precategory of pointed ω-cpos.
 
 ω-CPPO : ∀ p q → Precategory (lsuc (p ⊔ q)) (p ⊔ q)
-ω-CPPO p q = PA.precategory p q ⊥₀
+ω-CPPO p q = PAC.precategory p q ⊥₀
 
 -- Pointed ω-cpos.
 

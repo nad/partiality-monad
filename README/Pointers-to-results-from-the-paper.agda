@@ -24,6 +24,8 @@ import Delay-monad.Strong-bisimilarity as Strong-bisimilarity
 import Delay-monad.Weak-bisimilarity as Weak-bisimilarity
 import Lifting
 import Partiality-algebra
+import Partiality-algebra.Category
+import Partiality-algebra.Eliminators
 import Partiality-algebra.Fixpoints
 import Partiality-algebra.Pi
 import Partiality-monad.Coinductive.Alternative
@@ -99,7 +101,7 @@ _∘_ = Partiality-algebra._∘_
 
 -- Partiality algebras form a category.
 
-category = Partiality-algebra.category
+category = Partiality-algebra.Category.category
 
 -- The partiality monad as a postulated partiality algebra. The proof
 -- α is called antisymmetry.
@@ -112,13 +114,16 @@ _⊥ = Partiality-monad._⊥
 
 -- Initiality.
 
-Initial = Partiality-algebra.Initial
+Initial = Partiality-algebra.Eliminators.Initial
 
 -- Theorem 2.
 
-Induction-principle       = Partiality-algebra.Elimination-principle
-universality-to-induction = Partiality-algebra.∀initiality→∀eliminators
-induction-to-universality = Partiality-algebra.∀eliminators→∀initiality
+Induction-principle =
+  Partiality-algebra.Eliminators.Elimination-principle
+universality-to-induction =
+  Partiality-algebra.Eliminators.∀initiality→∀eliminators
+induction-to-universality =
+  Partiality-algebra.Eliminators.∀eliminators→∀initiality
 
 -- The partiality monad's induction principle.
 
