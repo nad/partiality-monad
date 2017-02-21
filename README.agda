@@ -5,13 +5,13 @@
 -- Thorsten Altenkirch, Nils Anders Danielsson and Nicolai Kraus
 ------------------------------------------------------------------------
 
--- Note that our definition of the partiality monad and some of the
--- results are heavily inspired by the section on Cauchy reals in the
--- HoTT book (first edition).
-
 {-# OPTIONS --without-K #-}
 
 module README where
+
+-- Note that our definition of the partiality monad and some of the
+-- results are heavily inspired by the section on Cauchy reals in the
+-- HoTT book (first edition).
 
 ------------------------------------------------------------------------
 -- Pointers to results from the paper
