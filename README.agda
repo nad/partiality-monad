@@ -13,6 +13,12 @@ module README where
 -- results are heavily inspired by the section on Cauchy reals in the
 -- HoTT book (first edition).
 
+-- The partiality algebra code uses ideas and concepts from "Inductive
+-- types in homotopy type theory" by Awodey, Gambino and Sojakova,
+-- "Inductive Types in Homotopy Type Theory" by Sojakova, "Quotient
+-- inductive-inductive types" by Altenkirch, Capriotti, Dijkstra and
+-- Nordvall Forsberg, and Gabe Dijkstra's forthcoming PhD thesis.
+
 ------------------------------------------------------------------------
 -- Pointers to results from the paper
 
@@ -33,12 +39,6 @@ import Partiality-monad.Inductive.Preliminary-sketch
 
 ------------------------------------------------------------------------
 -- Partiality algebras
-
--- The partiality algebra code uses ideas and concepts from "Inductive
--- types in homotopy type theory" by Awodey, Gambino and Sojakova,
--- "Inductive Types in Homotopy Type Theory" by Sojakova, "Quotient
--- inductive-inductive types" by Altenkirch, Capriotti, Dijkstra and
--- Nordvall Forsberg, and Gabe Dijkstra's forthcoming PhD thesis.
 
 -- Partiality algebras.
 
