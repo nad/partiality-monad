@@ -184,7 +184,7 @@ Delay↠Delay = record
             (cong (_∘ suc)
                (ext (sym ∘ ↓-upwards-closed₀ g-inc g0↓x)))
             (inj₁ refl)                                               ≡⟨ cong (λ eq → subst (Increasing-at n) eq _) $
-                                                                           cong-∘-ext (sym ∘ ↓-upwards-closed₀ g-inc g0↓x) ⟩
+                                                                           cong-pre-∘-ext (sym ∘ ↓-upwards-closed₀ g-inc g0↓x) ⟩
       subst (Increasing-at n)
             (ext (sym ∘ ↓-upwards-closed₀ g-inc g0↓x ∘ suc))
             (inj₁ refl)                                               ≡⟨⟩
@@ -244,7 +244,7 @@ Delay↠Delay = record
             (cong (_∘ suc) (ext (proj₁∘from∘to′ g g-inc nothing g0↑)))
             (proj₂ (from (to (g ∘ suc , g-inc ∘ suc))) n)              ≡⟨ cong (λ eq → subst (Increasing-at n) eq
                                                                                              (proj₂ (from (to (g ∘ suc , g-inc ∘ suc))) n)) $
-                                                                            cong-∘-ext (proj₁∘from∘to′ g g-inc nothing g0↑) ⟩
+                                                                            cong-pre-∘-ext (proj₁∘from∘to′ g g-inc nothing g0↑) ⟩
       subst (Increasing-at n)
             (ext (proj₁∘from∘to′ g g-inc nothing g0↑ ∘ suc))
             (proj₂ (from (to (g ∘ suc , g-inc ∘ suc))) n)              ≡⟨⟩
