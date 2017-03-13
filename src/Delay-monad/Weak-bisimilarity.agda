@@ -334,6 +334,94 @@ finally-≈ _ _ p = p
 
 syntax finally-≈ x y p = x ≈⟨ p ⟩∎ y ∎
 
+-- The function laterˡ⁻¹ can be made size-preserving iff A is
+-- uninhabited.
+
+size-preserving-laterˡ⁻¹⇔uninhabited :
+  (∀ {i x y} →
+   Weakly-bisimilar i (later x) y →
+   Weakly-bisimilar i (force x) y) ⇔
+  ¬ A
+size-preserving-laterˡ⁻¹⇔uninhabited = record
+  { to   = Laterˡ⁻¹               ↝⟨ (λ laterˡ⁻¹ x → now≈never (λ {i} → laterˡ⁻¹ {i}) x) ⟩
+           (∀ x → now x ≈ never)  ↝⟨ (λ hyp x → now≉never (hyp x)) ⟩□
+           ¬ A                    □
+  ; from = ¬ A              ↝⟨ uninhabited→trivial ⟩
+           (∀ x y → x ≈ y)  ↝⟨ (λ trivial {_ _ _} _ → trivial _ _) ⟩□
+           Laterˡ⁻¹         □
+  }
+  where
+  Laterˡ⁻¹ = ∀ {i x y} →
+             Weakly-bisimilar i (later x) y →
+             Weakly-bisimilar i (force x) y
+
+  module _ (laterˡ⁻¹ : Laterˡ⁻¹) (x : A) where
+
+    mutual
+
+      now≈never : ∀ {i} → Weakly-bisimilar i (now x) never
+      now≈never = laterˡ⁻¹ {x = record { force = now x }}
+                           (later-cong ∞now≈never)
+
+      ∞now≈never : ∀ {i} → ∞Weakly-bisimilar i (now x) never
+      force ∞now≈never = now≈never
+
+-- The function laterʳ⁻¹ can be made size-preserving iff A is
+-- uninhabited.
+
+size-preserving-laterʳ⁻¹⇔uninhabited :
+  (∀ {i x y} →
+   Weakly-bisimilar i x (later y) →
+   Weakly-bisimilar i x (force y)) ⇔
+  ¬ A
+size-preserving-laterʳ⁻¹⇔uninhabited =
+  (∀ {i x y} →
+   Weakly-bisimilar i x (later y) → Weakly-bisimilar i x (force y))  ↝⟨ record { to   = λ laterʳ⁻¹ → symmetric ∘ laterʳ⁻¹ ∘ symmetric
+                                                                               ; from = λ laterˡ⁻¹ → symmetric ∘ laterˡ⁻¹ ∘ symmetric
+                                                                               } ⟩
+  (∀ {i x y} →
+   Weakly-bisimilar i (later x) y → Weakly-bisimilar i (force x) y)  ↝⟨ size-preserving-laterˡ⁻¹⇔uninhabited ⟩□
+
+  ¬ A                                                                □
+
+-- However, the following size-preserving variant of laterʳ⁻¹ and
+-- laterˡ⁻¹ can be defined.
+
+laterˡʳ⁻¹ :
+  ∀ {i} {x y : ∞Delay A ∞} →
+  Weakly-bisimilar i (later x) (force y) →
+  Weakly-bisimilar i (force x) (later y) →
+  Weakly-bisimilar i (force x) (force y)
+laterˡʳ⁻¹ p q = laterˡʳ⁻¹′ p q refl refl
+  where
+  ∞laterˡʳ⁻¹′ :
+    ∀ {i x′ y′} {x y : ∞Delay A ∞} →
+    ∞Weakly-bisimilar i x′ (force y) →
+    ∞Weakly-bisimilar i (force x) y′ →
+    later x ≡ x′ → later y ≡ y′ →
+    ∞Weakly-bisimilar i (force x) (force y)
+  force (∞laterˡʳ⁻¹′ p q refl refl) = laterˡʳ⁻¹ (force p) (force q)
+
+  laterˡʳ⁻¹′ :
+    ∀ {i x′ y′} {x y : ∞Delay A ∞} →
+    Weakly-bisimilar i (later x) y′ →
+    Weakly-bisimilar i x′ (later y) →
+    x′ ≡ force x → y′ ≡ force y →
+    Weakly-bisimilar i x′ y′
+  laterˡʳ⁻¹′ (later-cong p) (later-cong q) x′≡  y′≡  = later-cong (∞laterˡʳ⁻¹′ p             q             x′≡ y′≡)
+  laterˡʳ⁻¹′ (laterʳ p)     (later-cong q) x′≡  y′≡  = later-cong (∞laterˡʳ⁻¹′ (∞laterˡ⁻¹ p) q             x′≡ y′≡)
+  laterˡʳ⁻¹′ (later-cong p) (laterˡ q)     x′≡  y′≡  = later-cong (∞laterˡʳ⁻¹′ p             (∞laterʳ⁻¹ q) x′≡ y′≡)
+  laterˡʳ⁻¹′ (laterʳ p)     (laterˡ q)     x′≡  y′≡  = later-cong (∞laterˡʳ⁻¹′ (∞laterˡ⁻¹ p) (∞laterʳ⁻¹ q) x′≡ y′≡)
+  laterˡʳ⁻¹′ (laterˡ p)     _              refl refl = p
+  laterˡʳ⁻¹′ _              (laterʳ q)     refl y′≡  = subst (Weakly-bisimilar _ _) (sym y′≡) q
+
+∞laterˡʳ⁻¹ :
+  ∀ {i} {x y : ∞Delay A ∞} →
+  ∞Weakly-bisimilar i (later x) (force y) →
+  ∞Weakly-bisimilar i (force x) (later y) →
+  ∞Weakly-bisimilar i (force x) (force y)
+force (∞laterˡʳ⁻¹ p q) = laterˡʳ⁻¹ (force p) (force q)
+
 -- The notion of weak bisimilarity defined here is not necessarily
 -- propositional.
 
