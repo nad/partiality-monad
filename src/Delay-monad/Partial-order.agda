@@ -65,9 +65,6 @@ laterˡ′ p = laterˡ (record { force = λ { {_} → p } })
 Terminates : Size → Delay A ∞ → A → Set a
 Terminates i x y = LE i (now y) x
 
-∞Terminates : Size → Delay A ∞ → A → Set a
-∞Terminates i x y = ∞LE i (now y) x
-
 _⇓_ : Delay A ∞ → A → Set a
 _⇓_ = Terminates ∞
 

@@ -67,13 +67,14 @@ mutual
 Terminates : Size → Delay A ∞ → A → Set a
 Terminates i x y = Weakly-bisimilar i (now y) x
 
-∞Terminates : Size → Delay A ∞ → A → Set a
-∞Terminates i x y = ∞Weakly-bisimilar i (now y) x
-
 _⇓_ : Delay A ∞ → A → Set a
 _⇓_ = Terminates ∞
 
 -- Terminates i is contained in Terminates ∞.
+--
+-- Note that Terminates carves out an "inductive fragment" of
+-- Weakly-bisimilar: the only "coinductive" constructor, later-cong,
+-- does not target Terminates.
 
 terminates→⇓ : ∀ {i x y} → Terminates i x y → x ⇓ y
 terminates→⇓ now-cong   = now-cong
