@@ -320,10 +320,6 @@ _≡⟨_⟩∞≈_ : ∀ {i} (x : Delay A ∞) {y z} →
            x ≡ y → ∞Weakly-bisimilar i y z → ∞Weakly-bisimilar i x z
 force (_ ≡⟨ p ⟩∞≈ q) = _ ≡⟨ p ⟩≈ force q
 
-drop-later : Delay A ∞ → Delay A ∞
-drop-later (now x)   = now x
-drop-later (later x) = force x
-
 _≳⟨⟩_ : ∀ {i} (x : Delay A ∞) {y} →
         Weakly-bisimilar i (drop-later x) y → Weakly-bisimilar i x y
 now x   ≳⟨⟩ p = p

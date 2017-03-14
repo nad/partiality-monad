@@ -36,3 +36,9 @@ module _ {a} {A : Set a} where
 
     ∞never : ∞Delay A ∞
     force ∞never = never
+
+  -- Removes a later constructor, if possible.
+
+  drop-later : ∀ {i} {j : Size< i} → Delay A i → Delay A j
+  drop-later (now x)   = now x
+  drop-later (later x) = force x
