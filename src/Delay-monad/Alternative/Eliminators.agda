@@ -103,7 +103,7 @@ module _
     (ℕ → Maybe A) / (ℕ →ᴾ Maybeᴾ R) ↠ Delay (A / R)
   →Maybe/↠ =
     (ℕ → Maybe A) / (ℕ →ᴾ Maybeᴾ R)  ↔⟨ ℕ→/-comm′ ⟩
-    (ℕ → Maybe A / Maybeᴾ R)         ↔⟨ Eq.∀-preserves ext (λ _ → Eq.↔⇒≃ Maybe/-comm) ⟩
+    (ℕ → Maybe A / Maybeᴾ R)         ↔⟨ ∀-cong ext (λ _ → Maybe/-comm) ⟩
     (ℕ → Maybe (A / R))              ↝⟨ →↠Delay-function ⟩□
     Delay (A / R)                    □
 

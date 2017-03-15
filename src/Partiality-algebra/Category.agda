@@ -51,7 +51,7 @@ abstract
          ×
        (∀ x → P₁.now x ≡ P₂.now x)
          ×
-       ∀ s → P₁.⨆ s ≡ P₂.⨆ (Σ-map id (≡⇒→ (⊑≡⊑ _ _) ∘_) s))              ↔⟨ ∃-cong (λ ⊑≡⊑ → ∃-cong λ _ → ∃-cong λ _ → Eq.∀-preserves ext λ s →
+       ∀ s → P₁.⨆ s ≡ P₂.⨆ (Σ-map id (≡⇒→ (⊑≡⊑ _ _) ∘_) s))              ↝⟨ ∃-cong (λ ⊑≡⊑ → ∃-cong λ _ → ∃-cong λ _ → ∀-cong ext λ s →
                                                                               ≡⇒↝ _ $ cong (λ (p : {f : ℕ → Type} → _) →
                                                                                               P₁.⨆ s ≡ P₂.⨆ (Σ-map id p s)) $
                                                                                 _⇔_.to propositional⇔irrelevant
@@ -73,7 +73,7 @@ abstract
                             ≡⇒→ (cong (λ _⊑_ → ∀ n → f n ⊑ f (suc n))
                                       (Eq.good-ext ext
                                          (Eq.good-ext ext ∘ ⊑≡⊑))))
-                         s))                                             ↝⟨ Σ-cong (Eq.∀-preserves ext λ _ →
+                         s))                                             ↝⟨ Σ-cong (∀-cong ext λ _ →
                                                                                     Eq.extensionality-isomorphism ext) (λ _ → F.id) ⟩
     (∃ λ (⊑≡⊑ : ∀ x → P₁._⊑_ x ≡ P₂._⊑_ x) →
        P₁.never ≡ P₂.never
@@ -110,7 +110,7 @@ abstract
                                  ∀ n → proj₁ s n ⊑ proj₁ s (suc n))
                               ⊑≡⊑)
                         (proj₂ s)
-                  ))                                                     ↔⟨ ∃-cong (λ ⊑≡⊑ → ∃-cong λ _ → ∃-cong λ _ → Eq.∀-preserves ext λ _ →
+                  ))                                                     ↝⟨ ∃-cong (λ ⊑≡⊑ → ∃-cong λ _ → ∃-cong λ _ → ∀-cong ext λ _ →
                                                                               ≡⇒↝ _ $ cong (λ eq → _ ≡ P₂.⨆ (_ , ≡⇒→ eq _)) $ sym $
                                                                                 cong-∘ _ _ ⊑≡⊑) ⟩
     (∃ λ (⊑≡⊑ : P₁._⊑_ ≡ P₂._⊑_) →
@@ -124,7 +124,7 @@ abstract
                                          ∀ n → f n ⊑ f (suc n))
                               (cong (_, _) ⊑≡⊑))
                         (proj₂ s)
-                  ))                                                     ↔⟨ ∃-cong (λ ⊑≡⊑ → ∃-cong λ _ → ∃-cong λ _ → Eq.∀-preserves ext λ _ →
+                  ))                                                     ↝⟨ ∃-cong (λ ⊑≡⊑ → ∃-cong λ _ → ∃-cong λ _ → ∀-cong ext λ _ →
                                                                               ≡⇒↝ _ $ cong (λ inc → _ ≡ P₂.⨆ (_ , inc)) $ sym $
                                                                                 subst-in-terms-of-≡⇒↝ equivalence (cong (_, _) ⊑≡⊑) _ _) ⟩
     (∃ λ (⊑≡⊑ : P₁._⊑_ ≡ P₂._⊑_) →
@@ -138,7 +138,7 @@ abstract
                                      ∀ n → f n ⊑ f (suc n))
                           (cong (_, _) ⊑≡⊑)
                           (proj₂ s)
-                  ))                                                     ↔⟨ ∃-cong (λ ⊑≡⊑ → ∃-cong λ _ → ∃-cong λ _ → Eq.∀-preserves ext λ _ →
+                  ))                                                     ↝⟨ ∃-cong (λ ⊑≡⊑ → ∃-cong λ _ → ∃-cong λ _ → ∀-cong ext λ _ →
                                                                               ≡⇒↝ _ $ cong (λ eq → _ ≡
                                                                                                    P₂.⨆ (_ , subst (uncurry λ _⊑_ (f : ℕ → Type) →
                                                                                                                               ∀ n → f n ⊑ f (suc n))
@@ -155,7 +155,7 @@ abstract
                                      ∀ n → f n ⊑ f (suc n))
                           (Σ-≡,≡→≡ ⊑≡⊑ (subst-const ⊑≡⊑))
                           (proj₂ s)
-                  ))                                                     ↔⟨ ∃-cong (λ ⊑≡⊑ → ∃-cong λ _ → ∃-cong λ _ → Eq.∀-preserves ext λ _ →
+                  ))                                                     ↝⟨ ∃-cong (λ ⊑≡⊑ → ∃-cong λ _ → ∃-cong λ _ → ∀-cong ext λ _ →
                                                                               ≡⇒↝ _ $ cong (λ s → _ ≡ P₂.⨆ s) $ sym $
                                                                                 push-subst-pair′ {y≡z = ⊑≡⊑} _ _ (subst-const ⊑≡⊑)) ⟩
     (∃ λ (⊑≡⊑ : P₁._⊑_ ≡ P₂._⊑_) →
@@ -165,7 +165,7 @@ abstract
          ×
        ∀ s → P₁.⨆ s ≡
              P₂.⨆ (subst (λ _⊑_ → ∃ λ f → ∀ n → f n ⊑ f (suc n))
-                         ⊑≡⊑ s))                                         ↔⟨ ∃-cong (λ ⊑≡⊑ → ∃-cong λ _ → ∃-cong λ _ → Eq.∀-preserves ext λ _ →
+                         ⊑≡⊑ s))                                         ↝⟨ ∃-cong (λ ⊑≡⊑ → ∃-cong λ _ → ∃-cong λ _ → ∀-cong ext λ _ →
                                                                               ≡⇒↝ _ $ cong (λ eq → _ ≡
                                                                                                    P₂.⨆ (subst (λ _⊑_ → ∃ λ f → ∀ n →
                                                                                                                           f n ⊑ f (suc n)) eq _)) $
@@ -177,7 +177,7 @@ abstract
          ×
        ∀ s → P₁.⨆ s ≡
              P₂.⨆ (subst (λ _⊑_ → ∃ λ f → ∀ n → f n ⊑ f (suc n))
-                         (sym (sym ⊑≡⊑)) s))                             ↔⟨ ∃-cong (λ ⊑≡⊑ → ∃-cong λ _ → ∃-cong λ _ → Eq.∀-preserves ext λ _ →
+                         (sym (sym ⊑≡⊑)) s))                             ↝⟨ ∃-cong (λ ⊑≡⊑ → ∃-cong λ _ → ∃-cong λ _ → ∀-cong ext λ _ →
                                                                               ≡⇒↝ _ $ cong (λ f → _ ≡ f _) $ sym $
                                                                                 subst-→-domain _ (sym ⊑≡⊑)) ⟩
     (∃ λ (⊑≡⊑ : P₁._⊑_ ≡ P₂._⊑_) →
@@ -374,8 +374,8 @@ abstract
          ×
        (∀ x → P₁.now x ≡ P₂.now x)
          ×
-       ∀ s → P₁.⨆ s ≡ P₂.⨆ (Σ-map id (_⇔_.to (⊑⇔⊑ _ _) ∘_) s))  ↝⟨ Σ-cong (Eq.∀-preserves ext λ _ → Eq.∀-preserves ext λ _ →
-                                                                             Eq.↔⇒≃ $ Eq.⇔↔≃ ext P₁.⊑-propositional P₂.⊑-propositional)
+       ∀ s → P₁.⨆ s ≡ P₂.⨆ (Σ-map id (_⇔_.to (⊑⇔⊑ _ _) ∘_) s))  ↝⟨ Σ-cong (∀-cong ext λ _ → ∀-cong ext λ _ →
+                                                                             Eq.⇔↔≃ ext P₁.⊑-propositional P₂.⊑-propositional)
                                                                           (λ _ → F.id) ⟩
     (∃ λ (⊑≃⊑ : ∀ x y → (x P₁.⊑ y) ≃ (x P₂.⊑ y)) →
        P₁.never ≡ P₂.never
@@ -383,7 +383,7 @@ abstract
        (∀ x → P₁.now x ≡ P₂.now x)
          ×
        ∀ s → P₁.⨆ s ≡ P₂.⨆ (Σ-map id (_≃_.to (⊑≃⊑ _ _) ∘_) s))  ↝⟨ inverse $ Σ-cong
-                                                                     (Eq.∀-preserves ext λ _ → Eq.∀-preserves ext λ _ →
+                                                                     (∀-cong ext λ _ → ∀-cong ext λ _ →
                                                                         ≡≃≃ (_≃_.to
                                                                                (Propositional-extensionality-is-univalence-for-propositions
                                                                                   ext)

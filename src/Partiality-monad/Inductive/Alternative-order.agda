@@ -632,7 +632,7 @@ now≲⨆ {x} {s} =
                 (∀ m n → s′ [ m ] ≲ s [ n ] → s′ [ m ] ≲ ⨆ s)  ↝⟨ (λ hyp n s′≲s m → hyp m n (s′≲s m)) ⟩
 
                 (∀ n → (∀ m → s′ [ m ] ≲ s [ n ]) →
-                       (∀ m → s′ [ m ] ≲ ⨆ s))                 ↔⟨ Eq.∀-preserves ext (λ _ →
+                       (∀ m → s′ [ m ] ≲ ⨆ s))                 ↝⟨ ∀-cong ext (λ _ →
                                                                     ≡⇒↝ _ $ sym $ cong₂ (λ x y → x → y) ⨆≲ ⨆≲) ⟩□
                 (∀ n → ⨆ s′ ≲ s [ n ] → ⨆ s′ ≲ ⨆ s)            □
        ; pp = λ x → Π-closure ext 1 λ _ →
