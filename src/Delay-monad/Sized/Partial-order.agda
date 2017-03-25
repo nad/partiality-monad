@@ -9,10 +9,13 @@ open import Prelude hiding (module W)
 module Delay-monad.Sized.Partial-order {a} {A : Size → Set a} where
 
 open import Equality.Propositional
+open import H-level.Truncation.Propositional as Trunc
 open import Logical-equivalence using (_⇔_)
 
 open import Bijection equality-with-J using (_↔_)
-open import Function-universe equality-with-J hiding (_∘_)
+open import Double-negation equality-with-J
+open import Function-universe equality-with-J hiding (id; _∘_)
+open import H-level equality-with-J
 
 open import Delay-monad.Sized
 open import Delay-monad.Sized.Weak-bisimilarity as W
@@ -335,3 +338,15 @@ uninhabited→other-transitivity =
                                                                    ; from = λ hyp → _⇔_.to ∘ hyp , _⇔_.from ∘ hyp
                                                                    } ⟩□
   (∀ z → x W.⇓ z ⇔ y W.⇓ z)                              □
+
+-- If A ∞ is a set, then every computation is weakly bisimilar to
+-- either never or now something (assuming excluded middle).
+
+⇑⊎⇓ : Excluded-middle a → Is-set (A ∞) →
+      ∀ x → never ≈ x ⊎ ∃ λ y → x W.⇓ y
+⇑⊎⇓ em A-set x =
+  ⊎-map
+    (_⇔_.from ≈⇔≈′ ∘
+     Trunc.rec (W.≈′-propositional A-set) (_⇔_.to ≈⇔≈′))
+    (Trunc.rec (W.∃-Terminates-propositional A-set) id)
+    (W.∥⇑∥⊎∥⇓∥ em x)
