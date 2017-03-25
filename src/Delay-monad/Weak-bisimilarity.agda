@@ -465,6 +465,26 @@ Terminates-propositional A-set {i} =
     subst (flip (Weakly-bisimilar i) (now y) ∘ now) refl now-cong  ≡⟨⟩
     now-cong                                                       ∎
 
+-- If x terminates with y and z, then y is equal to z.
+
+termination-value-unique :
+  ∀ {i x y z} → Terminates i x y → Terminates i x z → y ≡ z
+termination-value-unique now-cong   now-cong   = refl
+termination-value-unique (laterʳ p) (laterʳ q) =
+  termination-value-unique p q
+
+-- If A is a set, then ∃ λ y → x ⇓ y is propositional.
+
+∃-Terminates-propositional :
+  Is-set A → ∀ {i x} → Is-proposition (∃ (Terminates i x))
+∃-Terminates-propositional A-set =
+  _⇔_.from propositional⇔irrelevant λ where
+    (y₁ , x⇓y₁) (y₂ , x⇓y₂) →
+      Σ-≡,≡→≡
+        (termination-value-unique x⇓y₁ x⇓y₂)
+        (_⇔_.to propositional⇔irrelevant
+           (Terminates-propositional A-set) _ _)
+
 -- An alternative definition of weak bisimilarity (basically the one
 -- used in the paper).
 --
