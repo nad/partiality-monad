@@ -67,6 +67,8 @@ mutual
 Terminates : Size → Delay A ∞ → A → Set a
 Terminates i x y = Weakly-bisimilar i (now y) x
 
+infix 4 _⇓_
+
 _⇓_ : Delay A ∞ → A → Set a
 _⇓_ = Terminates ∞
 
