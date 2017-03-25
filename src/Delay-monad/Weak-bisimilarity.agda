@@ -293,18 +293,22 @@ transitive-≈∼ p q =
 -- Some equational reasoning combinators.
 
 infix  -1 finally-≈ _∎≈
-infixr -2 _≈⟨_⟩_ _≈⟨_⟩∞_ _≈⟨⟩_ _∼⟨_⟩≈_ _≡⟨_⟩≈_ _≡⟨_⟩∞≈_ _≳⟨⟩_
+infixr -2 _≈⟨_⟩_ _≈⟨_⟩∼_ _≈⟨_⟩∞∼_ _≈⟨⟩_ _∼⟨_⟩≈_ _≡⟨_⟩≈_ _≡⟨_⟩∞≈_ _≳⟨⟩_
 
 _∎≈ : ∀ {i} (x : Delay A ∞) → Weakly-bisimilar i x x
 _∎≈ = reflexive
 
-_≈⟨_⟩_ : ∀ {i} (x : Delay A ∞) {y z} →
-         Weakly-bisimilar i x y → y ∼ z → Weakly-bisimilar i x z
-_ ≈⟨ p ⟩ q = transitive-≈∼ p q
+_≈⟨_⟩_ : ∀ (x : Delay A ∞) {y z} →
+         x ≈ y → y ≈ z → x ≈ z
+_ ≈⟨ p ⟩ q = transitive p q
 
-_≈⟨_⟩∞_ : ∀ {i} (x : Delay A ∞) {y z} →
+_≈⟨_⟩∼_ : ∀ {i} (x : Delay A ∞) {y z} →
+         Weakly-bisimilar i x y → y ∼ z → Weakly-bisimilar i x z
+_ ≈⟨ p ⟩∼ q = transitive-≈∼ p q
+
+_≈⟨_⟩∞∼_ : ∀ {i} (x : Delay A ∞) {y z} →
           ∞Weakly-bisimilar i x y → y ∼ z → ∞Weakly-bisimilar i x z
-force (_ ≈⟨ p ⟩∞ q) = transitive-≈∼ (force p) q
+force (_ ≈⟨ p ⟩∞∼ q) = transitive-≈∼ (force p) q
 
 _≈⟨⟩_ : ∀ {i} (x : Delay A ∞) {y} →
         Weakly-bisimilar i x y → Weakly-bisimilar i x y

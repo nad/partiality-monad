@@ -42,18 +42,18 @@ mutual
 
   ⟦⟧-correct (var x) {ρ} {c} {s} {k} hyp =
     exec ⟨ var x ∷ c , s , comp-env ρ ⟩                 ≳⟨⟩
-    exec ⟨ c , val (comp-val (ρ x)) ∷ s , comp-env ρ ⟩  ≈⟨ hyp (ρ x) ⟩
+    exec ⟨ c , val (comp-val (ρ x)) ∷ s , comp-env ρ ⟩  ≈⟨ hyp (ρ x) ⟩∼
     k (ρ x)                                             ∼⟨⟩
     ⟦ var x ⟧ ρ >>= k                                   ∎∼
 
   ⟦⟧-correct (ƛ t) {ρ} {c} {s} {k} hyp =
     exec ⟨ clo (comp t (ret ∷ [])) ∷ c , s , comp-env ρ ⟩   ≳⟨⟩
-    exec ⟨ c , val (comp-val (T.ƛ t ρ)) ∷ s , comp-env ρ ⟩  ≈⟨ hyp (T.ƛ t ρ) ⟩
+    exec ⟨ c , val (comp-val (T.ƛ t ρ)) ∷ s , comp-env ρ ⟩  ≈⟨ hyp (T.ƛ t ρ) ⟩∼
     k (T.ƛ t ρ)                                             ∼⟨⟩
     ⟦ ƛ t ⟧ ρ >>= k                                         ∎∼
 
   ⟦⟧-correct (t₁ · t₂) {ρ} {c} {s} {k} hyp =
-    exec ⟨ comp t₁ (comp t₂ (app ∷ c)) , s , comp-env ρ ⟩      ≈⟨ (⟦⟧-correct t₁ λ v₁ → ⟦⟧-correct t₂ λ v₂ → ∙-correct v₁ v₂ hyp) ⟩
+    exec ⟨ comp t₁ (comp t₂ (app ∷ c)) , s , comp-env ρ ⟩      ≈⟨ (⟦⟧-correct t₁ λ v₁ → ⟦⟧-correct t₂ λ v₂ → ∙-correct v₁ v₂ hyp) ⟩∼
 
     (⟦ t₁ ⟧ ρ >>= λ v₁ → ⟦ t₂ ⟧ ρ >>= λ v₂ → v₁ ∙ v₂ >>= k)    ∼⟨ (⟦ t₁ ⟧ ρ ∎∼) >>=-cong-∼ (λ _ → associativity′ (⟦ t₂ ⟧ ρ) _ _) ⟩
 
@@ -97,7 +97,7 @@ mutual
 
         exec ⟨ c , val (comp-val v) ∷ s , comp-env ρ ⟩                   ≈⟨ hyp v ⟩∎
 
-        k v                                                              ∎) ⟩∞
+        k v                                                              ∎) ⟩∞∼
 
       ⟦ t₁ ⟧ (snoc ρ₁ v₂) >>= k                                     ∎∼) ⟩∎
 

@@ -70,24 +70,24 @@ mutual
 
   ⟦⟧-correct (con i) {ρ} {c} {s} {k} hyp =
     run (exec ⟨ con i ∷ c , s , comp-env ρ ⟩)                     ≳⟨⟩
-    run (exec ⟨ c , val (comp-val (T.con i)) ∷ s , comp-env ρ ⟩)  ≈⟨ hyp (T.con i) ⟩
+    run (exec ⟨ c , val (comp-val (T.con i)) ∷ s , comp-env ρ ⟩)  ≈⟨ hyp (T.con i) ⟩∼
     run (k (T.con i))                                             ∼⟨⟩
     run (⟦ con i ⟧ ρ >>= k)                                       ∎∼
 
   ⟦⟧-correct (var x) {ρ} {c} {s} {k} hyp =
     run (exec ⟨ var x ∷ c , s , comp-env ρ ⟩)                 ≳⟨⟩
-    run (exec ⟨ c , val (comp-val (ρ x)) ∷ s , comp-env ρ ⟩)  ≈⟨ hyp (ρ x) ⟩
+    run (exec ⟨ c , val (comp-val (ρ x)) ∷ s , comp-env ρ ⟩)  ≈⟨ hyp (ρ x) ⟩∼
     run (k (ρ x))                                             ∼⟨⟩
     run (⟦ var x ⟧ ρ >>= k)                                   ∎∼
 
   ⟦⟧-correct (ƛ t) {ρ} {c} {s} {k} hyp =
     run (exec ⟨ clo (comp t (ret ∷ [])) ∷ c , s , comp-env ρ ⟩)   ≳⟨⟩
-    run (exec ⟨ c , val (comp-val (T.ƛ t ρ)) ∷ s , comp-env ρ ⟩)  ≈⟨ hyp (T.ƛ t ρ) ⟩
+    run (exec ⟨ c , val (comp-val (T.ƛ t ρ)) ∷ s , comp-env ρ ⟩)  ≈⟨ hyp (T.ƛ t ρ) ⟩∼
     run (k (T.ƛ t ρ))                                             ∼⟨⟩
     run (⟦ ƛ t ⟧ ρ >>= k)                                         ∎∼
 
   ⟦⟧-correct (t₁ · t₂) {ρ} {c} {s} {k} hyp =
-    run (exec ⟨ comp t₁ (comp t₂ (app ∷ c)) , s , comp-env ρ ⟩)    ≈⟨ (⟦⟧-correct t₁ λ v₁ → ⟦⟧-correct t₂ λ v₂ → ∙-correct v₁ v₂ hyp) ⟩
+    run (exec ⟨ comp t₁ (comp t₂ (app ∷ c)) , s , comp-env ρ ⟩)    ≈⟨ (⟦⟧-correct t₁ λ v₁ → ⟦⟧-correct t₂ λ v₂ → ∙-correct v₁ v₂ hyp) ⟩∼
 
     run (⟦ t₁ ⟧ ρ >>= λ v₁ → ⟦ t₂ ⟧ ρ >>= λ v₂ → v₁ ∙ v₂ >>= k)    ∼⟨ (run (⟦ t₁ ⟧ ρ) ∎∼) >>=-congM (λ _ → associativityM (⟦ t₂ ⟧ ρ) _ _) ⟩
 
@@ -140,7 +140,7 @@ mutual
 
         run (exec ⟨ c , val (comp-val v) ∷ s , comp-env ρ ⟩)                  ≈⟨ hyp v ⟩∎
 
-        run (k v)                                                             ∎) ⟩∞
+        run (k v)                                                             ∎) ⟩∞∼
 
       run (⟦ t₁ ⟧ (snoc ρ₁ v₂) >>= k)                                    ∎∼) ⟩∎
 
