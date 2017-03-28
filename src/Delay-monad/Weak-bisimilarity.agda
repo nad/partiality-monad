@@ -179,7 +179,40 @@ mutual
 ⇓-respects-≈ (laterʳ p) q          = ⇓-respects-≈ p (laterˡ⁻¹ q)
 ⇓-respects-≈ p          (laterʳ q) = laterʳ (⇓-respects-≈ p q)
 
--- The previous result can be made size-preserving in the second
+-- A variant of the previous result in which _≈_ is replaced by _∼_
+-- can be made size-preserving in the second argument iff A is
+-- uninhabited.
+
+size-preserving-⇓-respects-∼⇔uninhabited :
+  (∀ {i} {x y : Delay A ∞} {z} →
+   x ⇓ z → Strongly-bisimilar i x y → Terminates i y z) ⇔
+  ¬ A
+size-preserving-⇓-respects-∼⇔uninhabited = record
+  { to   = Trans                  ↝⟨ (λ trans → now≈never (λ {i} → trans {i})) ⟩
+           (∀ x → now x ≈ never)  ↝⟨ (λ hyp x → now≉never (hyp x)) ⟩
+           ¬ A                    □
+  ; from = ¬ A              ↝⟨ uninhabited→trivial ⟩
+           (∀ x y → x ≈ y)  ↝⟨ (λ trivial {_ _ _ _} _ _ → trivial _ _) ⟩□
+           Trans            □
+  }
+  where
+  Trans = ∀ {i} {x y : Delay A ∞} {z} →
+              x ⇓ z → Strongly-bisimilar i x y → Terminates i y z
+
+  mutual
+
+    now≈never : Trans → ∀ {i} x →
+                Weakly-bisimilar i (now x) never
+    now≈never trans x =
+      trans (laterʳ {y = record { force = now x }} (reflexive (now x)))
+            (later-cong (∞now∼never trans x))
+
+    ∞now∼never : Trans → ∀ {i} x →
+                 ∞Strongly-bisimilar i (now x) never
+    force (∞now∼never trans x) {j = j} =
+      ⊥-elim (now≉never (now≈never trans {i = j} x))
+
+-- The lemma ⇓-respects-≈ can be made size-preserving in the second
 -- argument iff A is uninhabited.
 
 size-preserving-⇓-respects-≈⇔uninhabited :
@@ -187,28 +220,19 @@ size-preserving-⇓-respects-≈⇔uninhabited :
    x ⇓ z → Weakly-bisimilar i x y → Terminates i y z) ⇔
   ¬ A
 size-preserving-⇓-respects-≈⇔uninhabited = record
-  { to   = Now-trans              ↝⟨ (λ trans → now≈never (λ {i} → trans {i})) ⟩
-           (∀ x → now x ≈ never)  ↝⟨ (λ hyp x → now≉never (hyp x)) ⟩
-           ¬ A                    □
+  { to   = RW   ↝⟨ (λ rw x⇓z → rw x⇓z ∘ ∼→≈) ⟩
+           RS   ↝⟨ _⇔_.to size-preserving-⇓-respects-∼⇔uninhabited ⟩□
+           ¬ A  □
   ; from = ¬ A              ↝⟨ uninhabited→trivial ⟩
            (∀ x y → x ≈ y)  ↝⟨ (λ trivial {_ _ _ _} _ _ → trivial _ _) ⟩□
-           Now-trans        □
+           RW               □
   }
   where
-  Now-trans = ∀ {i} {x y : Delay A ∞} {z} →
-              x ⇓ z → Weakly-bisimilar i x y → Terminates i y z
+  RW = ∀ {i} {x y : Delay A ∞} {z} →
+       x ⇓ z → Weakly-bisimilar i x y → Terminates i y z
 
-  mutual
-
-    now≈never : Now-trans → ∀ {i} x →
-                Weakly-bisimilar i (now x) never
-    now≈never trans x =
-      trans (laterʳ {y = record { force = now x }} (reflexive (now x)))
-            (later-cong (∞now≈never trans x))
-
-    ∞now≈never : Now-trans → ∀ {i} x →
-                 ∞Weakly-bisimilar i (now x) never
-    force (∞now≈never trans x) = now≈never trans x
+  RS = ∀ {i} {x y : Delay A ∞} {z} →
+       x ⇓ z → Strongly-bisimilar i x y → Terminates i y z
 
 mutual
 
@@ -238,7 +262,7 @@ size-preserving-transitivityʳ⇔uninhabited :
    x ≈ y → Weakly-bisimilar i y z → Weakly-bisimilar i x z) ⇔
   ¬ A
 size-preserving-transitivityʳ⇔uninhabited = record
-  { to   = Trans      ↝⟨ (λ trans {_ _ _ _} now-z≈x x≈y → trans now-z≈x x≈y) ⟩
+  { to   = Trans      ↝⟨ (λ trans → trans) ⟩
            Now-trans  ↝⟨ _⇔_.to size-preserving-⇓-respects-≈⇔uninhabited ⟩□
            ¬ A        □
   ; from = ¬ A              ↝⟨ uninhabited→trivial ⟩
@@ -292,6 +316,46 @@ transitive-≈∼ :
   Weakly-bisimilar i x y → y ∼ z → Weakly-bisimilar i x z
 transitive-≈∼ p q =
   symmetric (transitive-∼≈ (Strong.symmetric q) (symmetric p))
+
+-- There is a variant of transitivity-≈∼ that preserves the size of
+-- the second argument iff A is uninhabited.
+
+size-preserving-transitivity-≈∼ʳ⇔uninhabited :
+  (∀ {i} {x y z : Delay A ∞} →
+   x ≈ y → Strongly-bisimilar i y z → Weakly-bisimilar i x z) ⇔
+  ¬ A
+size-preserving-transitivity-≈∼ʳ⇔uninhabited = record
+  { to   = Trans      ↝⟨ (λ trans → trans) ⟩
+           Now-trans  ↝⟨ _⇔_.to size-preserving-⇓-respects-∼⇔uninhabited ⟩
+           ¬ A        □
+  ; from = ¬ A              ↝⟨ uninhabited→trivial ⟩
+           (∀ x y → x ≈ y)  ↝⟨ (λ trivial {_ _ _ _} _ _ → trivial _ _) ⟩□
+           Trans            □
+  }
+  where
+  Trans     = ∀ {i} {x y z : Delay A ∞} →
+              x ≈ y → Strongly-bisimilar i y z → Weakly-bisimilar i x z
+  Now-trans = ∀ {i} {x y : Delay A ∞} {z} →
+              x ⇓ z → Strongly-bisimilar i x y → Terminates i y z
+
+-- There is a variant of transitivity-∼≈ that preserves the size of
+-- the first argument iff A is uninhabited.
+
+size-preserving-transitivity-∼≈ˡ⇔uninhabited :
+  (∀ {i} {x y z : Delay A ∞} →
+   Strongly-bisimilar i x y → y ≈ z → Weakly-bisimilar i x z) ⇔
+  ¬ A
+size-preserving-transitivity-∼≈ˡ⇔uninhabited =
+  (∀ {i} {x y z : Delay A ∞} →
+   Strongly-bisimilar i x y → y ≈ z → Weakly-bisimilar i x z)  ↝⟨ record { to   = λ trans {_ _ _ _} p q →
+                                                                                    symmetric (trans (Strong.symmetric q) (symmetric p))
+                                                                         ; from = λ trans {_ _ _ _} p q →
+                                                                                    symmetric (trans (symmetric q) (Strong.symmetric p))
+                                                                         } ⟩
+  (∀ {i} {x y z : Delay A ∞} →
+   x ≈ y → Strongly-bisimilar i y z → Weakly-bisimilar i x z)  ↝⟨ size-preserving-transitivity-≈∼ʳ⇔uninhabited ⟩□
+
+  ¬ A                                                          □
 
 -- Some equational reasoning combinators.
 

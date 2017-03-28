@@ -180,39 +180,62 @@ mutual
 ⇓-respects-≈ (laterʳ p) q          = ⇓-respects-≈ p (laterˡ⁻¹ q)
 ⇓-respects-≈ p          (laterʳ q) = laterʳ (⇓-respects-≈ p q)
 
--- If the previous result can be made size-preserving in the second
--- argument, then ∀ i → A i is uninhabited.
+-- If a variant of the previous result in which _≈_ is replaced by _∼_
+-- can be made size-preserving in the second argument, then ∀ i → A i
+-- is uninhabited.
 
-Now-trans = ∀ {i} {x y : Delay A ∞} {z} →
-            x ⇓ z → Weakly-bisimilar i x y → Terminates i y z
+Now-trans-∼ = ∀ {i} {x y : Delay A ∞} {z} →
+              x ⇓ z → Strongly-bisimilar i x y → Terminates i y z
 
-size-preserving-⇓-respects-≈→uninhabited : Now-trans → ¬ (∀ i → A i)
-size-preserving-⇓-respects-≈→uninhabited =
-  Now-trans                              ↝⟨ (λ trans → now≈never (λ {i} → trans {i})) ⟩
+size-preserving-⇓-respects-∼→uninhabited : Now-trans-∼ → ¬ (∀ i → A i)
+size-preserving-⇓-respects-∼→uninhabited =
+  Now-trans-∼                            ↝⟨ (λ trans → now≈never (λ {i} → trans {i})) ⟩
   ((x : ∀ i → A i) → now (x ∞) ≈ never)  ↝⟨ (λ hyp x → now≉never (hyp x)) ⟩□
   ¬ (∀ i → A i)                          □
   where
   mutual
 
-    now≈never : Now-trans → ∀ {i} (x : ∀ i → A i) →
+    now≈never : Now-trans-∼ → ∀ {i} (x : ∀ i → A i) →
                 Weakly-bisimilar i (now (x ∞)) never
     now≈never trans x =
       trans (laterʳ {y = record { force = now (x _) }}
                     (reflexive (now (x ∞))))
-            (later-cong (∞now≈never trans x))
+            (later-cong (∞now∼never trans x))
 
-    ∞now≈never : Now-trans → ∀ {i} (x : ∀ i → A i) →
-                 ∞Weakly-bisimilar i (now (x ∞)) never
-    force (∞now≈never trans x) = now≈never trans x
+    ∞now∼never : Now-trans-∼ → ∀ {i} (x : ∀ i → A i) →
+                 ∞Strongly-bisimilar i (now (x ∞)) never
+    force (∞now∼never trans x) {j = j} =
+      ⊥-elim (now≉never (now≈never trans {i = j} x))
 
 -- If A ∞ is uninhabited, then there is a size-preserving transitivity
 -- proof of the kind mentioned above.
 
-uninhabited→size-preserving-⇓-respects-≈ : ¬ A ∞ → Now-trans
+uninhabited→size-preserving-⇓-respects-∼ : ¬ A ∞ → Now-trans-∼
+uninhabited→size-preserving-⇓-respects-∼ =
+  ¬ A ∞            ↝⟨ uninhabited→trivial ⟩
+  (∀ x y → x ≈ y)  ↝⟨ (λ trivial {_ _ _ _} _ _ → trivial _ _) ⟩□
+  Now-trans-∼      □
+
+-- If ⇓-respects-≈ can be made size-preserving in the second argument,
+-- then ∀ i → A i is uninhabited.
+
+Now-trans-≈ = ∀ {i} {x y : Delay A ∞} {z} →
+              x ⇓ z → Weakly-bisimilar i x y → Terminates i y z
+
+size-preserving-⇓-respects-≈→uninhabited : Now-trans-≈ → ¬ (∀ i → A i)
+size-preserving-⇓-respects-≈→uninhabited =
+  Now-trans-≈    ↝⟨ (λ trans x⇓z → trans x⇓z ∘ ∼→≈) ⟩
+  Now-trans-∼    ↝⟨ size-preserving-⇓-respects-∼→uninhabited ⟩□
+  ¬ (∀ i → A i)  □
+
+-- If A ∞ is uninhabited, then ⇓-respects-≈ can be made
+-- size-preserving in the second argument.
+
+uninhabited→size-preserving-⇓-respects-≈ : ¬ A ∞ → Now-trans-≈
 uninhabited→size-preserving-⇓-respects-≈ =
   ¬ A ∞            ↝⟨ uninhabited→trivial ⟩
   (∀ x y → x ≈ y)  ↝⟨ (λ trivial {_ _ _ _} _ _ → trivial _ _) ⟩□
-  Now-trans        □
+  Now-trans-≈      □
 
 mutual
 
@@ -256,22 +279,9 @@ size-preserving-transitivityˡ⇔size-preserving-transitivityʳ = record
 
 size-preserving-transitivityʳ→uninhabited : Transʳ → ¬ (∀ i → A i)
 size-preserving-transitivityʳ→uninhabited =
-  Transʳ                                 ↝⟨ (λ trans x → ≈never (λ {i} → trans {i})
-                                                                (record { force = now (x _) })) ⟩
-  ((x : ∀ i → A i) → now (x ∞) ≈ never)  ↝⟨ (λ hyp x → now≉never (hyp x)) ⟩□
-  ¬ (∀ i → A i)                          □
-  where
-  mutual
-
-    ≈never : Transʳ → ∀ {i} (x : ∞Delay _ _) →
-             Weakly-bisimilar i (force x) never
-    ≈never trans x =
-      trans (laterʳ {y = x} (reflexive (force x)))
-            (later-cong (∞≈never trans x))
-
-    ∞≈never : Transʳ → ∀ {i} (x : ∞Delay _ _) →
-              ∞Weakly-bisimilar i (force x) never
-    force (∞≈never trans x) = ≈never trans x
+  Transʳ         ↝⟨ (λ trans → trans) ⟩
+  Now-trans-≈    ↝⟨ size-preserving-⇓-respects-≈→uninhabited ⟩□
+  ¬ (∀ i → A i)  □
 
 -- If A ∞ is uninhabited, then there is a transitivity proof that
 -- preserves the size of the second argument.
@@ -304,6 +314,45 @@ transitive-≈∼ :
   Weakly-bisimilar i x y → y ∼ z → Weakly-bisimilar i x z
 transitive-≈∼ p q =
   symmetric (transitive-∼≈ (Strong.symmetric q) (symmetric p))
+
+-- Having a variant of transitivity-≈∼ that preserves the size of the
+-- second argument is logically equivalent to having a variant of
+-- transitivity-∼≈ that preserves the size of the first argument.
+
+Trans-≈∼ʳ = ∀ {i} {x y z : Delay A ∞} →
+            x ≈ y → Strongly-bisimilar i y z → Weakly-bisimilar i x z
+
+Trans-∼≈ˡ = ∀ {i} {x y z : Delay A ∞} →
+            Strongly-bisimilar i x y → y ≈ z → Weakly-bisimilar i x z
+
+size-preserving-transitivity-≈∼ʳ⇔size-preserving-transitivity-∼≈ˡ :
+  Trans-≈∼ʳ ⇔ Trans-∼≈ˡ
+size-preserving-transitivity-≈∼ʳ⇔size-preserving-transitivity-∼≈ˡ =
+  record
+    { to   = λ trans p q → symmetric
+                             (trans (symmetric q) (Strong.symmetric p))
+    ; from = λ trans p q → symmetric
+                             (trans (Strong.symmetric q) (symmetric p))
+    }
+
+-- If there is a variant of transitivity-≈∼ that preserves the size of
+-- the second argument, then ∀ i → A i is uninhabited.
+
+size-preserving-transitivity-≈∼ʳ→uninhabited :
+  Trans-≈∼ʳ → ¬ (∀ i → A i)
+size-preserving-transitivity-≈∼ʳ→uninhabited =
+  Trans-≈∼ʳ      ↝⟨ (λ trans → trans) ⟩
+  Now-trans-∼    ↝⟨ size-preserving-⇓-respects-∼→uninhabited ⟩
+  ¬ (∀ i → A i)  □
+
+-- If A ∞ is uninhabited, then there is a variant of transitivity-≈∼
+-- that preserves the size of the second argument.
+
+uninhabited→size-preserving-transitivity-≈∼ʳ : ¬ A ∞ → Trans-≈∼ʳ
+uninhabited→size-preserving-transitivity-≈∼ʳ =
+  ¬ A ∞            ↝⟨ uninhabited→trivial ⟩
+  (∀ x y → x ≈ y)  ↝⟨ (λ trivial {_ _ _ _} _ _ → trivial _ _) ⟩□
+  Trans-≈∼ʳ        □
 
 -- Some equational reasoning combinators.
 
