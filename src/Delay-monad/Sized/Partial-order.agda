@@ -18,6 +18,8 @@ open import Function-universe equality-with-J hiding (id; _∘_)
 open import H-level equality-with-J
 
 open import Delay-monad.Sized
+open import Delay-monad.Sized.Strong-bisimilarity as S
+  using (Strongly-bisimilar)
 open import Delay-monad.Sized.Weak-bisimilarity as W
   using (Weakly-bisimilar; ∞Weakly-bisimilar; _≈_; force)
 
@@ -258,47 +260,35 @@ mutual
 -- such a way that the size of the ordering proof is preserved, then
 -- ∀ i → A i is uninhabited.
 
-Other-trans = ∀ {i} {x y z : Delay A ∞} → x ≈ y → LE i y z → LE i x z
+Transitivity-≈⊑ʳ = ∀ {i} {x y z : Delay A ∞} → x ≈ y → LE i y z → LE i x z
 
-other-transitivity→uninhabited : Other-trans → ¬ (∀ i → A i)
-other-transitivity→uninhabited =
-  Other-trans                            ↝⟨ (λ trans x → never-top-element (λ {i} → trans {i}) (record { force = now (x _) })) ⟩
-  ((x : ∀ i → A i) → now (x ∞) ⊑ never)  ↝⟨ (λ hyp x → now⋢never (hyp x)) ⟩□
-  ¬ (∀ i → A i)                          □
-  where
-  mutual
+size-preserving-transitivity-≈⊑ʳ→uninhabited :
+  Transitivity-≈⊑ʳ → ¬ (∀ i → A i)
+size-preserving-transitivity-≈⊑ʳ→uninhabited =
+  Transitivity-≈⊑ʳ                                               ↝⟨ (λ trans {i} x →
 
-    never-top-element :
-      Other-trans → ∀ {i} (x : ∞Delay _ _) → LE i (force x) never
-    never-top-element trans x =
-      trans (W.laterʳ {y = x} (W.reflexive (force x)))
-            (later-cong (∞never-top-element trans x))
+      Strongly-bisimilar i
+        (later (record { force = λ {j} → now (x j) })) never           ↝⟨ ≈→⊑ ∘ W.∼→≈ ⟩
 
-    ∞never-top-element :
-      Other-trans → ∀ {i} (x : ∞Delay _ _) → ∞LE i (force x) never
-    force (∞never-top-element trans x) = never-top-element trans x
+      LE i (later (record { force = λ {j} → now (x j) })) never        ↝⟨ trans (W.laterʳ W.now-cong) ⟩
+
+      LE i (now (x ∞)) never                                           ↝⟨ _↔_.to ⇓↔⇓ ⟩□
+
+      W.Weakly-bisimilar i (now (x ∞)) never                           □) ⟩
+
+  W.Laterˡ⁻¹-∼≈                                                  ↝⟨ W.size-preserving-laterˡ⁻¹-∼≈→uninhabited ⟩
+
+  ¬ (∀ i → A i)                                                  □
 
 -- If A ∞ is uninhabited, then there is a transitivity proof of the
--- kind discussed above (Other-trans).
+-- kind discussed above (Transitivity-≈⊑ʳ).
 
-uninhabited→other-transitivity : ¬ A ∞ → Other-trans
-uninhabited→other-transitivity =
-  ¬ A ∞            ↝⟨ uninhabited→trivial ⟩
-  (∀ x y → x ⊑ y)  ↝⟨ (λ trivial {_ _ _ _} _ _ → trivial _ _) ⟩□
-  Other-trans      □
-  where
-  mutual
-
-    uninhabited→trivial : ∀ {i} → ¬ A ∞ → ∀ x y → LE i x y
-    uninhabited→trivial ¬A (now x)   _         = ⊥-elim (¬A x)
-    uninhabited→trivial ¬A (later x) (now y)   = ⊥-elim (¬A y)
-    uninhabited→trivial ¬A (later x) (later y) =
-      later-cong (∞uninhabited→trivial ¬A x y)
-
-    ∞uninhabited→trivial :
-      ∀ {i} → ¬ A ∞ → ∀ x y → ∞LE i (force x) (force y)
-    force (∞uninhabited→trivial ¬A x y) =
-      uninhabited→trivial ¬A (force x) (force y)
+uninhabited→size-preserving-transitivity-≈⊑ʳ : ¬ A ∞ → Transitivity-≈⊑ʳ
+uninhabited→size-preserving-transitivity-≈⊑ʳ =
+  ¬ A ∞             ↝⟨ W.uninhabited→trivial ⟩
+  (∀ x y → x ≈ y)   ↝⟨ (λ trivial _ _ → ≈→⊑ (trivial _ _)) ⟩
+  (∀ x y → x ⊑ y)   ↝⟨ (λ trivial {_ _ _ _} _ _ → trivial _ _) ⟩□
+  Transitivity-≈⊑ʳ  □
 
 -- An alternative characterisation of the ordering relation.
 --

@@ -17,6 +17,8 @@ open import Function-universe equality-with-J hiding (id; _∘_)
 open import H-level equality-with-J
 
 open import Delay-monad
+open import Delay-monad.Strong-bisimilarity as S
+  using (Strongly-bisimilar)
 open import Delay-monad.Weak-bisimilarity as W
   using (Weakly-bisimilar; ∞Weakly-bisimilar; _≈_; force)
 
@@ -257,44 +259,30 @@ mutual
 -- in such a way that the size of the ordering proof is preserved,
 -- iff A is uninhabited.
 
-other-transitivity⇔uninhabited :
-  (∀ {i} {x y z : Delay A ∞} → x ≈ y → LE i y z → LE i x z) ⇔
-  ¬ A
-other-transitivity⇔uninhabited = record
-  { to   = Trans                  ↝⟨ (λ trans x → never-top-element (λ {i} → trans {i}) (record { force = now x })) ⟩
-           (∀ x → now x ⊑ never)  ↝⟨ (λ hyp x → now⋢never (hyp x)) ⟩
-           ¬ A                    □
-  ; from = ¬ A              ↝⟨ uninhabited→trivial ⟩
-           (∀ x y → x ⊑ y)  ↝⟨ (λ trivial {_ _ _ _} _ _ → trivial _ _) ⟩□
-           Trans            □
+Transitivity-≈⊑ʳ =
+  ∀ {i} {x y z : Delay A ∞} → x ≈ y → LE i y z → LE i x z
+
+size-preserving-transitivity-≈⊑ʳ⇔uninhabited : Transitivity-≈⊑ʳ ⇔ ¬ A
+size-preserving-transitivity-≈⊑ʳ⇔uninhabited = record
+  { to   = Transitivity-≈⊑ʳ                                   ↝⟨ (λ trans {i x} →
+
+               Strongly-bisimilar i
+                 (later (record { force = now x })) never           ↝⟨ ≈→⊑ ∘ W.∼→≈ ⟩
+
+               LE i (later (record { force = now x })) never        ↝⟨ trans (W.laterʳ W.now-cong) ⟩
+
+               LE i (now x) never                                   ↝⟨ _↔_.to ⇓↔⇓ ⟩□
+
+               W.Weakly-bisimilar i (now x) never                   □) ⟩
+
+           W.Laterˡ⁻¹-∼≈                                      ↝⟨ _⇔_.to W.size-preserving-laterˡ⁻¹-∼≈⇔uninhabited ⟩
+
+           ¬ A                                                □
+  ; from = ¬ A               ↝⟨ W.uninhabited→trivial ⟩
+           (∀ x y → x ≈ y)   ↝⟨ (λ trivial _ _ → ≈→⊑ (trivial _ _)) ⟩
+           (∀ x y → x ⊑ y)   ↝⟨ (λ trivial {_ _ _ _} _ _ → trivial _ _) ⟩□
+           Transitivity-≈⊑ʳ  □
   }
-  where
-  Trans = ∀ {i} {x y z : Delay A ∞} → x ≈ y → LE i y z → LE i x z
-
-  mutual
-
-    never-top-element :
-      Trans → ∀ {i} (x : ∞Delay _ _) → LE i (force x) never
-    never-top-element trans x =
-      trans (W.laterʳ {y = x} (W.reflexive (force x)))
-            (later-cong (∞never-top-element trans x))
-
-    ∞never-top-element :
-      Trans → ∀ {i} (x : ∞Delay _ _) → ∞LE i (force x) never
-    force (∞never-top-element trans x) = never-top-element trans x
-
-  mutual
-
-    uninhabited→trivial : ∀ {i} → ¬ A → ∀ x y → LE i x y
-    uninhabited→trivial ¬A (now x)   _         = ⊥-elim (¬A x)
-    uninhabited→trivial ¬A (later x) (now y)   = ⊥-elim (¬A y)
-    uninhabited→trivial ¬A (later x) (later y) =
-      later-cong (∞uninhabited→trivial ¬A x y)
-
-    ∞uninhabited→trivial :
-      ∀ {i} → ¬ A → ∀ x y → ∞LE i (force x) (force y)
-    force (∞uninhabited→trivial ¬A x y) =
-      uninhabited→trivial ¬A (force x) (force y)
 
 -- An alternative characterisation of the ordering relation.
 --
