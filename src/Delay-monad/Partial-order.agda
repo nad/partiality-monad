@@ -244,14 +244,14 @@ transitive-≈⊑ p q = transitive (≈→⊑ p) q
 
 mutual
 
-  transitive-⊑≈ : ∀ {i x y z} → x ⊑ y → y ≈ z → LE i x z
+  transitive-⊑≈ : ∀ {i x y z} → LE i x y → y ≈ z → LE i x z
   transitive-⊑≈ p          W.now-cong       = p
   transitive-⊑≈ (laterʳ p) (W.later-cong q) = laterʳ (transitive-⊑≈ p (force q))
   transitive-⊑≈ (laterˡ p) q                = laterˡ (∞transitive-⊑≈ p q)
   transitive-⊑≈ (laterʳ p) (W.laterˡ q)     = transitive-⊑≈ p q
   transitive-⊑≈ p          (W.laterʳ q)     = laterʳ (transitive-⊑≈ p q)
 
-  ∞transitive-⊑≈ : ∀ {i x y z} → x ∞⊑ y → y ≈ z → ∞LE i x z
+  ∞transitive-⊑≈ : ∀ {i x y z} → ∞LE i x y → y ≈ z → ∞LE i x z
   force (∞transitive-⊑≈ p q) = transitive-⊑≈ (force p) q
 
 -- There is a transitivity-like function that produces an ordering
