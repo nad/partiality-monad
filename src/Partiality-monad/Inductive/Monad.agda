@@ -253,8 +253,8 @@ map-∘ f g =
      ; po = λ x →
               now x >>=′ f ⇓ y                                   ↝⟨ ≡⇒↝ _ (cong (_⇓ y) now->>=) ⟩
               f x ⇓ y                                            ↔⟨ inverse (∥∥↔ (⊥-is-set _ _)) ⟩
-              ∥ f x ⇓ y ∥                                        ↔⟨ ∥∥-cong (inverse $ drop-⊤-left-Σ $ inverse $
-                                                                      _⇔_.to contractible⇔⊤↔ (other-singleton-contractible _)) ⟩
+              ∥ f x ⇓ y ∥                                        ↔⟨ ∥∥-cong (inverse $ drop-⊤-left-Σ $
+                                                                      _⇔_.to contractible⇔↔⊤ (other-singleton-contractible _)) ⟩
               ∥ ∃ (λ (p : ∃ (λ z → x ≡ z)) → f (proj₁ p) ⇓ y) ∥  ↔⟨ ∥∥-cong (inverse Σ-assoc) ⟩
               ∥ ∃ (λ z → x ≡ z × f z ⇓ y) ∥                      ↔⟨ inverse $ Trunc.flatten′
                                                                       (λ F → ∃ (λ _ → F (_ ≡ _) × _))

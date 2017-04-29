@@ -493,7 +493,7 @@ abstract
       (∃ λ (Type : SET p) → Partiality-algebra-with (proj₁ Type) q A)  ↔⟨ inverse Σ-assoc ⟩
 
       (∃ λ (Type : Set p) →
-         Is-set Type × Partiality-algebra-with Type q A)               ↔⟨ ∃-cong (λ _ → drop-⊤-left-× λ P → inverse $ _⇔_.to contractible⇔⊤↔ $
+         Is-set Type × Partiality-algebra-with Type q A)               ↔⟨ ∃-cong (λ _ → drop-⊤-left-× λ P → _⇔_.to contractible⇔↔⊤ $
                                                                             propositional⇒inhabited⇒contractible
                                                                               (H-level-propositional ext 2)
                                                                               (Partiality-algebra-with.Type-is-set P)) ⟩
