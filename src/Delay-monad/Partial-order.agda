@@ -255,9 +255,9 @@ mutual
   force (∞transitive-⊑≈ p q) = transitive-⊑≈ (force p) q
 
 -- There is a transitivity-like function that produces an ordering
--- proof from one weak bisimilarity proof and one ordering proof,
--- in such a way that the size of the ordering proof is preserved,
--- iff A is uninhabited.
+-- proof from one weak bisimilarity proof and one ordering proof, in
+-- such a way that the size of the ordering proof is preserved, iff A
+-- is uninhabited.
 
 Transitivity-≈⊑ʳ =
   ∀ {i} {x y z : Delay A ∞} → x ≈ y → LE i y z → LE i x z
@@ -282,6 +282,54 @@ size-preserving-transitivity-≈⊑ʳ⇔uninhabited = record
            (∀ x y → x ≈ y)   ↝⟨ (λ trivial _ _ → ≈→⊑ (trivial _ _)) ⟩
            (∀ x y → x ⊑ y)   ↝⟨ (λ trivial {_ _ _ _} _ _ → trivial _ _) ⟩□
            Transitivity-≈⊑ʳ  □
+  }
+
+-- Transitivity can be made size-preserving in the second argument iff
+-- A is uninhabited.
+
+Transitivityʳ =
+  ∀ {i} {x y z : Delay A ∞} → x ⊑ y → LE i y z → LE i x z
+
+size-preserving-transitivityʳ⇔uninhabited : Transitivityʳ ⇔ ¬ A
+size-preserving-transitivityʳ⇔uninhabited = record
+  { to   = Transitivityʳ     ↝⟨ _∘ ≈→⊑ ⟩
+           Transitivity-≈⊑ʳ  ↝⟨ _⇔_.to size-preserving-transitivity-≈⊑ʳ⇔uninhabited ⟩□
+           ¬ A               □
+  ; from = ¬ A              ↝⟨ W.uninhabited→trivial ⟩
+           (∀ x y → x ≈ y)  ↝⟨ (λ trivial _ _ → ≈→⊑ (trivial _ _)) ⟩
+           (∀ x y → x ⊑ y)  ↝⟨ (λ trivial {_ _ _ _} _ _ → trivial _ _) ⟩□
+           Transitivityʳ    □
+  }
+
+-- There is a transitivity-like function that produces an ordering
+-- proof from one ordering proof and one weak bisimilarity proof, in
+-- such a way that the size of the weak bisimilarity proof is
+-- preserved, iff A is uninhabited.
+
+Transitivity-⊑≈ʳ =
+  ∀ {i} {x y z : Delay A ∞} → x ⊑ y → Weakly-bisimilar i y z → LE i x z
+
+size-preserving-transitivity-⊑≈ʳ⇔uninhabited : Transitivity-⊑≈ʳ ⇔ ¬ A
+size-preserving-transitivity-⊑≈ʳ⇔uninhabited = record
+  { to   = Transitivity-⊑≈ʳ                                ↝⟨ (λ trans {i x} →
+
+               Strongly-bisimilar i
+                 (later (record { force = now x })) never        ↝⟨ W.∼→≈ ⟩
+
+               Weakly-bisimilar i
+                 (later (record { force = now x })) never        ↝⟨ trans (laterʳ now-cong) ⟩
+
+               LE i (now x) never                                ↝⟨ _↔_.to ⇓↔⇓ ⟩□
+
+               Weakly-bisimilar i (now x) never                  □) ⟩
+
+           W.Laterˡ⁻¹-∼≈                                   ↝⟨ _⇔_.to W.size-preserving-laterˡ⁻¹-∼≈⇔uninhabited ⟩
+
+           ¬ A                                             □
+  ; from = ¬ A               ↝⟨ W.uninhabited→trivial ⟩
+           (∀ x y → x ≈ y)   ↝⟨ (λ trivial _ _ → ≈→⊑ (trivial _ _)) ⟩
+           (∀ x y → x ⊑ y)   ↝⟨ (λ trivial {_ _ _ _} _ _ → trivial _ _) ⟩□
+           Transitivity-⊑≈ʳ  □
   }
 
 -- An alternative characterisation of the ordering relation.

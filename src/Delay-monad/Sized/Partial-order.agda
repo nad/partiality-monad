@@ -290,6 +290,66 @@ uninhabited→size-preserving-transitivity-≈⊑ʳ =
   (∀ x y → x ⊑ y)   ↝⟨ (λ trivial {_ _ _ _} _ _ → trivial _ _) ⟩□
   Transitivity-≈⊑ʳ  □
 
+-- If transitivity can be made size-preserving in the second argument,
+-- then ∀ i → A i is uninhabited.
+
+Transitivityʳ =
+  ∀ {i} {x y z : Delay A ∞} → x ⊑ y → LE i y z → LE i x z
+
+size-preserving-transitivityʳ→uninhabited :
+  Transitivityʳ → ¬ (∀ i → A i)
+size-preserving-transitivityʳ→uninhabited =
+  Transitivityʳ     ↝⟨ _∘ ≈→⊑ ⟩
+  Transitivity-≈⊑ʳ  ↝⟨ size-preserving-transitivity-≈⊑ʳ→uninhabited ⟩□
+  ¬ (∀ i → A i)     □
+
+-- If A ∞ is uninhabited, then transitivity can be made
+-- size-preserving in the second argument.
+
+uninhabited→size-preserving-transitivityʳ : ¬ A ∞ → Transitivityʳ
+uninhabited→size-preserving-transitivityʳ =
+  ¬ A ∞            ↝⟨ W.uninhabited→trivial ⟩
+  (∀ x y → x ≈ y)  ↝⟨ (λ trivial _ _ → ≈→⊑ (trivial _ _)) ⟩
+  (∀ x y → x ⊑ y)  ↝⟨ (λ trivial {_ _ _ _} _ _ → trivial _ _) ⟩□
+  Transitivityʳ    □
+
+-- If there is a transitivity-like function that produces an ordering
+-- proof from one ordering proof and one weak bisimilarity proof, in
+-- such a way that the size of the weak bisimilarity proof is
+-- preserved, then ∀ i → A i is uninhabited.
+
+Transitivity-⊑≈ʳ =
+  ∀ {i} {x y z : Delay A ∞} → x ⊑ y → Weakly-bisimilar i y z → LE i x z
+
+size-preserving-transitivity-⊑≈ʳ→uninhabited :
+  Transitivity-⊑≈ʳ → ¬ (∀ i → A i)
+size-preserving-transitivity-⊑≈ʳ→uninhabited =
+  Transitivity-⊑≈ʳ                                            ↝⟨ (λ trans {i} x →
+
+      Strongly-bisimilar i
+        (later (record { force = λ {j} → now (x j) })) never        ↝⟨ W.∼→≈ ⟩
+
+      Weakly-bisimilar i
+        (later (record { force = λ {j} → now (x j) })) never        ↝⟨ trans (laterʳ now-cong) ⟩
+
+      LE i (now (x ∞)) never                                        ↝⟨ _↔_.to ⇓↔⇓ ⟩□
+
+      Weakly-bisimilar i (now (x ∞)) never                          □) ⟩
+
+  W.Laterˡ⁻¹-∼≈                                               ↝⟨ W.size-preserving-laterˡ⁻¹-∼≈→uninhabited ⟩
+
+  ¬ (∀ i → A i)                                               □
+
+-- If A ∞ is uninhabited, then there is a transitivity-like function of the
+-- kind discussed above (Transitivity-⊑≈ʳ).
+
+uninhabited→size-preserving-transitivity-⊑≈ʳ : ¬ A ∞ → Transitivity-⊑≈ʳ
+uninhabited→size-preserving-transitivity-⊑≈ʳ =
+  ¬ A ∞             ↝⟨ W.uninhabited→trivial ⟩
+  (∀ x y → x ≈ y)   ↝⟨ (λ trivial _ _ → ≈→⊑ (trivial _ _)) ⟩
+  (∀ x y → x ⊑ y)   ↝⟨ (λ trivial {_ _ _ _} _ _ → trivial _ _) ⟩□
+  Transitivity-⊑≈ʳ  □
+
 -- An alternative characterisation of the ordering relation.
 --
 -- Capretta proves a similar result in "General Recursion via
