@@ -119,6 +119,15 @@ _⇓_ = Terminates ∞
   to∘from W.now-cong   = refl
   to∘from (W.laterʳ p) = cong W.laterʳ (to∘from p)
 
+-- Terminates i is isomorphic to Terminates ∞.
+
+Terminates↔⇓ : ∀ {i x y} → Terminates i x y ↔ x ⇓ y
+Terminates↔⇓ {i} {x} {y} =
+  Terminates i x y    ↝⟨ ⇓↔⇓ ⟩
+  W.Terminates i x y  ↝⟨ W.Terminates↔⇓ ⟩
+  x W.⇓ y             ↝⟨ inverse ⇓↔⇓ ⟩□
+  x ⇓ y               □
+
 mutual
 
   -- The computation never is smaller than or equal to all other
@@ -354,6 +363,10 @@ uninhabited→size-preserving-transitivity-⊑≈ʳ =
 --
 -- Capretta proves a similar result in "General Recursion via
 -- Coinductive Types".
+--
+-- One might wonder if the equivalence can be made size-preserving in
+-- some way. However, note that x ⇓ y is in bijective correspondence
+-- with Terminates i x y for any size i (see Terminates↔⇓).
 
 ⊑⇔⇓→⇓ : ∀ {x y} → x ⊑ y ⇔ (∀ z → x ⇓ z → y ⇓ z)
 ⊑⇔⇓→⇓ = record

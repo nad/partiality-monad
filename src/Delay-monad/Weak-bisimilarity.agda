@@ -12,6 +12,7 @@ open import Interval using (ext)
 open import Logical-equivalence using (_⇔_)
 open import Prelude
 
+open import Bijection equality-with-J using (_↔_)
 open import Double-negation equality-with-J
 open import Function-universe equality-with-J hiding (id; _∘_)
 open import H-level equality-with-J
@@ -75,15 +76,39 @@ infix 4 _⇓_
 _⇓_ : Delay A ∞ → A → Set a
 _⇓_ = Terminates ∞
 
--- Terminates i is contained in Terminates ∞.
+-- Terminates i is isomorphic to Terminates ∞.
 --
 -- Note that Terminates carves out an "inductive fragment" of
 -- Weakly-bisimilar: the only "coinductive" constructor, later-cong,
 -- does not target Terminates.
 
-terminates→⇓ : ∀ {i x y} → Terminates i x y → x ⇓ y
-terminates→⇓ now-cong   = now-cong
-terminates→⇓ (laterʳ p) = laterʳ (terminates→⇓ p)
+Terminates↔⇓ : ∀ {i x y} → Terminates i x y ↔ x ⇓ y
+Terminates↔⇓ = record
+  { surjection = record
+    { logical-equivalence = record
+      { to   = to
+      ; from = from _
+      }
+    ; right-inverse-of = to∘from
+    }
+  ; left-inverse-of = from∘to
+  }
+  where
+  to : ∀ {i x y} → Terminates i x y → x ⇓ y
+  to now-cong   = now-cong
+  to (laterʳ p) = laterʳ (to p)
+
+  from : ∀ i {x y} → x ⇓ y → Terminates i x y
+  from _ now-cong   = now-cong
+  from _ (laterʳ p) = laterʳ (from _ p)
+
+  to∘from : ∀ {i x y} (p : x ⇓ y) → to (from i p) ≡ p
+  to∘from now-cong   = refl
+  to∘from (laterʳ p) = cong laterʳ (to∘from p)
+
+  from∘to : ∀ {i x y} (p : Terminates i x y) → from i (to p) ≡ p
+  from∘to now-cong   = refl
+  from∘to (laterʳ p) = cong laterʳ (from∘to p)
 
 -- The computation never is not terminating.
 
