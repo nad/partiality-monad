@@ -440,7 +440,8 @@ mutual
 -- is replaced by strong bisimilarity, and both arguments are
 -- specialised, can be made size-preserving iff A is uninhabited.
 --
--- This lemma is used to prove all the results below.
+-- This lemma is used to prove all the results below (directly or
+-- indirectly).
 
 Laterˡ⁻¹-∼≈ =
   ∀ {i x} →

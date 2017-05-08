@@ -430,7 +430,8 @@ mutual
 -- are specialised, can be made size-preserving, then ∀ i → A i is
 -- uninhabited.
 --
--- This lemma is used to prove all similar results below.
+-- This lemma is used to prove all similar results below (directly or
+-- indirectly).
 
 Laterˡ⁻¹-∼≈ =
   ∀ {i} (x : ∀ i → A i) →
