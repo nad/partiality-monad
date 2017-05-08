@@ -306,6 +306,41 @@ laterˡʳ⁻¹ p q = laterˡʳ⁻¹′ p q refl refl
   ∞Weakly-bisimilar i (force x) (force y)
 force (∞laterˡʳ⁻¹ p q) = laterˡʳ⁻¹ (force p) (force q)
 
+mutual
+
+  -- If a computation does not terminate, then it is weakly bisimilar
+  -- to never.
+
+  ¬⇓→⇑ : ∀ {i} x → ¬ (∃ λ y → x ⇓ y) → Weakly-bisimilar i never x
+  ¬⇓→⇑ (now x)   ¬⇓ = ⊥-elim (¬⇓ (_ , now-cong))
+  ¬⇓→⇑ (later x) ¬⇓ = later-cong (∞¬⇓→⇑ _ (¬⇓ ∘ Σ-map id laterʳ))
+
+  ∞¬⇓→⇑ : ∀ {i} x → ¬ (∃ λ y → x ⇓ y) → ∞Weakly-bisimilar i never x
+  force (∞¬⇓→⇑ x ¬⇓) = ¬⇓→⇑ x ¬⇓
+
+-- In the double-negation monad every computation is weakly
+-- bisimilar to either never or now something.
+
+¬¬[⇑⊎⇓] : ∀ x → ¬¬ (never ≈ x ⊎ ∃ λ y → x ⇓ y)
+¬¬[⇑⊎⇓] x = [ inj₂ , inj₁ ∘ ¬⇓→⇑ _ ] ⟨$⟩ excluded-middle
+
+-- Every computation is weakly bisimilar to either never or
+-- now something (assuming excluded middle). See also
+-- Delay-monad.Sized.Partial-order.⇑⊎⇓.
+
+∥⇑∥⊎∥⇓∥ : Excluded-middle a → ∀ x → ∥ never ≈ x ∥ ⊎ ∥ (∃ λ y → x ⇓ y) ∥
+∥⇑∥⊎∥⇓∥ em x =
+  Excluded-middle→Double-negation-elimination em
+    (⊎-closure-propositional
+       (Trunc.rec (Π-closure ext 1 λ _ → ⊥-propositional) λ x⇑ →
+        Trunc.rec ⊥-propositional λ { (y , x⇓y) →
+          now≉never (now y  ≈⟨ x⇓y ⟩
+                     x      ≈⟨ symmetric x⇑ ⟩∎
+                     never  ∎) })
+       truncation-is-proposition
+       truncation-is-proposition)
+    (⊎-map ∣_∣ ∣_∣ ⟨$⟩ ¬¬[⇑⊎⇓] x)
+
 -- The notion of weak bisimilarity defined here is not necessarily
 -- propositional.
 
@@ -366,6 +401,9 @@ termination-value-unique (laterʳ p) (laterʳ q) =
         (_⇔_.to propositional⇔irrelevant
            (Terminates-propositional A-set) _ _)
 
+------------------------------------------------------------------------
+-- Alternative definitions of weak bisimilarity
+
 -- An alternative definition of weak bisimilarity (basically the one
 -- used in the paper).
 --
@@ -377,7 +415,7 @@ infix 4 _≈′_
 _≈′_ : Delay A ∞ → Delay A ∞ → Set a
 x ≈′ y = ∀ z → x ⇓ z ⇔ y ⇓ z
 
--- If A ∞ is a set, then the alternative definition of weak
+-- If A ∞ is a set, then this alternative definition of weak
 -- bisimilarity is propositional.
 
 ≈′-propositional : Is-set (A ∞) → ∀ {x y} → Is-proposition (x ≈′ y)
@@ -386,40 +424,123 @@ x ≈′ y = ∀ z → x ⇓ z ⇔ y ⇓ z
   ⇔-closure ext 1 (Terminates-propositional A-set)
                   (Terminates-propositional A-set)
 
+-- Another alternative definition of weak bisimilarity, basically the
+-- one given by Capretta in "General Recursion via Coinductive Types".
+
 mutual
 
-  -- If a computation does not terminate, then it is weakly bisimilar
-  -- to never.
+  data Weakly-bisimilar″ (i : Size) :
+         Delay A ∞ → Delay A ∞ → Set a where
+    both-terminate : ∀ {x y v} → x ⇓ v → y ⇓ v → Weakly-bisimilar″ i x y
+    later-cong     : ∀ {x y} →
+                     ∞Weakly-bisimilar″ i (force x) (force y) →
+                     Weakly-bisimilar″ i (later x) (later y)
 
-  ¬⇓→⇑ : ∀ {i} x → ¬ (∃ λ y → x ⇓ y) → Weakly-bisimilar i never x
-  ¬⇓→⇑ (now x)   ¬⇓ = ⊥-elim (¬⇓ (_ , now-cong))
-  ¬⇓→⇑ (later x) ¬⇓ = later-cong (∞¬⇓→⇑ _ (¬⇓ ∘ Σ-map id laterʳ))
+  record ∞Weakly-bisimilar″ (i : Size) (x y : Delay A ∞) : Set a where
+    coinductive
+    field
+      force : {j : Size< i} → Weakly-bisimilar″ j x y
 
-  ∞¬⇓→⇑ : ∀ {i} x → ¬ (∃ λ y → x ⇓ y) → ∞Weakly-bisimilar i never x
-  force (∞¬⇓→⇑ x ¬⇓) = ¬⇓→⇑ x ¬⇓
+open ∞Weakly-bisimilar″ public
 
--- In the double-negation monad every computation is weakly
--- bisimilar to either never or now something.
+infix 4 _≈″_
 
-¬¬[⇑⊎⇓] : ∀ x → ¬¬ (never ≈ x ⊎ ∃ λ y → x ⇓ y)
-¬¬[⇑⊎⇓] x = [ inj₂ , inj₁ ∘ ¬⇓→⇑ _ ] ⟨$⟩ excluded-middle
+_≈″_ : Delay A ∞ → Delay A ∞ → Set a
+_≈″_ = Weakly-bisimilar″ ∞
 
--- Every computation is weakly bisimilar to either never or
--- now something (assuming excluded middle). See also
--- Delay-monad.Sized.Partial-order.⇑⊎⇓.
+-- If ∀ i → A i is inhabited, then this definition is not
+-- propositional.
 
-∥⇑∥⊎∥⇓∥ : Excluded-middle a → ∀ x → ∥ never ≈ x ∥ ⊎ ∥ (∃ λ y → x ⇓ y) ∥
-∥⇑∥⊎∥⇓∥ em x =
-  Excluded-middle→Double-negation-elimination em
-    (⊎-closure-propositional
-       (Trunc.rec (Π-closure ext 1 λ _ → ⊥-propositional) λ x⇑ →
-        Trunc.rec ⊥-propositional λ { (y , x⇓y) →
-          now≉never (now y  ≈⟨ x⇓y ⟩
-                     x      ≈⟨ symmetric x⇑ ⟩∎
-                     never  ∎) })
-       truncation-is-proposition
-       truncation-is-proposition)
-    (⊎-map ∣_∣ ∣_∣ ⟨$⟩ ¬¬[⇑⊎⇓] x)
+¬-≈″-propositional : (∀ i → A i) → ¬ (∀ {x y} → Is-proposition (x ≈″ y))
+¬-≈″-propositional x =
+  (∀ {x y} → Is-proposition (x ≈″ y))  ↝⟨ (λ prop → prop) ⟩
+  Is-proposition (y ≈″ y)              ↝⟨ _⇔_.to propositional⇔irrelevant ⟩
+  Proof-irrelevant (y ≈″ y)            ↝⟨ (_$ _) ∘ (_$ _) ⟩
+  proof₁ ≡ proof₂                      ↝⟨ (λ ()) ⟩□
+  ⊥                                    □
+  where
+  ∞y : ∞Delay A ∞
+  force ∞y {j = j} = now (x j)
+
+  y : Delay A ∞
+  y = later ∞y
+
+  proof₁ : y ≈″ y
+  proof₁ = both-terminate (laterʳ now-cong) (laterʳ now-cong)
+
+  ∞proof₂ : ∞Weakly-bisimilar″ ∞ (now (x ∞)) (now (x ∞))
+  force ∞proof₂ = both-terminate now-cong now-cong
+
+  proof₂ : y ≈″ y
+  proof₂ = later-cong ∞proof₂
+
+-- The last definition of weak bisimilarity given above is pointwise
+-- logically equivalent to the first one. Note that the proof is
+-- size-preserving.
+
+Weakly-bisimilar⇔Weakly-bisimilar″ :
+  ∀ {i x y} → Weakly-bisimilar i x y ⇔ Weakly-bisimilar″ i x y
+Weakly-bisimilar⇔Weakly-bisimilar″ = record { to = to; from = from }
+  where
+  mutual
+
+    laterˡ′ : ∀ {i x x′ y} →
+              x′ ≡ force x →
+              Weakly-bisimilar″ i x′ y →
+              Weakly-bisimilar″ i (later x) y
+    laterˡ′ eq (both-terminate x⇓ y⇓) = both-terminate
+                                          (laterʳ (subst (_⇓ _) eq x⇓))
+                                          y⇓
+    laterˡ′ eq (later-cong p)         = later-cong (∞laterˡ′ eq p)
+
+    ∞laterˡ′ : ∀ {i x x′ y} →
+               later x′ ≡ x →
+               ∞Weakly-bisimilar″ i (force x′) y →
+               ∞Weakly-bisimilar″ i x y
+    force (∞laterˡ′ refl p) = laterˡ′ refl (force p)
+
+  mutual
+
+    laterʳ′ : ∀ {i x y y′} →
+              y′ ≡ force y →
+              Weakly-bisimilar″ i x y′ →
+              Weakly-bisimilar″ i x (later y)
+    laterʳ′ eq (both-terminate x⇓ y⇓) = both-terminate
+                                          x⇓
+                                          (laterʳ (subst (_⇓ _) eq y⇓))
+    laterʳ′ eq (later-cong p)         = later-cong (∞laterʳ′ eq p)
+
+    ∞laterʳ′ : ∀ {i x y y′} →
+               later y′ ≡ y →
+               ∞Weakly-bisimilar″ i x (force y′) →
+               ∞Weakly-bisimilar″ i x y
+    force (∞laterʳ′ refl p) = laterʳ′ refl (force p)
+
+  mutual
+
+    to : ∀ {i x y} → Weakly-bisimilar i x y → Weakly-bisimilar″ i x y
+    to now-cong       = both-terminate now-cong now-cong
+    to (later-cong p) = later-cong (∞to p)
+    to (laterˡ p)     = laterˡ′ refl (to p)
+    to (laterʳ p)     = laterʳ′ refl (to p)
+
+    ∞to : ∀ {i x y} → ∞Weakly-bisimilar i x y → ∞Weakly-bisimilar″ i x y
+    force (∞to p) = to (force p)
+
+  mutual
+
+    from : ∀ {i x y} → Weakly-bisimilar″ i x y → Weakly-bisimilar i x y
+    from (both-terminate x⇓v y⇓v) = from⇓ x⇓v y⇓v
+    from (later-cong p)           = later-cong (∞from p)
+
+    from⇓ : ∀ {i x y v} → x ⇓ v → y ⇓ v → Weakly-bisimilar i x y
+    from⇓ now-cong   now-cong   = now-cong
+    from⇓ p          (laterʳ q) = laterʳ (from⇓ p q)
+    from⇓ (laterʳ p) q          = laterˡ (from⇓ p q)
+
+    ∞from :
+      ∀ {i x y} → ∞Weakly-bisimilar″ i x y → ∞Weakly-bisimilar i x y
+    force (∞from p) = from (force p)
 
 ------------------------------------------------------------------------
 -- Lemmas stating that certain size-preserving functions cannot be
