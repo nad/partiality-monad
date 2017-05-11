@@ -147,6 +147,10 @@ import Delay-monad.Strong-bisimilarity
 
 import Delay-monad.Weak-bisimilarity
 
+-- The expansion relation.
+
+import Delay-monad.Expansion
+
 -- A partial order.
 
 import Delay-monad.Partial-order
