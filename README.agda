@@ -147,6 +147,11 @@ import Delay-monad.Strong-bisimilarity
 
 import Delay-monad.Weak-bisimilarity
 
+-- An example showing that transitivity-like proofs that are not
+-- size-preserving can sometimes be used in a compositional way.
+
+import Delay-monad.Transitivity-constructor
+
 -- The expansion relation.
 
 import Delay-monad.Expansion
