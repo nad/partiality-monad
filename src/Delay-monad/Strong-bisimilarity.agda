@@ -6,7 +6,7 @@
 
 module Delay-monad.Strong-bisimilarity where
 
-open import Equality.Propositional using (_≡_; subst; sym)
+open import Equality.Propositional using (_≡_; subst; cong; sym)
 open import Prelude
 
 open import Delay-monad
@@ -46,6 +46,21 @@ module _ {a} {A : Set a} where
 Extensionality : (ℓ : Level) → Set (lsuc ℓ)
 Extensionality a =
   {A : Set a} {x y : Delay A ∞} → x ∼ y → x ≡ y
+
+-- Another form of extensionality.
+
+∞Extensionality : (ℓ : Level) → Set (lsuc ℓ)
+∞Extensionality a =
+  {A : Set a} {x y : ∞Delay A ∞} → force x ∞∼ force y → x ≡ y
+
+-- The latter form of extensionality implies the former.
+
+∞Extensionality→Extensionality :
+  ∀ {ℓ} → ∞Extensionality ℓ → Extensionality ℓ
+∞Extensionality→Extensionality ext {x = x} {y = y} p =
+  cong (λ x → force x)
+       (ext {x = λ { .force → x }} {y = λ { .force → y }}
+            λ { .force → p })
 
 module _ {a} {A : Set a} where
 
