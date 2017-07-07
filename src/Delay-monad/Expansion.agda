@@ -299,6 +299,11 @@ mutual
     x ≳ y → ∞Weakly-bisimilar i y z → ∞Weakly-bisimilar i x z
   force (∞transitive-≳≈ p q) = transitive-≳≈ p (force q)
 
+transitive-≈≲ :
+  ∀ {i} {x y z : Delay A ∞} →
+  Weakly-bisimilar i x y → y ≲ z → Weakly-bisimilar i x z
+transitive-≈≲ p q = Weak.symmetric (transitive-≳≈ q (Weak.symmetric p))
+
 -- Some special cases of symmetry hold.
 
 mutual
