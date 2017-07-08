@@ -120,7 +120,7 @@ mutual
 -- The computation never is not an expansion of now x.
 
 never≵now : ∀ {i x} → ¬ Expansion i never (now x)
-never≵now = Weak.now≉never ∘ Weak.symmetric ∘ ≳→≈
+never≵now {i} = Weak.now≉never {i = i} ∘ Weak.symmetric ∘ ≳→≈
 
 -- The computation now x is not an expansion of never.
 
