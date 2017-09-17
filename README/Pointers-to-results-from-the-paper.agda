@@ -8,6 +8,11 @@ module README.Pointers-to-results-from-the-paper where
 
 -- Library code.
 
+import Delay-monad
+import Delay-monad.Monad
+import Delay-monad.Partial-order
+import Delay-monad.Strong-bisimilarity as Strong-bisimilarity
+import Delay-monad.Weak-bisimilarity as Weak-bisimilarity
 import Equality.Propositional as Equality
 import Interval
 import H-level
@@ -17,16 +22,11 @@ import Univalence-axiom
 
 -- Code from this development.
 
-import Delay-monad
 import Delay-monad.Alternative
 import Delay-monad.Alternative.Equivalence
 import Delay-monad.Alternative.Partial-order
 import Delay-monad.Alternative.Termination
 import Delay-monad.Alternative.Weak-bisimilarity
-import Delay-monad.Monad
-import Delay-monad.Partial-order
-import Delay-monad.Strong-bisimilarity as Strong-bisimilarity
-import Delay-monad.Weak-bisimilarity as Weak-bisimilarity
 import Lifting
 import Partiality-algebra
 import Partiality-algebra.Category
