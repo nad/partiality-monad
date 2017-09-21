@@ -7,7 +7,7 @@
 module Partiality-monad.Inductive.Strict-omega-continuous where
 
 open import Equality.Propositional
-open import Interval using (ext)
+open import Interval using (⟨ext⟩)
 open import Prelude hiding (⊥)
 
 open import Bijection equality-with-J using (_↔_)
@@ -116,7 +116,7 @@ partial↔strict {a} = record
           x >>=′ (function f ∘ return)  ≡⟨ >>=-∘-return f x ⟩∎
           function f x                  ∎
     }
-  ; left-inverse-of = λ f → ext λ x →
+  ; left-inverse-of = λ f → ⟨ext⟩ λ x →
       return x >>=′ f  ≡⟨ Monad-laws.left-identity x f ⟩∎
       f x              ∎
   }

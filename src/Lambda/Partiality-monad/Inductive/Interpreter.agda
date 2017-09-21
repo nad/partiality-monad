@@ -7,7 +7,7 @@
 module Lambda.Partiality-monad.Inductive.Interpreter where
 
 open import Equality.Propositional
-open import Interval using (ext)
+open import Interval using (⟨ext⟩)
 open import Prelude hiding (⊥)
 
 open import Bijection equality-with-J using (_↔_)
@@ -175,8 +175,8 @@ interpreters-equal = λ t ρ →
     ⟦⟧-lemma (var x)   ρ n = refl
     ⟦⟧-lemma (ƛ t)     ρ n = refl
     ⟦⟧-lemma (t₁ · t₂) ρ n =
-      cong₂ _>>=_ (⟦⟧-lemma t₁ ρ n) $ ext $ flip maybe refl λ v₁ →
-      cong₂ _>>=_ (⟦⟧-lemma t₂ ρ n) $ ext $ flip maybe refl λ v₂ →
+      cong₂ _>>=_ (⟦⟧-lemma t₁ ρ n) $ ⟨ext⟩ $ flip maybe refl λ v₁ →
+      cong₂ _>>=_ (⟦⟧-lemma t₂ ρ n) $ ⟨ext⟩ $ flip maybe refl λ v₂ →
       ∙-lemma v₁ v₂ n
 
     ∙-lemma :

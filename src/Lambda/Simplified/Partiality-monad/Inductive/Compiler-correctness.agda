@@ -8,7 +8,7 @@ module Lambda.Simplified.Partiality-monad.Inductive.Compiler-correctness
   where
 
 open import Equality.Propositional
-open import Interval using (ext)
+open import Interval using (⟨ext⟩)
 open import Prelude hiding (⊥)
 
 open import Monad equality-with-J
@@ -71,7 +71,7 @@ mutual
            evalⁿ t₂ ρ (suc n) >>=′ λ v₂ →
            (v₁ ∙ⁿ v₂) n >>=
            k n)                                               ≡⟨ cong (evalⁿ t₁ ρ (suc n) >>=′_)
-                                                                      (ext λ _ → associativity (evalⁿ t₂ ρ (suc n)) _ _) ⟩≳
+                                                                      (⟨ext⟩ λ _ → associativity (evalⁿ t₂ ρ (suc n)) _ _) ⟩≳
     (λ n → evalⁿ t₁ ρ (suc n) >>=′ λ v₁ →
            (evalⁿ t₂ ρ (suc n) >>=′ λ v₂ → (v₁ ∙ⁿ v₂) n) >>=
            k n)                                               ≡⟨ associativity (evalⁿ t₁ ρ (suc n)) _ _ ⟩≳

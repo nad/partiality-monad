@@ -7,7 +7,7 @@
 module Partiality-monad.Inductive.Monad.Adjunction where
 
 open import Equality.Propositional
-open import Interval using (ext)
+open import Interval using (ext; ⟨ext⟩)
 open import Logical-equivalence using (_⇔_)
 open import Prelude hiding (⊥)
 
@@ -107,7 +107,7 @@ drop-now-constant :
 drop-now-constant =
   cong (λ now → record { partiality-algebra-with =
                            record { now = now } })
-       (ext λ x → ⊥-elim x)
+       (⟨ext⟩ λ x → ⊥-elim x)
 
 -- Converts types to ω-cppos.
 
@@ -215,7 +215,7 @@ Partial⊣Forget {ℓ} =
   , ε
   , (λ {X} →
        let P = Partial⊚ (proj₁ X) in
-       _↔_.to equality-characterisation-Morphism $ ext $
+       _↔_.to equality-characterisation-Morphism $ ⟨ext⟩ $
        ⊥-rec-⊥ record
          { pe = fun P (function (Partial⊙ PI.now) PI.never)  ≡⟨ cong (fun P) $ strict (Partial⊙ PI.now) ⟩
                 fun P PI.never                               ≡⟨ strict (m P) ⟩∎
@@ -231,7 +231,7 @@ Partial⊣Forget {ℓ} =
                   PI.⨆ s                                       ∎
          ; pp = λ _ → PI.⊥-is-set _ _
          })
-  , (λ {X} → ext λ x →
+  , (λ {X} → ⟨ext⟩ λ x →
        fun X (PI.now x)  ≡⟨ fun-now X ⟩∎
        x                 ∎)
   where
@@ -242,7 +242,7 @@ Partial⊣Forget {ℓ} =
   η : id⇨ ⇾ Forget ∙⇨ Partial
   _⇾_.natural-transformation η =
       PI.now
-    , (λ {X Y f} → ext λ x →
+    , (λ {X Y f} → ⟨ext⟩ λ x →
          function (Partial⊙ f) (PI.now x)  ≡⟨ Partial⊙-now ⟩∎
          PI.now (f x)                      ∎)
 
@@ -270,7 +270,7 @@ Partial⊣Forget {ℓ} =
       (λ {X} → m X)
     , (λ {X Y f} →
          let m′ = (Partial ∙⇨ Forget) ⊙ f in
-         _↔_.to equality-characterisation-Morphism $ ext $
+         _↔_.to equality-characterisation-Morphism $ ⟨ext⟩ $
          ⊥-rec-⊥ record
            { pe = function f (fun X PI.never)   ≡⟨ cong (function f) (strict (m X)) ⟩
                   function f (never X)          ≡⟨ strict f ⟩

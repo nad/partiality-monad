@@ -7,7 +7,7 @@
 module Partiality-algebra.Category where
 
 open import Equality.Propositional
-open import Interval using (ext)
+open import Interval using (ext; ⟨ext⟩; bad-ext)
 open import Logical-equivalence using (_⇔_)
 open import Prelude
 
@@ -61,7 +61,7 @@ abstract
                                                                                    P₂.⊑-propositional)
                                                                                   (≡⇒→ (⊑≡⊑ _ _) ∘_)
                                                                                   (λ {f} → ≡⇒→ (cong (λ _⊑_ → ∀ n → f n ⊑ f (suc n))
-                                                                                                     (Eq.good-ext ext (Eq.good-ext ext ∘ ⊑≡⊑))))) ⟩
+                                                                                                     (⟨ext⟩ (⟨ext⟩ ∘ ⊑≡⊑))))) ⟩
     (∃ λ (⊑≡⊑ : ∀ x y → (x P₁.⊑ y) ≡ (x P₂.⊑ y)) →
        P₁.never ≡ P₂.never
          ×
@@ -71,10 +71,9 @@ abstract
              P₂.⨆ (Σ-map id
                          (λ {f} →
                             ≡⇒→ (cong (λ _⊑_ → ∀ n → f n ⊑ f (suc n))
-                                      (Eq.good-ext ext
-                                         (Eq.good-ext ext ∘ ⊑≡⊑))))
+                                      (⟨ext⟩ (⟨ext⟩ ∘ ⊑≡⊑))))
                          s))                                             ↝⟨ Σ-cong (∀-cong ext λ _ →
-                                                                                    Eq.extensionality-isomorphism ext) (λ _ → F.id) ⟩
+                                                                                    Eq.extensionality-isomorphism bad-ext) (λ _ → F.id) ⟩
     (∃ λ (⊑≡⊑ : ∀ x → P₁._⊑_ x ≡ P₂._⊑_ x) →
        P₁.never ≡ P₂.never
          ×
@@ -84,8 +83,8 @@ abstract
              P₂.⨆ (Σ-map id
                          (λ {f} →
                             ≡⇒→ (cong (λ _⊑_ → ∀ n → f n ⊑ f (suc n))
-                                      (Eq.good-ext ext ⊑≡⊑)))
-                         s))                                             ↝⟨ Σ-cong (Eq.extensionality-isomorphism ext) (λ _ → F.id) ⟩
+                                      (⟨ext⟩ ⊑≡⊑)))
+                         s))                                             ↝⟨ Σ-cong (Eq.extensionality-isomorphism bad-ext) (λ _ → F.id) ⟩
 
     (∃ λ (⊑≡⊑ : P₁._⊑_ ≡ P₂._⊑_) →
        P₁.never ≡ P₂.never

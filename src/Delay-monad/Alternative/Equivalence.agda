@@ -8,7 +8,7 @@
 module Delay-monad.Alternative.Equivalence {a} {A : Set a} where
 
 open import Equality.Propositional
-open import Interval
+open import Interval using (⟨ext⟩; cong-ext; cong-pre-∘-ext)
 open import Logical-equivalence using (_⇔_)
 open import Prelude hiding (↑)
 
@@ -79,19 +79,19 @@ Delay↠Delay = record
 
   from∘to : ∀ x → from (to x) ≡ x
   from∘to x = Σ-≡,≡→≡
-    (ext (proj₁∘from∘to x))
-    (ext λ n →
+    (⟨ext⟩ (proj₁∘from∘to x))
+    (⟨ext⟩ λ n →
 
        subst Increasing
-             (ext (proj₁∘from∘to x))
+             (⟨ext⟩ (proj₁∘from∘to x))
              (proj₂ (from (to x)))
-             n                        ≡⟨ sym $ push-subst-application (ext (proj₁∘from∘to x)) (flip Increasing-at) ⟩
+             n                          ≡⟨ sym $ push-subst-application (⟨ext⟩ (proj₁∘from∘to x)) (flip Increasing-at) ⟩
 
        subst (Increasing-at n)
-             (ext (proj₁∘from∘to x))
-             (proj₂ (from (to x)) n)  ≡⟨ uncurry proj₂∘from∘to x n _ refl ⟩∎
+             (⟨ext⟩ (proj₁∘from∘to x))
+             (proj₂ (from (to x)) n)    ≡⟨ uncurry proj₂∘from∘to x n _ refl ⟩∎
 
-       proj₂ x n                      ∎)
+       proj₂ x n                        ∎)
 
     where
 
@@ -116,7 +116,7 @@ Delay↠Delay = record
       ∀ n x (g0↓x : g 0 ↓ x) p → p ≡ g-increasing 0 →
 
       subst (Increasing-at n)
-            (ext (sym ∘ ↓-upwards-closed₀ g-increasing g0↓x))
+            (⟨ext⟩ (sym ∘ ↓-upwards-closed₀ g-increasing g0↓x))
             (inj₁ refl)
         ≡
       g-increasing n
@@ -130,84 +130,83 @@ Delay↠Delay = record
     ↓-lemma g g-inc zero x g0↓x (inj₁ g0≡g1) ≡g-inc0 =
 
       subst (Increasing-at zero)
-            (ext (sym ∘ ↓-upwards-closed₀ g-inc g0↓x))
-            (inj₁ refl)                                       ≡⟨ push-subst-inj₁
-                                                                   {y≡z = ext (sym ∘ ↓-upwards-closed₀ g-inc g0↓x)}
-                                                                   (λ f → f 0 ≡ f 1) (λ f → f 0 ↑ × ¬ f 1 ↑) ⟩
+            (⟨ext⟩ (sym ∘ ↓-upwards-closed₀ g-inc g0↓x))
+            (inj₁ refl)                                         ≡⟨ push-subst-inj₁
+                                                                     {y≡z = ⟨ext⟩ (sym ∘ ↓-upwards-closed₀ g-inc g0↓x)}
+                                                                     (λ f → f 0 ≡ f 1) (λ f → f 0 ↑ × ¬ f 1 ↑) ⟩
       inj₁ (subst (λ f → f 0 ≡ f 1)
-                  (ext (sym ∘ ↓-upwards-closed₀ g-inc g0↓x))
-                  refl)                                       ≡⟨ cong inj₁ lemma ⟩
+                  (⟨ext⟩ (sym ∘ ↓-upwards-closed₀ g-inc g0↓x))
+                  refl)                                         ≡⟨ cong inj₁ lemma ⟩
 
-      inj₁ g0≡g1                                              ≡⟨ ≡g-inc0 ⟩∎
+      inj₁ g0≡g1                                                ≡⟨ ≡g-inc0 ⟩∎
 
-      g-inc zero                                              ∎
+      g-inc zero                                                ∎
 
       where
       eq    = ↓-upwards-closed₀ g-inc g0↓x
       lemma =
 
-        subst (λ f → f 0 ≡ f 1) (ext (sym ∘ eq)) refl      ≡⟨ subst-in-terms-of-trans-and-cong {x≡y = ext (sym ∘ eq)} ⟩
+        subst (λ f → f 0 ≡ f 1) (⟨ext⟩ (sym ∘ eq)) refl      ≡⟨ subst-in-terms-of-trans-and-cong {x≡y = ⟨ext⟩ (sym ∘ eq)} ⟩
 
-        trans (sym (cong (_$ 0) (ext (sym ∘ eq))))
-              (trans refl (cong (_$ 1) (ext (sym ∘ eq))))  ≡⟨ cong (trans (sym (cong (_$ 0) (ext (sym ∘ eq))))) $
-                                                                trans-reflˡ (cong (_$ 1) (ext (sym ∘ eq))) ⟩
-        trans (sym (cong (_$ 0) (ext (sym ∘ eq))))
-              (cong (_$ 1) (ext (sym ∘ eq)))               ≡⟨ cong₂ (λ p q → trans (sym p) q) (cong-ext (sym ∘ eq)) (cong-ext (sym ∘ eq)) ⟩
+        trans (sym (cong (_$ 0) (⟨ext⟩ (sym ∘ eq))))
+              (trans refl (cong (_$ 1) (⟨ext⟩ (sym ∘ eq))))  ≡⟨ cong (trans (sym (cong (_$ 0) (⟨ext⟩ (sym ∘ eq))))) $
+                                                                  trans-reflˡ (cong (_$ 1) (⟨ext⟩ (sym ∘ eq))) ⟩
+        trans (sym (cong (_$ 0) (⟨ext⟩ (sym ∘ eq))))
+              (cong (_$ 1) (⟨ext⟩ (sym ∘ eq)))               ≡⟨ cong₂ (λ p q → trans (sym p) q) (cong-ext (sym ∘ eq)) (cong-ext (sym ∘ eq)) ⟩
 
-        trans (sym $ sym $ eq 0) (sym $ eq 1)              ≡⟨ cong (λ eq′ → trans eq′ (sym $ eq 1)) $ sym-sym _ ⟩
+        trans (sym $ sym $ eq 0) (sym $ eq 1)                ≡⟨ cong (λ eq′ → trans eq′ (sym $ eq 1)) $ sym-sym _ ⟩
 
-        trans (eq 0) (sym $ eq 1)                          ≡⟨⟩
+        trans (eq 0) (sym $ eq 1)                            ≡⟨⟩
 
-        trans g0↓x (sym $ ↓.step g-inc g0↓x (g-inc 0))     ≡⟨ cong (λ eq′ → trans g0↓x (sym $ ↓.step g-inc g0↓x eq′)) $ sym $ ≡g-inc0 ⟩
+        trans g0↓x (sym $ ↓.step g-inc g0↓x (g-inc 0))       ≡⟨ cong (λ eq′ → trans g0↓x (sym $ ↓.step g-inc g0↓x eq′)) $ sym $ ≡g-inc0 ⟩
 
-        trans g0↓x (sym $ ↓.step g-inc g0↓x (inj₁ g0≡g1))  ≡⟨⟩
+        trans g0↓x (sym $ ↓.step g-inc g0↓x (inj₁ g0≡g1))    ≡⟨⟩
 
-        trans g0↓x (sym $ trans (sym g0≡g1) g0↓x)          ≡⟨ cong (trans g0↓x) $ sym-trans (sym g0≡g1) g0↓x ⟩
+        trans g0↓x (sym $ trans (sym g0≡g1) g0↓x)            ≡⟨ cong (trans g0↓x) $ sym-trans (sym g0≡g1) g0↓x ⟩
 
-        trans g0↓x (trans (sym g0↓x) (sym (sym g0≡g1)))    ≡⟨ trans--[trans-sym] _ _ ⟩
+        trans g0↓x (trans (sym g0↓x) (sym (sym g0≡g1)))      ≡⟨ trans--[trans-sym] _ _ ⟩
 
-        sym (sym g0≡g1)                                    ≡⟨ sym-sym _ ⟩∎
+        sym (sym g0≡g1)                                      ≡⟨ sym-sym _ ⟩∎
 
-        g0≡g1                                              ∎
+        g0≡g1                                                ∎
 
     ↓-lemma g g-inc (suc n) x g0↓x (inj₁ g0≡g1) ≡g-inc0 =
 
       subst (Increasing-at (suc n))
-            (ext (sym ∘ ↓-upwards-closed₀ g-inc g0↓x))
-            (inj₁ refl)                                               ≡⟨⟩
+            (⟨ext⟩ (sym ∘ ↓-upwards-closed₀ g-inc g0↓x))
+            (inj₁ refl)                                                   ≡⟨⟩
 
       subst (Increasing-at n ∘ (_∘ suc))
-            (ext (sym ∘ ↓-upwards-closed₀ g-inc g0↓x))
-            (inj₁ refl)                                               ≡⟨ subst-∘ (Increasing-at n) (_∘ suc)
-                                                                                 (ext (sym ∘ ↓-upwards-closed₀ g-inc g0↓x)) ⟩
+            (⟨ext⟩ (sym ∘ ↓-upwards-closed₀ g-inc g0↓x))
+            (inj₁ refl)                                                   ≡⟨ subst-∘ (Increasing-at n) (_∘ suc)
+                                                                                     (⟨ext⟩ (sym ∘ ↓-upwards-closed₀ g-inc g0↓x)) ⟩
       subst (Increasing-at n)
-            (cong (_∘ suc)
-               (ext (sym ∘ ↓-upwards-closed₀ g-inc g0↓x)))
-            (inj₁ refl)                                               ≡⟨ cong (λ eq → subst (Increasing-at n) eq _) $
-                                                                           cong-pre-∘-ext (sym ∘ ↓-upwards-closed₀ g-inc g0↓x) ⟩
+            (cong (_∘ suc) (⟨ext⟩ (sym ∘ ↓-upwards-closed₀ g-inc g0↓x)))
+            (inj₁ refl)                                                   ≡⟨ cong (λ eq → subst (Increasing-at n) eq _) $
+                                                                               cong-pre-∘-ext (sym ∘ ↓-upwards-closed₀ g-inc g0↓x) ⟩
       subst (Increasing-at n)
-            (ext (sym ∘ ↓-upwards-closed₀ g-inc g0↓x ∘ suc))
-            (inj₁ refl)                                               ≡⟨⟩
+            (⟨ext⟩ (sym ∘ ↓-upwards-closed₀ g-inc g0↓x ∘ suc))
+            (inj₁ refl)                                                   ≡⟨⟩
 
       subst (Increasing-at n)
-            (ext (sym ∘ ↓-upwards-closed₀ (g-inc ∘ suc)
-                          (↓.step g-inc g0↓x (g-inc 0))))
-            (inj₁ refl)                                               ≡⟨ cong (λ p → subst (Increasing-at n)
-                                                                                           (ext (sym ∘ ↓-upwards-closed₀ (g-inc ∘ suc)
-                                                                                                         (↓.step g-inc g0↓x p)))
-                                                                                           (inj₁ refl))
-                                                                              (sym ≡g-inc0) ⟩
+            (⟨ext⟩ (sym ∘ ↓-upwards-closed₀ (g-inc ∘ suc)
+                            (↓.step g-inc g0↓x (g-inc 0))))
+            (inj₁ refl)                                                   ≡⟨ cong (λ p → subst (Increasing-at n)
+                                                                                               (⟨ext⟩ (sym ∘ ↓-upwards-closed₀ (g-inc ∘ suc)
+                                                                                                               (↓.step g-inc g0↓x p)))
+                                                                                               (inj₁ refl))
+                                                                                  (sym ≡g-inc0) ⟩
       subst (Increasing-at n)
-            (ext (sym ∘ ↓-upwards-closed₀ (g-inc ∘ suc)
-                          (↓.step g-inc g0↓x (inj₁ g0≡g1))))
-            (inj₁ refl)                                               ≡⟨⟩
+            (⟨ext⟩ (sym ∘ ↓-upwards-closed₀ (g-inc ∘ suc)
+                            (↓.step g-inc g0↓x (inj₁ g0≡g1))))
+            (inj₁ refl)                                                   ≡⟨⟩
 
       subst (Increasing-at n)
-            (ext (sym ∘ ↓-upwards-closed₀ (g-inc ∘ suc)
-                                          (trans (sym g0≡g1) g0↓x)))
-            (inj₁ refl)                                               ≡⟨ ↓-lemma (g ∘ suc) (g-inc ∘ suc) n _ _ _ refl ⟩∎
+            (⟨ext⟩ (sym ∘ ↓-upwards-closed₀ (g-inc ∘ suc)
+                            (trans (sym g0≡g1) g0↓x)))
+            (inj₁ refl)                                                   ≡⟨ ↓-lemma (g ∘ suc) (g-inc ∘ suc) n _ _ _ refl ⟩∎
 
-      g-inc (suc n)                                                   ∎
+      g-inc (suc n)                                                       ∎
 
     proj₂∘from∘to :
       (g : ℕ → Maybe A) →
@@ -215,7 +214,7 @@ Delay↠Delay = record
       ∀ n y (g0≡y : g 0 ≡ y) →
 
       subst (Increasing-at n)
-            (ext (proj₁∘from∘to′ g g-increasing y g0≡y))
+            (⟨ext⟩ (proj₁∘from∘to′ g g-increasing y g0≡y))
             (proj₂ (from (To.to′ g y)) n)
         ≡
       g-increasing n
@@ -233,27 +232,27 @@ Delay↠Delay = record
     proj₂∘from∘to g g-inc (suc n) nothing g0↑ =
 
       subst (Increasing-at (suc n))
-            (ext (proj₁∘from∘to′ g g-inc nothing g0↑))
-            (proj₂ (from (to (g ∘ suc , g-inc ∘ suc))) n)              ≡⟨⟩
+            (⟨ext⟩ (proj₁∘from∘to′ g g-inc nothing g0↑))
+            (proj₂ (from (to (g ∘ suc , g-inc ∘ suc))) n)                 ≡⟨⟩
 
       subst (Increasing-at n ∘ (_∘ suc))
-            (ext (proj₁∘from∘to′ g g-inc nothing g0↑))
-            (proj₂ (from (to (g ∘ suc , g-inc ∘ suc))) n)              ≡⟨ subst-∘ (Increasing-at n) (_∘ suc)
-                                                                                  (ext (proj₁∘from∘to′ g g-inc nothing g0↑)) ⟩
+            (⟨ext⟩ (proj₁∘from∘to′ g g-inc nothing g0↑))
+            (proj₂ (from (to (g ∘ suc , g-inc ∘ suc))) n)                 ≡⟨ subst-∘ (Increasing-at n) (_∘ suc)
+                                                                                     (⟨ext⟩ (proj₁∘from∘to′ g g-inc nothing g0↑)) ⟩
       subst (Increasing-at n)
-            (cong (_∘ suc) (ext (proj₁∘from∘to′ g g-inc nothing g0↑)))
-            (proj₂ (from (to (g ∘ suc , g-inc ∘ suc))) n)              ≡⟨ cong (λ eq → subst (Increasing-at n) eq
-                                                                                             (proj₂ (from (to (g ∘ suc , g-inc ∘ suc))) n)) $
-                                                                            cong-pre-∘-ext (proj₁∘from∘to′ g g-inc nothing g0↑) ⟩
+            (cong (_∘ suc) (⟨ext⟩ (proj₁∘from∘to′ g g-inc nothing g0↑)))
+            (proj₂ (from (to (g ∘ suc , g-inc ∘ suc))) n)                 ≡⟨ cong (λ eq → subst (Increasing-at n) eq
+                                                                                                (proj₂ (from (to (g ∘ suc , g-inc ∘ suc))) n)) $
+                                                                               cong-pre-∘-ext (proj₁∘from∘to′ g g-inc nothing g0↑) ⟩
       subst (Increasing-at n)
-            (ext (proj₁∘from∘to′ g g-inc nothing g0↑ ∘ suc))
-            (proj₂ (from (to (g ∘ suc , g-inc ∘ suc))) n)              ≡⟨⟩
+            (⟨ext⟩ (proj₁∘from∘to′ g g-inc nothing g0↑ ∘ suc))
+            (proj₂ (from (to (g ∘ suc , g-inc ∘ suc))) n)                 ≡⟨⟩
 
       subst (Increasing-at n)
-            (ext (proj₁∘from∘to′ (g ∘ suc) (g-inc ∘ suc) _ refl))
-            (proj₂ (from (to (g ∘ suc , g-inc ∘ suc))) n)              ≡⟨ proj₂∘from∘to (g ∘ suc) (g-inc ∘ suc) n _ refl ⟩∎
+            (⟨ext⟩ (proj₁∘from∘to′ (g ∘ suc) (g-inc ∘ suc) _ refl))
+            (proj₂ (from (to (g ∘ suc , g-inc ∘ suc))) n)                 ≡⟨ proj₂∘from∘to (g ∘ suc) (g-inc ∘ suc) n _ refl ⟩∎
 
-      g-inc (suc n)                                                    ∎
+      g-inc (suc n)                                                       ∎
 
 -- The two definitions of the delay monad are isomorphic (assuming
 -- extensionality).

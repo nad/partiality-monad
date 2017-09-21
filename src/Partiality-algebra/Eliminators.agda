@@ -7,7 +7,7 @@
 module Partiality-algebra.Eliminators where
 
 open import Equality.Propositional
-open import Interval using (ext)
+open import Interval using (⟨ext⟩; cong-ext)
 open import Logical-equivalence using (_⇔_)
 open import Prelude
 
@@ -246,7 +246,7 @@ eliminators→initiality {p = p} {q} P elims P′ = morphism , unique
 
   function-unique : (f : Morphism P P′) →
                     E.⊥-rec ≡ function f
-  function-unique f = sym $ ext $ Eliminators.⊥-rec (elims (record
+  function-unique f = sym $ ⟨ext⟩ $ Eliminators.⊥-rec (elims (record
     { Q  = λ _ _ _ → ↑ _ ⊤
     ; pe = function f P.never  ≡⟨ strict f ⟩
            P′.never            ≡⟨ sym $ E.⊥-rec-never ⟩∎
@@ -527,49 +527,46 @@ initiality→eliminators {p = p} {q} {p′} {q′} {A} {PA} initial args =
        subst P (cong ⨆ lemma₁)
          (pl _ ( proj₂ ∘ function ∘ proj₁ s
                , proj₂ ∘ monotone ∘ proj₂ s
-               ))                                                 ≡⟨ sym $ subst-∘ P ⨆ lemma₁ ⟩
+               ))                                         ≡⟨ sym $ subst-∘ P ⨆ lemma₁ ⟩
 
        subst (P ∘ ⨆) lemma₁
          (pl _ ( proj₂ ∘ function ∘ proj₁ s
                , proj₂ ∘ monotone ∘ proj₂ s
-               ))                                                 ≡⟨ elim
-                                                                       (λ {s′ s} eq → ∀ {i′ i} →
-                                                                                      subst (λ s → ∀ n → P (s [ n ])) eq (proj₁ i′) ≡ proj₁ i →
-                                                                                      subst (P ∘ ⨆) eq (pl s′ i′) ≡ pl s i)
-                                                                       (λ s {i′ i} eq →
-                                                                          pl s i′  ≡⟨ cong (pl s) (Σ-≡,≡→≡ eq (ext λ _ → qp _ _ _ _ _)) ⟩∎
-                                                                          pl s i   ∎)
-                                                                       lemma₁
-                                                                       (ext λ n →
+               ))                                         ≡⟨ elim
+                                                               (λ {s′ s} eq → ∀ {i′ i} →
+                                                                              subst (λ s → ∀ n → P (s [ n ])) eq (proj₁ i′) ≡ proj₁ i →
+                                                                              subst (P ∘ ⨆) eq (pl s′ i′) ≡ pl s i)
+                                                               (λ s {i′ i} eq →
+                                                                  pl s i′  ≡⟨ cong (pl s) (Σ-≡,≡→≡ eq (⟨ext⟩ λ _ → qp _ _ _ _ _)) ⟩∎
+                                                                  pl s i   ∎)
+                                                               lemma₁
+                                                               (⟨ext⟩ λ n →
            let lemma₃ =
-                 cong _[ n ] lemma₁                                       ≡⟨ sym $ cong-∘ (_$ n) proj₁ lemma₁ ⟩
-
-                 cong (_$ n) (cong proj₁ lemma₁)                          ≡⟨ cong (cong (_$ n)) $
-                                                                               proj₁-Σ-≡,≡→≡ (Eq.good-ext ext (lemma ∘ proj₁ s)) _ ⟩
-                 cong (_$ n) (Eq.good-ext ext (lemma ∘ proj₁ s))          ≡⟨ Eq.cong-good-ext ext (lemma ∘ proj₁ s) ⟩∎
-
-                 lemma (s [ n ])                                          ∎
+                 cong _[ n ] lemma₁                               ≡⟨ sym $ cong-∘ (_$ n) proj₁ lemma₁ ⟩
+                 cong (_$ n) (cong proj₁ lemma₁)                  ≡⟨ cong (cong (_$ n)) $ proj₁-Σ-≡,≡→≡ (⟨ext⟩ (lemma ∘ proj₁ s)) _ ⟩
+                 cong (_$ n) (⟨ext⟩ (lemma ∘ proj₁ s))            ≡⟨ cong-ext (lemma ∘ proj₁ s) ⟩∎
+                 lemma (s [ n ])                                  ∎
            in
            subst (λ s → ∀ n → P (s [ n ])) lemma₁
-                 (proj₂ ∘ function ∘ proj₁ s) n                           ≡⟨ sym $ push-subst-application lemma₁ (λ s n → P (s [ n ])) ⟩
+                 (proj₂ ∘ function ∘ proj₁ s) n                   ≡⟨ sym $ push-subst-application lemma₁ (λ s n → P (s [ n ])) ⟩
 
            subst (λ s → P (s [ n ])) lemma₁
-                 (proj₂ (function (s [ n ])))                             ≡⟨ subst-∘ P _[ n ] lemma₁ ⟩
+                 (proj₂ (function (s [ n ])))                     ≡⟨ subst-∘ P _[ n ] lemma₁ ⟩
 
            subst P (cong _[ n ] lemma₁)
-                 (proj₂ (function (s [ n ])))                             ≡⟨ cong (λ eq → subst P eq (proj₂ (function (s [ n ])))) lemma₃ ⟩∎
+                 (proj₂ (function (s [ n ])))                     ≡⟨ cong (λ eq → subst P eq (proj₂ (function (s [ n ])))) lemma₃ ⟩∎
 
            subst P (lemma (s [ n ]))
-                 (proj₂ (function (s [ n ])))                             ∎) ⟩
+                 (proj₂ (function (s [ n ])))                     ∎) ⟩
 
        pl s ( (λ n → subst P (lemma (s [ n ]))
                            (proj₂ (function (s [ n ]))))
             , ⊑-rec ∘ proj₂ s
-            )                                                     ≡⟨⟩
+            )                                             ≡⟨⟩
 
        pl s ( ⊥-rec ∘ proj₁ s
             , ⊑-rec ∘ proj₂ s
-            )                                                     ∎
+            )                                             ∎
 
 -- For any partiality algebra (with certain levels) initiality (at
 -- possibly larger levels) is logically equivalent to having

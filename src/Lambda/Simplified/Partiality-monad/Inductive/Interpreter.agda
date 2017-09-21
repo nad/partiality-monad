@@ -7,7 +7,7 @@
 module Lambda.Simplified.Partiality-monad.Inductive.Interpreter where
 
 open import Equality.Propositional
-open import Interval using (ext)
+open import Interval using (⟨ext⟩)
 open import Prelude hiding (⊥)
 
 open import Bijection equality-with-J using (_↔_)
@@ -137,8 +137,8 @@ interpreters-equal = λ t ρ →
     ⟦⟧-lemma (var x)   ρ n = refl
     ⟦⟧-lemma (ƛ t)     ρ n = refl
     ⟦⟧-lemma (t₁ · t₂) ρ n =
-      cong₂ _>>=_ (⟦⟧-lemma t₁ ρ n) $ ext λ v₁ →
-      cong₂ _>>=_ (⟦⟧-lemma t₂ ρ n) $ ext λ v₂ →
+      cong₂ _>>=_ (⟦⟧-lemma t₁ ρ n) $ ⟨ext⟩ λ v₁ →
+      cong₂ _>>=_ (⟦⟧-lemma t₂ ρ n) $ ⟨ext⟩ λ v₂ →
       ∙-lemma v₁ v₂ n
 
     ∙-lemma :
@@ -198,8 +198,8 @@ interpreters-equal = λ t ρ →
     f (_ , var fzero · var fzero , snoc empty ω-empty)
   reduce-twice f =
     function eval f (_ , Ω , empty)                     ≡⟨⟩
-    function (⟦ Ω ⟧′ empty) f                           ≡⟨ cong (_$ f) {x = function (⟦ Ω ⟧′ empty)}                (ext λ _ → now->>=) ⟩
-    function (⟦ ω ⟧′ empty >>= λ v₂ → ω-empty ∙ v₂) f   ≡⟨ cong (_$ f) {x = function (⟦ ω ⟧′ empty >>= ω-empty ∙_)} (ext λ _ → now->>=) ⟩
+    function (⟦ Ω ⟧′ empty) f                           ≡⟨ cong (_$ f) {x = function (⟦ Ω ⟧′ empty)}                (⟨ext⟩ λ _ → now->>=) ⟩
+    function (⟦ ω ⟧′ empty >>= λ v₂ → ω-empty ∙ v₂) f   ≡⟨ cong (_$ f) {x = function (⟦ ω ⟧′ empty >>= ω-empty ∙_)} (⟨ext⟩ λ _ → now->>=) ⟩
     function (ω-empty ∙ ω-empty) f                      ≡⟨⟩
     f (_ , var fzero · var fzero , snoc empty ω-empty)  ∎
 

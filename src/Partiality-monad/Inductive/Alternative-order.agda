@@ -15,7 +15,7 @@ module Partiality-monad.Inductive.Alternative-order
          where
 
 open import H-level.Truncation.Propositional as Trunc
-open import Interval using (ext)
+open import Interval using (ext; ⟨ext⟩)
 open import Logical-equivalence using (_⇔_)
 open import Prelude hiding (⊥)
 
@@ -271,8 +271,8 @@ now⊑→⇓ {x} {y} = ⊥-rec-⊥ (record
            now y ⊑ ⨆ s × ∥ (∃ λ n → now y ⊑ s [ n ]) ∥  ↝⟨ uncurry (λ p → Trunc.rec (⊥-is-set _ _) (uncurry λ n →
 
                now y ⊑ s [ n ]                               ↝⟨ (λ now⊑ _ n≤m → ⊑-trans now⊑ (later-larger s n≤m)) ⟩
-               (∀ m → n ≤ m → now y ⊑ s [ m ])               ↝⟨ (∀-cong-→ λ _ → ∀-cong-→ λ _ → hyp _) ⟩
-               (∀ m → n ≤ m → s [ m ] ≡ now y)               ↝⟨ (∀-cong-→ λ _ → ∀-cong-→ λ _ → flip (subst (_ ⊑_)) (⊑-refl _)) ⟩
+               (∀ m → n ≤ m → now y ⊑ s [ m ])               ↝⟨ (∀-cong _ λ _ → ∀-cong _ λ _ → hyp _) ⟩
+               (∀ m → n ≤ m → s [ m ] ≡ now y)               ↝⟨ (∀-cong _ λ _ → ∀-cong _ λ _ → flip (subst (_ ⊑_)) (⊑-refl _)) ⟩
                (∀ m → n ≤ m → s [ m ] ⊑ now y)               ↝⟨ upper-bound-≤→upper-bound s ⟩
                (∀ n → s [ n ] ⊑ now y)                       ↝⟨ least-upper-bound _ _ ⟩
                ⨆ s ⊑ now y                                   ↝⟨ flip antisymmetry p ⟩□
@@ -514,7 +514,7 @@ private
                                , Π-closure ext 1 λ n →
                                  proj₂ (s[ n ]≲ y)
              }
-    ; pa = λ x≲ y≲ y≲→x≲ x≲→y≲ → ext λ z →
+    ; pa = λ x≲ y≲ y≲→x≲ x≲→y≲ → ⟨ext⟩ λ z →
                                           $⟨ record { to = x≲→y≲ z; from = y≲→x≲ z } ⟩
              proj₁ (x≲ z) ⇔ proj₁ (y≲ z)  ↝⟨ _↔_.to (⇔↔≡″ ext prop-ext) ⟩□
              x≲ z ≡ y≲ z                  □
@@ -596,7 +596,7 @@ now≲⨆ : ∀ {x s} → (now x ≲ ⨆ s) ≡ ∥ (∃ λ n → now x ≲ s [ 
 now≲⨆ {x} {s} =
   now x ≲ ⨆ s                      ≡⟨ now≲ ⟩
   now[ x ]≲ ⨆ s                    ≡⟨ now[]≲⨆ ⟩
-  ∥ (∃ λ n → now[ x ]≲ s [ n ]) ∥  ≡⟨ cong (∥_∥ ∘ ∃) (ext λ _ → sym now≲) ⟩∎
+  ∥ (∃ λ n → now[ x ]≲ s [ n ]) ∥  ≡⟨ cong (∥_∥ ∘ ∃) (⟨ext⟩ λ _ → sym now≲) ⟩∎
   ∥ (∃ λ n → now x ≲ s [ n ]) ∥    ∎
 
 -- _≲_ is reflexive.
@@ -632,7 +632,7 @@ now≲⨆ {x} {s} =
                 (∀ m n → s′ [ m ] ≲ s [ n ] → s′ [ m ] ≲ ⨆ s)  ↝⟨ (λ hyp n s′≲s m → hyp m n (s′≲s m)) ⟩
 
                 (∀ n → (∀ m → s′ [ m ] ≲ s [ n ]) →
-                       (∀ m → s′ [ m ] ≲ ⨆ s))                 ↝⟨ ∀-cong ext (λ _ →
+                       (∀ m → s′ [ m ] ≲ ⨆ s))                 ↝⟨ ∀-cong _ (λ _ →
                                                                     ≡⇒↝ _ $ sym $ cong₂ (λ x y → x → y) ⨆≲ ⨆≲) ⟩□
                 (∀ n → ⨆ s′ ≲ s [ n ] → ⨆ s′ ≲ ⨆ s)            □
        ; pp = λ x → Π-closure ext 1 λ _ →

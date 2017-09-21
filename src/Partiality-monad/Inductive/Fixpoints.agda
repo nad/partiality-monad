@@ -7,7 +7,7 @@
 module Partiality-monad.Inductive.Fixpoints where
 
 open import Equality.Propositional
-open import Interval using (ext)
+open import Interval using (ext; ⟨ext⟩; bad-ext)
 open import Logical-equivalence using (_⇔_)
 open import Prelude hiding (⊥; head; tail)
 
@@ -318,7 +318,7 @@ transformer-ω : ∀ {a b} {A : Set a} {B : A → Set b} →
                 ((x : A) → Partial A B (B x)) → Trans-ω A B
 transformer-ω prop-ext f = record
   { monotone-function = transformer f
-  ; ω-continuous      = λ _ → ext λ x → ω-continuous (f x) prop-ext _
+  ; ω-continuous      = λ _ → ⟨ext⟩ λ x → ω-continuous (f x) prop-ext _
   }
   where
   open Partial
@@ -369,7 +369,7 @@ Partial.monotone     ((f ∘P g) x) = λ hyp →
                                       Partial.monotone (f x) λ y →
                                       Partial.monotone (g y) hyp
 Partial.ω-continuous ((f ∘P g) x) = λ prop-ext recs →
-  function (f x) (λ y → function (g y) (⨆ ∘ recs))  ≡⟨ cong (function (f x)) (ext λ y → ω-continuous (g y) prop-ext recs) ⟩
+  function (f x) (λ y → function (g y) (⨆ ∘ recs))  ≡⟨ cong (function (f x)) (⟨ext⟩ λ y → ω-continuous (g y) prop-ext recs) ⟩
   function (f x) (λ y → ⨆ (sequence (g y) recs))    ≡⟨ ω-continuous (f x) prop-ext (λ y → sequence (g y) recs) ⟩∎
   ⨆ (sequence (f x) λ y → sequence (g y) recs)      ∎
   where
@@ -440,7 +440,7 @@ equality-characterisation-Partial :
   (∀ rec → Partial.function f rec ≡ Partial.function g rec) ↔
   f ≡ g
 equality-characterisation-Partial {f = f} {g} =
-  (∀ rec → function f rec ≡ function g rec)  ↔⟨ Eq.extensionality-isomorphism ext ⟩
+  (∀ rec → function f rec ≡ function g rec)  ↔⟨ Eq.extensionality-isomorphism bad-ext ⟩
   function f ≡ function g                    ↝⟨ ignore-propositional-component
                                                   (Σ-closure 1
                                                      (implicit-Π-closure ext 1 λ _ →
@@ -503,7 +503,7 @@ instance
                        monotone (f y) rec⊑rec
     ; ω-continuous = λ prop-ext recs →
         (function x (⨆ ∘ recs) >>=′ λ y → function (f y) (⨆ ∘ recs))     ≡⟨ cong₂ _>>=′_ (ω-continuous x prop-ext recs)
-                                                                                         (ext λ y → ω-continuous (f y) prop-ext recs) ⟩
+                                                                                         (⟨ext⟩ λ y → ω-continuous (f y) prop-ext recs) ⟩
         (⨆ (sequence x recs) >>=′ λ y → ⨆ (sequence (f y) recs))         ≡⟨ ⨆->>= ⟩
 
         ⨆ ( (λ n →

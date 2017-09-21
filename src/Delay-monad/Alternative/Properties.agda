@@ -7,7 +7,7 @@
 module Delay-monad.Alternative.Properties where
 
 open import Equality.Propositional
-open import Interval using (ext)
+open import Interval using (ext; ⟨ext⟩)
 open import Logical-equivalence using (_⇔_)
 open import Prelude hiding (↑)
 
@@ -234,9 +234,9 @@ private
         { to   = to   ∘_
         ; from = from ∘_
         }
-      ; right-inverse-of = ext ∘ (to∘from ∘_)
+      ; right-inverse-of = ⟨ext⟩ ∘ (to∘from ∘_)
       }
-    ; left-inverse-of = ext ∘ (from∘to ∘_)
+    ; left-inverse-of = ⟨ext⟩ ∘ (from∘to ∘_)
     }
     where
     g′ : Maybe A → Maybe B

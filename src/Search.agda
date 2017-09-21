@@ -8,7 +8,7 @@
 module Search where
 
 open import Equality.Propositional
-open import Interval using (ext)
+open import Interval using (⟨ext⟩)
 open import Prelude hiding (⊥; head; tail)
 
 open import Monad equality-with-J
@@ -60,7 +60,7 @@ module Direct {a} {A : Set a} (q : A → Bool) where
     (s : ∃ λ (f : ℕ → Stream A → A ⊥) →
            ∀ n xs → f n xs ⊑ f (suc n) xs) →
     Φ (⨆ ∘ at s) ≡ ⨆ ∘ at [ Φ-⊑ $ s ]-inc
-  Φ-ω-continuous s = ext helper
+  Φ-ω-continuous s = ⟨ext⟩ helper
     where
     helper : ∀ xs → Φ (⨆ ∘ at s) xs ≡ ⨆ (at [ Φ-⊑ $ s ]-inc xs)
     helper xs with q (head xs)

@@ -12,7 +12,7 @@ module Delay-monad.Alternative.Eliminators where
 
 open import Equality.Propositional
 open import H-level.Truncation.Propositional
-open import Interval using (ext)
+open import Interval using (ext; ⟨ext⟩)
 open import Logical-equivalence using (_⇔_)
 open import Prelude hiding (↑)
 open import Quotient.HIT
@@ -151,7 +151,7 @@ module _
     _↔_.from ℕ→/-comm′ (λ n → _↔_.from Maybe/-comm $ mapᴹ [_] (f n))  ≡⟨ cong (λ g → _↔_.from ℕ→/-comm′ λ n → _↔_.from Maybe/-comm (g (f n))) $
                                                                            sym Maybe/-comm-[] ⟩
     _↔_.from ℕ→/-comm′ (λ n →
-      _↔_.from Maybe/-comm (_↔_.to Maybe/-comm [ f n ]))              ≡⟨ cong (_↔_.from ℕ→/-comm′) (ext λ n →
+      _↔_.from Maybe/-comm (_↔_.to Maybe/-comm [ f n ]))              ≡⟨ cong (_↔_.from ℕ→/-comm′) (⟨ext⟩ λ n →
                                                                            _↔_.left-inverse-of Maybe/-comm [ f n ]) ⟩
     _↔_.from ℕ→/-comm′ (λ n → [ f n ])                                ≡⟨⟩
 
@@ -224,7 +224,7 @@ module _
     ∀ x y → proj₁ (Delayᴾ R x y) → map ([_] {R = R}) x ≡ map [_] y
   map-[]-cong x y r =
     _↔_.to (equality-characterisation /-is-set)
-      (ext λ n → lemma (proj₁ x n) (proj₁ y n) (r n))
+      (⟨ext⟩ λ n → lemma (proj₁ x n) (proj₁ y n) (r n))
     where
     lemma : ∀ x y → proj₁ (Maybeᴾ R x y) →
             mapᴹ [_] x ≡ mapᴹ [_] y
@@ -268,7 +268,7 @@ module _
   →Maybe/→-[] f = _↔_.to (equality-characterisation /-is-set)
     (proj₁ (→Maybe/→ [ f ])                                          ≡⟨⟩
      proj₁ (_↠_.to →↠Delay-function (_↔_.to Maybe/-comm ∘ [_] ∘ f))  ≡⟨ cong (λ g → proj₁ (_↠_.to →↠Delay-function (g ∘ f))) $ Maybe/-comm-[] ⟩
-     proj₁ (_↠_.to →↠Delay-function (mapᴹ [_] ∘ f))                  ≡⟨ ext (helper f (f 0)) ⟩
+     proj₁ (_↠_.to →↠Delay-function (mapᴹ [_] ∘ f))                  ≡⟨ ⟨ext⟩ (helper f (f 0)) ⟩
      mapᴹ [_] ∘ proj₁ (_↠_.to →↠Delay-function f)                    ≡⟨⟩
      proj₁ (map [_] (_↠_.to →↠Delay-function f))                     ∎)
     where

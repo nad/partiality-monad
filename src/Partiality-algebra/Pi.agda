@@ -5,7 +5,7 @@
 module Partiality-algebra.Pi where
 
 open import Equality.Propositional
-open import Interval using (ext)
+open import Interval using (ext; ⟨ext⟩)
 open import Logical-equivalence using (_⇔_)
 open import Prelude
 
@@ -53,7 +53,7 @@ _⊑_                (Π-with A P) = λ f g → ∀ x → _⊑_ (P x) (f x) (g x
 never              (Π-with A P) = λ x → never (P x)
 now                (Π-with A P) = λ f x → now (P x) (f x)
 ⨆                  (Π-with A P) = λ s x → ⨆ (P x) (at-with P s x)
-antisymmetry       (Π-with A P) = λ p q → ext λ x →
+antisymmetry       (Π-with A P) = λ p q → ⟨ext⟩ λ x →
                                     antisymmetry (P x) (p x) (q x)
 Type-UIP-unused    (Π-with A P) = _⇔_.to set⇔UIP
                                     (Π-closure ext 2 λ x →

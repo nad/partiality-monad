@@ -7,7 +7,7 @@
 module Lambda.Partiality-monad.Inductive.Compiler-correctness where
 
 open import Equality.Propositional
-open import Interval using (ext)
+open import Interval using (ext; ⟨ext⟩)
 open import Prelude
 
 open import Bijection equality-with-J using (_↔_)
@@ -61,7 +61,7 @@ mutual
     (λ n → run (⟦ t₁ ⟧′ ρ n >>= λ v₁ →
                 ⟦ t₂ ⟧′ ρ n >>= λ v₂ →
                 (v₁ ∙ v₂) n >>= k n))                          ≡⟨ cong (λ f → run (⟦ t₁ ⟧′ ρ n >>= f))
-                                                                       (ext λ v₁ → Monad.associativity tr (⟦ t₂ ⟧′ ρ n) _ _) ⟩≳
+                                                                       (⟨ext⟩ λ v₁ → Monad.associativity tr (⟦ t₂ ⟧′ ρ n) _ _) ⟩≳
     (λ n → run (⟦ t₁ ⟧′ ρ n >>= λ v₁ →
                (⟦ t₂ ⟧′ ρ n >>= λ v₂ → (v₁ ∙ v₂) n) >>= k n))  ≡⟨ cong MaybeT.run $ Monad.associativity tr (⟦ t₁ ⟧′ ρ n) _ _ ⟩≳
 

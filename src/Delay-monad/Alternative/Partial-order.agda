@@ -38,7 +38,7 @@ x ∥⊑∥ y = ∀ z → x ∥⇓∥ z → y ∥⇓∥ z
 
 ⊑⇔∥⊑∥ : Is-set A → ∀ x y → x ⊑ y ⇔ x ∥⊑∥ y
 ⊑⇔∥⊑∥ A-set x y =
-  ∀-cong-⇔ λ _ → →-cong-⇔ (⇓⇔∥⇓∥ A-set x) (⇓⇔∥⇓∥ A-set y)
+  ∀-cong _ λ _ → →-cong _ (⇓⇔∥⇓∥ A-set x) (⇓⇔∥⇓∥ A-set y)
 
 -- The ordering relation _⊑_ is pointwise logically equivalent (via
 -- Delay⇔Delay) to the ordering relation defined in
@@ -48,8 +48,8 @@ x ∥⊑∥ y = ∀ z → x ∥⇓∥ z → y ∥⇓∥ z
       x ⊑ y ⇔ _⇔_.to Delay⇔Delay x PO.⊑ _⇔_.to Delay⇔Delay y
 ⊑⇔⊑ x y =
   x ⊑ y                                                              ↝⟨ F.id ⟩
-  (∀ z → x ⇓ z → y ⇓ z)                                              ↝⟨ ∀-cong-⇔ (λ _ → →-cong-⇔ (⇓⇔⇓ x) (⇓⇔⇓ y)) ⟩
-  (∀ z → _⇔_.to Delay⇔Delay x  W.⇓ z → _⇔_.to Delay⇔Delay y  W.⇓ z)  ↝⟨ inverse $ ∀-cong-⇔ (λ _ → →-cong-⇔ (_↔_.logical-equivalence PO.⇓↔⇓)
+  (∀ z → x ⇓ z → y ⇓ z)                                              ↝⟨ ∀-cong _ (λ _ → →-cong _ (⇓⇔⇓ x) (⇓⇔⇓ y)) ⟩
+  (∀ z → _⇔_.to Delay⇔Delay x  W.⇓ z → _⇔_.to Delay⇔Delay y  W.⇓ z)  ↝⟨ inverse $ ∀-cong _ (λ _ → →-cong _ (_↔_.logical-equivalence PO.⇓↔⇓)
                                                                                                            (_↔_.logical-equivalence PO.⇓↔⇓)) ⟩
   (∀ z → _⇔_.to Delay⇔Delay x PO.⇓ z → _⇔_.to Delay⇔Delay y PO.⇓ z)  ↝⟨ inverse PO.⊑⇔⇓→⇓ ⟩□
   _⇔_.to Delay⇔Delay x PO.⊑ _⇔_.to Delay⇔Delay y                     □
@@ -58,9 +58,9 @@ x ∥⊑∥ y = ∀ z → x ∥⇓∥ z → y ∥⇓∥ z
        x PO.⊑ y ⇔ _⇔_.from Delay⇔Delay x ⊑ _⇔_.from Delay⇔Delay y
 ⊑⇔⊑′ {x} {y} =
   x PO.⊑ y                                                         ↝⟨ PO.⊑⇔⇓→⇓ ⟩
-  (∀ z → x PO.⇓ z → y PO.⇓ z)                                      ↝⟨ ∀-cong-⇔ (λ _ → →-cong-⇔ (_↔_.logical-equivalence PO.⇓↔⇓)
+  (∀ z → x PO.⇓ z → y PO.⇓ z)                                      ↝⟨ ∀-cong _ (λ _ → →-cong _ (_↔_.logical-equivalence PO.⇓↔⇓)
                                                                                                (_↔_.logical-equivalence PO.⇓↔⇓))  ⟩
-  (∀ z → x  W.⇓ z → y  W.⇓ z)                                      ↝⟨ ∀-cong-⇔ (λ _ → →-cong-⇔ ⇓⇔⇓′ ⇓⇔⇓′) ⟩
+  (∀ z → x  W.⇓ z → y  W.⇓ z)                                      ↝⟨ ∀-cong _ (λ _ → →-cong _ ⇓⇔⇓′ ⇓⇔⇓′) ⟩
   (∀ z → _⇔_.from Delay⇔Delay x ⇓ z → _⇔_.from Delay⇔Delay y ⇓ z)  ↝⟨ F.id ⟩□
   _⇔_.from Delay⇔Delay x ⊑ _⇔_.from Delay⇔Delay y                  □
 

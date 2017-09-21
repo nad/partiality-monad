@@ -7,7 +7,7 @@
 module Lambda.Simplified.Compiler where
 
 open import Equality.Propositional
-open import Interval using (ext)
+open import Interval using (⟨ext⟩)
 open import Prelude
 
 open import Lambda.Simplified.Syntax
@@ -37,10 +37,10 @@ mutual
 -- Compilation takes empty environments to empty environments.
 
 comp-empty : comp-env empty ≡ empty
-comp-empty = ext (λ ())
+comp-empty = ⟨ext⟩ (λ ())
 
 -- Compilation commutes with snoc.
 
 comp-snoc : ∀ {n} {ρ : T.Env n} {v} →
             comp-env (snoc ρ v) ≡ snoc (comp-env ρ) (comp-val v)
-comp-snoc = ext [ (λ _ → refl) , (λ _ → refl) ]
+comp-snoc = ⟨ext⟩ [ (λ _ → refl) , (λ _ → refl) ]

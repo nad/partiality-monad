@@ -8,7 +8,7 @@ module Partiality-monad.Inductive.Monad where
 
 open import Equality.Propositional
 open import H-level.Truncation.Propositional as Trunc
-open import Interval using (ext)
+open import Interval using (ext; ⟨ext⟩)
 open import Logical-equivalence using (_⇔_)
 import Monad
 open import Prelude hiding (⊥)
@@ -223,7 +223,7 @@ map-∘ : ∀ {a b c} {A : Set a} {B : Set b} {C : Set c}
 map-∘ f g =
   (now ∘ f ∘ g) ∗                ≡⟨ _↔_.to equality-characterisation-continuous (λ x →
 
-    x >>=′ (now ∘ f ∘ g)                     ≡⟨ cong (x >>=′_) (ext λ _ → sym now->>=) ⟩
+    x >>=′ (now ∘ f ∘ g)                     ≡⟨ cong (x >>=′_) (⟨ext⟩ λ _ → sym now->>=) ⟩
     x >>=′ (λ x → now (g x) >>=′ (now ∘ f))  ≡⟨ Monad-laws.associativity x (now ∘ g) (now ∘ f) ⟩∎
     x >>=′ (now ∘ g) >>=′ (now ∘ f)          ∎) ⟩∎
 

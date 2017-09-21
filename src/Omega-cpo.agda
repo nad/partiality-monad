@@ -7,7 +7,7 @@
 module Omega-cpo where
 
 open import Equality.Propositional
-open import Interval using (ext)
+open import Interval using (ext; ⟨ext⟩)
 open import Logical-equivalence using (_⇔_)
 open import Prelude
 
@@ -174,7 +174,7 @@ record ω-cppo p q : Set (lsuc (p ⊔ q)) where
                    ; ⊑-proof-irrelevant = ⊑-proof-irrelevant
                    }
                  })
-              (ext λ ())
+              (⟨ext⟩ λ ())
               (_⇔_.to propositional⇔irrelevant
                  (UIP-propositional ext)
                  _ _)

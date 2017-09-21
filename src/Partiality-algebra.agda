@@ -7,7 +7,7 @@
 module Partiality-algebra where
 
 open import Equality.Propositional
-open import Interval using (ext)
+open import Interval using (ext; bad-ext)
 open import Logical-equivalence using (_⇔_)
 open import Prelude hiding (id) renaming (_∘_ to _⊚_)
 
@@ -122,7 +122,7 @@ record Partiality-algebra-with
   equality-characterisation-increasing :
     ∀ {s₁ s₂} → (∀ n → s₁ [ n ] ≡ s₂ [ n ]) ↔ s₁ ≡ s₂
   equality-characterisation-increasing {s₁} {s₂} =
-    (∀ n → s₁ [ n ] ≡ s₂ [ n ])  ↔⟨ Eq.extensionality-isomorphism ext ⟩
+    (∀ n → s₁ [ n ] ≡ s₂ [ n ])  ↔⟨ Eq.extensionality-isomorphism bad-ext ⟩
     proj₁ s₁ ≡ proj₁ s₂          ↝⟨ ignore-propositional-component
                                       (Π-closure ext 1 λ _ →
                                        ⊑-propositional) ⟩□
