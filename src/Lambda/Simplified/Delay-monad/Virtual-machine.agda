@@ -20,15 +20,10 @@ open import Lambda.Simplified.Virtual-machine
 
 open Closure Code
 
-mutual
+-- A functional semantics for the VM.
 
-  -- A functional semantics for the VM.
-
-  exec : ∀ {i} → State → Delay (Maybe Value) i
-  exec s with step s
-  ... | continue s′ = later (∞exec s′)
-  ... | done v      = return (just v)
-  ... | crash       = return nothing
-
-  ∞exec : ∀ {i} → State → ∞Delay (Maybe Value) i
-  force (∞exec s) = exec s
+exec : ∀ {i} → State → Delay (Maybe Value) i
+exec s with step s
+... | continue s′ = later λ { .force → exec s′ }
+... | done v      = return (just v)
+... | crash       = return nothing

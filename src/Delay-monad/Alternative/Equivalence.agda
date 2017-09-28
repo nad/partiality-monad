@@ -33,18 +33,13 @@ module Delay⇔Delay where
   -- from their function ε, which is defined so that (with the
   -- terminology used here) ε (now x) (suc n) = nothing.
 
-  mutual
-
-    to₁ : (ℕ → Maybe A) → D.Delay A ∞
-    to₁ f = to′ (f 0)
-      module To where
-      to′ : Maybe A → D.Delay A ∞
-      to′ (just x) = now x
-      to′ nothing  =
-        later (∞to₁ (f ∘ suc))
-
-    ∞to₁ : (ℕ → Maybe A) → D.∞Delay A ∞
-    force (∞to₁ x) = to₁ x
+  to₁ : (ℕ → Maybe A) → D.Delay A ∞
+  to₁ f = to′ (f 0)
+    module To where
+    to′ : Maybe A → D.Delay A ∞
+    to′ (just x) = now x
+    to′ nothing  =
+      later λ { .force → to₁ (f ∘ suc) }
 
   to : Delay A → D.Delay A ∞
   to = to₁ ∘ proj₁
@@ -269,14 +264,9 @@ Delay↔Delay delay-ext = record
   where
   open Delay⇔Delay
 
-  mutual
-
-    to∘from : ∀ x → to (from x) ∼ x
-    to∘from (now x)   = now-cong
-    to∘from (later x) = later-cong (∞to∘from (force x))
-
-    ∞to∘from : ∀ x → to (from x) ∞∼ x
-    force (∞to∘from x) = to∘from x
+  to∘from : ∀ x → to (from x) ∼ x
+  to∘from (now x)   = now
+  to∘from (later x) = later λ { .force → to∘from (force x) }
 
 -- There is a split surjection from ℕ → Maybe A (without any
 -- requirement that the sequences are increasing) to D.Delay A ∞

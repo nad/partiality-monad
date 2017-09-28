@@ -32,9 +32,9 @@ infixl 5 _>>=-congM_
 
 _>>=-congM_ :
   ∀ {i ℓ} {A B : Set ℓ} {x y : M ∞ A} {f g : A → M ∞ B} →
-  Strongly-bisimilar i (run x) (run y) →
-  (∀ z → Strongly-bisimilar i (run (f z)) (run (g z))) →
-  Strongly-bisimilar i (run (x >>= f)) (run (y >>= g))
+  [ i ] run x ∼ run y →
+  (∀ z → [ i ] run (f z) ∼ run (g z)) →
+  [ i ] run (x >>= f) ∼ run (y >>= g)
 p >>=-congM q = p >>=-cong-∼ [ (λ _ → run fail ∎∼) , q ]
 
 -- Bind is associative.
@@ -61,12 +61,9 @@ mutual
 
   ⟦⟧-correct :
     ∀ {i n} t {ρ : T.Env n} {c s} {k : T.Value → M ∞ C.Value} →
-    (∀ v → Weakly-bisimilar i
-             (run (exec ⟨ c , val (comp-val v) ∷ s , comp-env ρ ⟩))
-             (run (k v))) →
-    Weakly-bisimilar i
-      (run (exec ⟨ comp t c , s , comp-env ρ ⟩))
-      (run (⟦ t ⟧ ρ >>= k))
+    (∀ v → [ i ] run (exec ⟨ c , val (comp-val v) ∷ s , comp-env ρ ⟩) ≈
+                 run (k v)) →
+    [ i ] run (exec ⟨ comp t c , s , comp-env ρ ⟩) ≈ run (⟦ t ⟧ ρ >>= k)
 
   ⟦⟧-correct (con i) {ρ} {c} {s} {k} hyp =
     run (exec ⟨ con i ∷ c , s , comp-env ρ ⟩)                     ≳⟨⟩
@@ -97,15 +94,13 @@ mutual
 
   ∙-correct :
     ∀ {i n} v₁ v₂ {ρ : T.Env n} {c s} {k : T.Value → M ∞ C.Value} →
-    (∀ v → Weakly-bisimilar i
-             (run (exec ⟨ c , val (comp-val v) ∷ s , comp-env ρ ⟩))
-             (run (k v))) →
-    Weakly-bisimilar i
-      (run (exec ⟨ app ∷ c
-                 , val (comp-val v₂) ∷ val (comp-val v₁) ∷ s
-                 , comp-env ρ
-                 ⟩))
-      (run (v₁ ∙ v₂ >>= k))
+    (∀ v → [ i ] run (exec ⟨ c , val (comp-val v) ∷ s , comp-env ρ ⟩) ≈
+                 run (k v)) →
+    [ i ] run (exec ⟨ app ∷ c
+                    , val (comp-val v₂) ∷ val (comp-val v₁) ∷ s
+                    , comp-env ρ
+                    ⟩) ≈
+          run (v₁ ∙ v₂ >>= k)
   ∙-correct (T.con i) v₂ {ρ} {c} {s} {k} hyp =
     run (exec ⟨ app ∷ c
               , val (comp-val v₂) ∷ val (C.con i) ∷ s
@@ -120,18 +115,18 @@ mutual
     run (exec ⟨ app ∷ c
               , val (comp-val v₂) ∷ val (comp-val (T.ƛ t₁ ρ₁)) ∷ s
               , comp-env ρ
-              ⟩)                                                    ≈⟨ later-cong (
+              ⟩)                                                    ≈⟨ later (
 
       run (exec ⟨ comp t₁ (ret ∷ [])
                 , ret c (comp-env ρ) ∷ s
                 , snoc (comp-env ρ₁) (comp-val v₂)
              ⟩)                                                          ≡⟨ cong (λ ρ′ →
                                                                                     run (exec ⟨ comp t₁ (ret ∷ []) , ret c (comp-env ρ) ∷ s , ρ′ ⟩))
-                                                                                 (sym comp-snoc) ⟩∞≈
+                                                                                 (sym comp-snoc) ⟩′≈
       run (exec ⟨ comp t₁ (ret ∷ [])
                 , ret c (comp-env ρ) ∷ s
                 , comp-env (snoc ρ₁ v₂)
-                ⟩)                                                       ≈⟨ ∞⟦⟧-correct t₁ (λ v →
+                ⟩)                                                       ≈⟨ (λ { .force → ⟦⟧-correct t₁ (λ v →
 
         run (exec ⟨ ret ∷ []
                   , val (comp-val v) ∷ ret c (comp-env ρ) ∷ s
@@ -140,21 +135,11 @@ mutual
 
         run (exec ⟨ c , val (comp-val v) ∷ s , comp-env ρ ⟩)                  ≈⟨ hyp v ⟩∎
 
-        run (k v)                                                             ∎) ⟩∞∼
+        run (k v)                                                             ∎) }) ⟩′∼
 
       run (⟦ t₁ ⟧ (snoc ρ₁ v₂) >>= k)                                    ∎∼) ⟩∎
 
     run (T.ƛ t₁ ρ₁ ∙ v₂ >>= k)                                      ∎
-
-  ∞⟦⟧-correct :
-    ∀ {i n} t {ρ : T.Env n} {c s} {k : T.Value → M ∞ C.Value} →
-    (∀ v → Weakly-bisimilar i
-             (run (exec ⟨ c , val (comp-val v) ∷ s , comp-env ρ ⟩))
-             (run (k v))) →
-    ∞Weakly-bisimilar i
-      (run (exec ⟨ comp t c , s , comp-env ρ ⟩))
-      (run (⟦ t ⟧ ρ >>= k))
-  force (∞⟦⟧-correct t hyp) = ⟦⟧-correct t hyp
 
 -- Note that the equality that is used here is syntactic.
 

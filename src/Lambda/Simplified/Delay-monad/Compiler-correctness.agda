@@ -33,12 +33,8 @@ mutual
   ⟦⟧-correct :
     ∀ {i n} t {ρ : T.Env n} {c s}
       {k : T.Value → Delay (Maybe C.Value) ∞} →
-    (∀ v → Weakly-bisimilar i
-             (exec ⟨ c , val (comp-val v) ∷ s , comp-env ρ ⟩)
-             (k v)) →
-    Weakly-bisimilar i
-      (exec ⟨ comp t c , s , comp-env ρ ⟩)
-      (⟦ t ⟧ ρ >>= k)
+    (∀ v → [ i ] exec ⟨ c , val (comp-val v) ∷ s , comp-env ρ ⟩ ≈ k v) →
+    [ i ] exec ⟨ comp t c , s , comp-env ρ ⟩ ≈ ⟦ t ⟧ ρ >>= k
 
   ⟦⟧-correct (var x) {ρ} {c} {s} {k} hyp =
     exec ⟨ var x ∷ c , s , comp-env ρ ⟩                 ≳⟨⟩
@@ -64,31 +60,28 @@ mutual
   ∙-correct :
     ∀ {i n} v₁ v₂ {ρ : T.Env n} {c s}
       {k : T.Value → Delay (Maybe C.Value) ∞} →
-    (∀ v → Weakly-bisimilar i
-             (exec ⟨ c , val (comp-val v) ∷ s , comp-env ρ ⟩)
-             (k v)) →
-    Weakly-bisimilar i
-      (exec ⟨ app ∷ c
-            , val (comp-val v₂) ∷ val (comp-val v₁) ∷ s
-            , comp-env ρ
-            ⟩)
-      (v₁ ∙ v₂ >>= k)
+    (∀ v → [ i ] exec ⟨ c , val (comp-val v) ∷ s , comp-env ρ ⟩ ≈ k v) →
+    [ i ] exec ⟨ app ∷ c
+               , val (comp-val v₂) ∷ val (comp-val v₁) ∷ s
+               , comp-env ρ
+               ⟩ ≈
+          v₁ ∙ v₂ >>= k
   ∙-correct (T.ƛ t₁ ρ₁) v₂ {ρ} {c} {s} {k} hyp =
     exec ⟨ app ∷ c
          , val (comp-val v₂) ∷ val (comp-val (T.ƛ t₁ ρ₁)) ∷ s
          , comp-env ρ
-         ⟩                                                     ≈⟨ later-cong (
+         ⟩                                                     ≈⟨ later (
 
       exec ⟨ comp t₁ (ret ∷ [])
            , ret c (comp-env ρ) ∷ s
            , snoc (comp-env ρ₁) (comp-val v₂)
            ⟩                                                        ≡⟨ cong (λ ρ′ →
                                                                                exec ⟨ comp t₁ (ret ∷ []) , ret c (comp-env ρ) ∷ s , ρ′ ⟩) $
-                                                                            sym comp-snoc ⟩∞≈
+                                                                            sym comp-snoc ⟩′≈
       exec ⟨ comp t₁ (ret ∷ [])
            , ret c (comp-env ρ) ∷ s
            , comp-env (snoc ρ₁ v₂)
-           ⟩                                                        ≈⟨ ∞⟦⟧-correct t₁ (λ v →
+           ⟩                                                        ≈⟨ (λ { .force → ⟦⟧-correct t₁ (λ v →
 
         exec ⟨ ret ∷ []
              , val (comp-val v) ∷ ret c (comp-env ρ) ∷ s
@@ -97,22 +90,11 @@ mutual
 
         exec ⟨ c , val (comp-val v) ∷ s , comp-env ρ ⟩                   ≈⟨ hyp v ⟩∎
 
-        k v                                                              ∎) ⟩∞∼
+        k v                                                              ∎) }) ⟩′∼
 
       ⟦ t₁ ⟧ (snoc ρ₁ v₂) >>= k                                     ∎∼) ⟩∎
 
     T.ƛ t₁ ρ₁ ∙ v₂ >>= k                                       ∎
-
-  ∞⟦⟧-correct :
-    ∀ {i n} t {ρ : T.Env n} {c s}
-      {k : T.Value → Delay (Maybe C.Value) ∞} →
-    (∀ v → Weakly-bisimilar i
-             (exec ⟨ c , val (comp-val v) ∷ s , comp-env ρ ⟩)
-             (k v)) →
-    ∞Weakly-bisimilar i
-      (exec ⟨ comp t c , s , comp-env ρ ⟩)
-      (⟦ t ⟧ ρ >>= k)
-  force (∞⟦⟧-correct t hyp) = ⟦⟧-correct t hyp
 
 -- Note that the equality that is used here is syntactic.
 

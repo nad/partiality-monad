@@ -211,8 +211,8 @@ flat-order = Alternative-order.flat-order
 Delay  = Delay-monad.Delay
 _↓D_   = Weak-bisimilarity._⇓_
 _∼D_   = Weak-bisimilarity._≈_
-_∼D′_  = Weak-bisimilarity._≈′_
-∼D⇔∼D′ = Delay-monad.Partial-order.≈⇔≈′
+_∼D′_  = Weak-bisimilarity._≈₂_
+∼D⇔∼D′ = Delay-monad.Partial-order.≈⇔≈₂
 
 -- The delay monad is a monad.
 
@@ -226,7 +226,7 @@ Delay-monad = Delay-monad.Monad.delay-monad
 -- The relation _∼D′_ is pointwise propositional (when the type "A" is
 -- a set).
 
-∼D′-propositional = Weak-bisimilarity.≈′-propositional
+∼D′-propositional = Weak-bisimilarity.≈₂-propositional
 
 -- _∼D_ is an equivalence relation.
 

@@ -26,9 +26,9 @@ open Closure Tm
 
 does-not-go-wrong : ∀ {σ} {x : M ∞ Value} →
                     □ ∞ (WF-MV σ) (run x) → ¬ x ≈M fail
-does-not-go-wrong (□-now {x = nothing} ())
-does-not-go-wrong (□-now {x = just x} x-wf) ()
-does-not-go-wrong (□-later x-wf)            (laterˡ x↯) =
+does-not-go-wrong (now {x = nothing} ())
+does-not-go-wrong (now {x = just x} x-wf) ()
+does-not-go-wrong (later x-wf)            (laterˡ x↯) =
   does-not-go-wrong (force x-wf) x↯
 
 -- A "constructor" for □ i ∘ WF-MV.
@@ -50,9 +50,9 @@ mutual
   ⟦⟧-wf : ∀ {i n Γ} (t : Tm n) {σ} → Γ ⊢ t ∈ σ →
           ∀ {ρ} → WF-Env Γ ρ →
           □ i (WF-MV σ) (run (⟦ t ⟧ ρ))
-  ⟦⟧-wf (con i)   con             ρ-wf = □-now con
-  ⟦⟧-wf (var x)   var             ρ-wf = □-now (ρ-wf x)
-  ⟦⟧-wf (ƛ t)     (ƛ t∈)          ρ-wf = □-now (ƛ t∈ ρ-wf)
+  ⟦⟧-wf (con i)   con             ρ-wf = now con
+  ⟦⟧-wf (var x)   var             ρ-wf = now (ρ-wf x)
+  ⟦⟧-wf (ƛ t)     (ƛ t∈)          ρ-wf = now (ƛ t∈ ρ-wf)
   ⟦⟧-wf (t₁ · t₂) (t₁∈ · t₂∈) {ρ} ρ-wf =
     ⟦⟧-wf t₁ t₁∈ ρ-wf >>=-wf λ f-wf →
     ⟦⟧-wf t₂ t₂∈ ρ-wf >>=-wf λ v-wf →
@@ -62,12 +62,7 @@ mutual
          WF-Value (σ ⇾ τ) f → WF-Value (force σ) v →
          □ i (WF-MV (force τ)) (run (f ∙ v))
   ∙-wf (ƛ t₁∈ ρ₁-wf) v₂-wf =
-    □-later (∞⟦⟧-wf _ t₁∈ (snoc-wf ρ₁-wf v₂-wf))
-
-  ∞⟦⟧-wf : ∀ {i n Γ} (t : Tm n) {σ} → Γ ⊢ t ∈ σ →
-           ∀ {ρ} → WF-Env Γ ρ →
-           ∞□ i (WF-MV σ) (run (⟦ t ⟧ ρ))
-  force (∞⟦⟧-wf t t∈ ρ-wf) = ⟦⟧-wf t t∈ ρ-wf
+    later λ { .force → ⟦⟧-wf _ t₁∈ (snoc-wf ρ₁-wf v₂-wf) }
 
 type-soundness : ∀ {t : Tm 0} {σ} →
                  empty ⊢ t ∈ σ → ¬ ⟦ t ⟧ empty ≈M fail

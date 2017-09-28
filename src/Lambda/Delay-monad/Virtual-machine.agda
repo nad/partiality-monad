@@ -30,5 +30,5 @@ mutual
   ... | done v      = return v
   ... | crash       = fail
 
-  ∞exec : ∀ {i} → State → ∞M i Value
+  ∞exec : ∀ {i} → State → M′ i Value
   force (run (∞exec s)) = run (exec s)

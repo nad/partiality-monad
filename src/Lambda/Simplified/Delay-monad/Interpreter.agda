@@ -35,20 +35,12 @@ mutual
                   v₁ ∙ v₂
 
   _∙_ : ∀ {i} → Value → Value → Delay Value i
-  ƛ t₁ ρ ∙ v₂ = later (∞⟦ t₁ ⟧ (snoc ρ v₂))
-
-  ∞⟦_⟧ : ∀ {i n} → Tm n → Env n → ∞Delay Value i
-  force (∞⟦ t ⟧ ρ) = ⟦ t ⟧ ρ
+  ƛ t₁ ρ ∙ v₂ = later λ { .force → ⟦ t₁ ⟧ (snoc ρ v₂) }
 
 ------------------------------------------------------------------------
 -- An example
 
-mutual
+-- The semantics of Ω is the non-terminating computation never.
 
-  -- The semantics of Ω is the non-terminating computation never.
-
-  Ω-loops : ⟦ Ω ⟧ empty ∼ never
-  Ω-loops = later-cong ∞Ω-loops
-
-  ∞Ω-loops : ⟦ Ω ⟧ empty ∞∼ never
-  force ∞Ω-loops = Ω-loops
+Ω-loops : ⟦ Ω ⟧ empty ∼ never
+Ω-loops = later λ { .force → Ω-loops }

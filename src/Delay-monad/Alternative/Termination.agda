@@ -152,11 +152,11 @@ termination-value-unique (f , inc) {y} {z} (m , fm↓y) (n , fn↓z)
              (just x  ≡⟨ sym $ ↓-upwards-closed₀ f-inc (sym f0↓x) n ⟩
               f n     ≡⟨ fn↓y ⟩∎
               just y  ∎))
-          W.now-cong
+          W.now
 
   from : ∀ {f : ℕ → Maybe A} {y} x →
          x ≡ f 0 → Delay⇔Delay.To.to′ f x W.⇓ y → ∃ λ n → f n ↓ y
-  from (just x) f0↓x W.now-cong      = 0 , sym f0↓x
+  from (just x) f0↓x W.now           = 0 , sym f0↓x
   from nothing  _    (W.laterʳ to⇓y) =
     Σ-map suc id (from _ refl to⇓y)
 
@@ -167,11 +167,11 @@ termination-value-unique (f , inc) {y} {z} (m , fm↓y) (n , fn↓z)
   }
   where
   to : ∀ {x y} → x W.⇓ y → Delay⇔Delay.from x ⇓ y
-  to W.now-cong   = 0 , refl
+  to W.now        = 0 , refl
   to (W.laterʳ p) = Σ-map suc id (to p)
 
   from : ∀ x {y} n → proj₁ (Delay⇔Delay.from x) n ↓ y → x W.⇓ y
-  from (now x)   n       refl = W.now-cong
+  from (now x)   n       refl = W.now
   from (later x) zero    ()
   from (later x) (suc n) xn↓y = W.laterʳ (from (force x) n xn↓y)
 
