@@ -136,7 +136,8 @@ module Interpreter₂ where
 
   ⟦_⟧ : ∀ {n} → Tm n → Env n → M Value
   run (⟦ t ⟧ ρ) =
-    fixP (λ { (_ , t , ρ) → run (⟦ t ⟧′ ρ) }) (_ , t , ρ)
+    fixP {A = ∃ λ n → Tm n × Env n}
+         (λ { (_ , t , ρ) → run (⟦ t ⟧′ ρ) }) (_ , t , ρ)
 
 ------------------------------------------------------------------------
 -- The two interpreters are pointwise equal
