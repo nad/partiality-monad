@@ -139,7 +139,7 @@ snoc-wf ρ-wf v-wf fzero    = v-wf
 snoc-wf ρ-wf v-wf (fsuc x) = ρ-wf x
 
 ------------------------------------------------------------------------
--- Example
+-- Examples
 
 -- A non-terminating term.
 

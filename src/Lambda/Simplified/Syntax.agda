@@ -44,7 +44,7 @@ module Closure (Tm : ℕ → Set) where
       ƛ : ∀ {n} (t : Tm (suc n)) (ρ : Env n) → Value
 
 ------------------------------------------------------------------------
--- Example
+-- Examples
 
 -- A non-terminating term.
 
