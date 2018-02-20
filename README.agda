@@ -121,16 +121,12 @@ import Partiality-monad.Inductive.Strict-omega-continuous
 import Partiality-monad.Inductive.Fixpoints
 
 ------------------------------------------------------------------------
--- Some examples
+-- An example
 
 -- A function that, given a stream, tries to find an element
 -- satisfying a predicate.
 
 import Search
-
--- Examples involving simple λ-calculi.
-
-import README.Lambda
 
 ------------------------------------------------------------------------
 -- An alternative definition of the delay monad
