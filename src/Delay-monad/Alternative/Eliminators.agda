@@ -375,7 +375,7 @@ module _
         (Delay/-elim₁ prop-ext cc R-equiv P
            (λ f → subst P (lemma₁ f) (p-[] (_↠_.to →↠Delay-function f)))
            _ P-set (→Maybe/→ [ proj₁ x ]))                                 ≡⟨ cong (subst P lemma₂) $
-                                                                                Delay/-elim₁-[] prop-ext cc R-equiv _ _ _ _ x ⟩
+                                                                                Delay/-elim₁-[] prop-ext cc R-equiv P _ _ _ x ⟩
       subst P lemma₂
         (subst P (lemma₁ (proj₁ x))
            (p-[] (_↠_.to →↠Delay-function (proj₁ x))))                     ≡⟨ subst-subst P (lemma₁ (proj₁ x)) lemma₂ _ ⟩
