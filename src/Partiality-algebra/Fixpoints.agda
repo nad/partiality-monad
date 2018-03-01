@@ -11,7 +11,7 @@ module Partiality-algebra.Fixpoints where
 open import Equality.Propositional
 open import Interval using (ext)
 open import Logical-equivalence using (_⇔_)
-open import Prelude hiding (⊥; head; tail)
+open import Prelude hiding (⊥)
 
 open import Bijection equality-with-J using (_↔_)
 import Equivalence equality-with-J as Eq

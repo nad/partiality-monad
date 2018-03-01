@@ -9,7 +9,7 @@ module Search where
 
 open import Equality.Propositional
 open import Interval using (⟨ext⟩)
-open import Prelude hiding (⊥; head; tail)
+open import Prelude hiding (⊥)
 
 open import Monad equality-with-J
 open import Univalence-axiom equality-with-J

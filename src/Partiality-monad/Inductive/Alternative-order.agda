@@ -419,7 +419,7 @@ now-or-never x = run (map (⊎-map id ¬⇓→⇑) excluded-middle)
 -- distinct from never are unrelated.
 
 flat-order : {x y : A ⊥} → x ≢ y → ¬ x ⇑ → ¬ y ⇑ → ¬ (x ⊑ y)
-flat-order {x} {y} x≢y never≢x never≢y x⊑y = ¬¬¬⊥ $ DN.map′ ⊥-elim $
+flat-order {x} {y} x≢y never≢x never≢y x⊑y = ¬¬¬⊥ $
   ¬⇑→¬¬⇓ never≢x >>= λ x⇓ →
   ¬⇑→¬¬⇓ never≢y >>= λ y⇓ →
   return (⊥-elim $ ¬x⇓×y⇓ (x⇓ , y⇓))
