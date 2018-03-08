@@ -41,6 +41,7 @@ import Partiality-monad.Inductive.Fixpoints
 import Partiality-monad.Inductive.Monad as Monad
 import Partiality-monad.Inductive.Monad.Adjunction as Adjunction
 import Partiality-monad.Equivalence
+import README.Lambda
 import Search
 
 ------------------------------------------------------------------------
@@ -335,8 +336,9 @@ module The-search-function = Search.Direct
 ------------------------------------------------------------------------
 -- Section 5.3
 
--- The code related to operational semantics has been moved to a
--- separate repository.
+-- Operational semantics.
+
+module Operational-semantics = README.Lambda
 
 ------------------------------------------------------------------------
 -- Section 6
