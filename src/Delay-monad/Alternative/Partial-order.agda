@@ -21,7 +21,7 @@ open import Delay-monad.Alternative
 open import Delay-monad.Alternative.Equivalence
 open import Delay-monad.Alternative.Termination
 import Delay-monad.Partial-order as PO
-import Delay-monad.Weak-bisimilarity as W
+import Delay-monad.Termination as T
 
 infix 4 _⊑_
 
@@ -49,7 +49,7 @@ x ∥⊑∥ y = ∀ z → x ∥⇓∥ z → y ∥⇓∥ z
 ⊑⇔⊑ x y =
   x ⊑ y                                                              ↝⟨ F.id ⟩
   (∀ z → x ⇓ z → y ⇓ z)                                              ↝⟨ ∀-cong _ (λ _ → →-cong _ (⇓⇔⇓ x) (⇓⇔⇓ y)) ⟩
-  (∀ z → _⇔_.to Delay⇔Delay x  W.⇓ z → _⇔_.to Delay⇔Delay y  W.⇓ z)  ↝⟨ inverse $ ∀-cong _ (λ _ → →-cong _ (_↔_.logical-equivalence PO.⇓↔⇓)
+  (∀ z → _⇔_.to Delay⇔Delay x  T.⇓ z → _⇔_.to Delay⇔Delay y  T.⇓ z)  ↝⟨ inverse $ ∀-cong _ (λ _ → →-cong _ (_↔_.logical-equivalence PO.⇓↔⇓)
                                                                                                            (_↔_.logical-equivalence PO.⇓↔⇓)) ⟩
   (∀ z → _⇔_.to Delay⇔Delay x PO.⇓ z → _⇔_.to Delay⇔Delay y PO.⇓ z)  ↝⟨ inverse PO.⊑⇔⇓→⇓ ⟩□
   _⇔_.to Delay⇔Delay x PO.⊑ _⇔_.to Delay⇔Delay y                     □
@@ -60,7 +60,7 @@ x ∥⊑∥ y = ∀ z → x ∥⇓∥ z → y ∥⇓∥ z
   x PO.⊑ y                                                         ↝⟨ PO.⊑⇔⇓→⇓ ⟩
   (∀ z → x PO.⇓ z → y PO.⇓ z)                                      ↝⟨ ∀-cong _ (λ _ → →-cong _ (_↔_.logical-equivalence PO.⇓↔⇓)
                                                                                                (_↔_.logical-equivalence PO.⇓↔⇓))  ⟩
-  (∀ z → x  W.⇓ z → y  W.⇓ z)                                      ↝⟨ ∀-cong _ (λ _ → →-cong _ ⇓⇔⇓′ ⇓⇔⇓′) ⟩
+  (∀ z → x  T.⇓ z → y  T.⇓ z)                                      ↝⟨ ∀-cong _ (λ _ → →-cong _ ⇓⇔⇓′ ⇓⇔⇓′) ⟩
   (∀ z → _⇔_.from Delay⇔Delay x ⇓ z → _⇔_.from Delay⇔Delay y ⇓ z)  ↝⟨ F.id ⟩□
   _⇔_.from Delay⇔Delay x ⊑ _⇔_.from Delay⇔Delay y                  □
 

@@ -8,7 +8,7 @@
 module Lambda.Syntax where
 
 open import Equality.Propositional
-open import Prelude hiding (Vec)
+open import Prelude
 
 open import Maybe equality-with-J
 

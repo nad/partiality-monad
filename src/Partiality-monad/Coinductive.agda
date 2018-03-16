@@ -14,7 +14,7 @@ open import Quotient.HIT
 open import H-level equality-with-J
 
 open import Delay-monad
-open import Delay-monad.Weak-bisimilarity
+open import Delay-monad.Bisimilarity
 
 -- The partiality monad, defined as the delay monad quotiented by
 -- (propositionally truncated) weak bisimilarity.

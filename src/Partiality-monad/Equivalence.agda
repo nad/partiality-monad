@@ -33,8 +33,7 @@ import Delay-monad.Alternative.Equivalence as A
 import Delay-monad.Alternative.Partial-order as A
 import Delay-monad.Alternative.Termination as A
 import Delay-monad.Alternative.Weak-bisimilarity as A
-import Delay-monad.Strong-bisimilarity as S
-import Delay-monad.Weak-bisimilarity as W
+import Delay-monad.Bisimilarity as B
 import Partiality-monad.Coinductive as C
 import Partiality-monad.Coinductive.Alternative as CA
 open import Partiality-monad.Inductive as I
@@ -385,7 +384,7 @@ Delay→⊥-surjective A-set prop-ext cc =
 
 ⊥≃⊥ :
   Is-set A →
-  S.Extensionality a →
+  B.Extensionality a →
   Propositional-extensionality a →
   Axiom-of-countable-choice a →
   A I.⊥ ≃ A C.⊥
@@ -409,9 +408,9 @@ Delay→⊥′ =
 
 Delay→⊥′-≈→≡ :
   Is-set A →
-  ∀ {x y} → x W.≈ y → Delay→⊥′ x ≡ Delay→⊥′ y
+  ∀ {x y} → x B.≈ y → Delay→⊥′ x ≡ Delay→⊥′ y
 Delay→⊥′-≈→≡ A-set {x} {y} =
-  x W.≈ y                                                ↝⟨ _⇔_.to (A.≈⇔≈′ A-set) ⟩
+  x B.≈ y                                                ↝⟨ _⇔_.to (A.≈⇔≈′ A-set) ⟩
   _⇔_.from A.Delay⇔Delay x A.≈ _⇔_.from A.Delay⇔Delay y  ↝⟨ Delay→⊥-≈→≡ A-set (_⇔_.from A.Delay⇔Delay x) (_⇔_.from A.Delay⇔Delay y) ⟩□
   Delay→⊥′ x ≡ Delay→⊥′ y                                □
 

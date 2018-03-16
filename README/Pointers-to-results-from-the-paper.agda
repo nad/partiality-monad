@@ -9,10 +9,11 @@ module README.Pointers-to-results-from-the-paper where
 -- Library code.
 
 import Delay-monad
+import Delay-monad.Bisimilarity
+import Delay-monad.Bisimilarity.Alternative
 import Delay-monad.Monad
 import Delay-monad.Partial-order
-import Delay-monad.Strong-bisimilarity as Strong-bisimilarity
-import Delay-monad.Weak-bisimilarity as Weak-bisimilarity
+import Delay-monad.Termination
 import Equality.Propositional as Equality
 import Interval
 import H-level
@@ -57,7 +58,7 @@ ext            = Interval.ext
 
 -- Strong bisimilarity implies equality for the delay monad.
 
-Delay-ext = Strong-bisimilarity.Extensionality
+Delay-ext = Delay-monad.Bisimilarity.Extensionality
 
 -- Uniqueness of identity proofs.
 
@@ -209,9 +210,9 @@ flat-order = Alternative-order.flat-order
 -- _∼D′_, which is closer to the paper's definition.
 
 Delay  = Delay-monad.Delay
-_↓D_   = Weak-bisimilarity._⇓_
-_∼D_   = Weak-bisimilarity._≈_
-_∼D′_  = Weak-bisimilarity._≈₂_
+_↓D_   = Delay-monad.Termination._⇓_
+_∼D_   = Delay-monad.Bisimilarity._≈_
+_∼D′_  = Delay-monad.Bisimilarity.Alternative._≈₂_
 ∼D⇔∼D′ = Delay-monad.Partial-order.≈⇔≈₂
 
 -- The delay monad is a monad.
@@ -221,18 +222,19 @@ Delay-monad = Delay-monad.Monad.delay-monad
 -- The relation _↓D_ is pointwise propositional (when the type "A" is
 -- a set).
 
-↓D-propositional = Weak-bisimilarity.Terminates-propositional
+↓D-propositional = Delay-monad.Termination.Terminates-propositional
 
 -- The relation _∼D′_ is pointwise propositional (when the type "A" is
 -- a set).
 
-∼D′-propositional = Weak-bisimilarity.≈₂-propositional
+∼D′-propositional =
+  Delay-monad.Bisimilarity.Alternative.≈₂-propositional
 
 -- _∼D_ is an equivalence relation.
 
-∼D-reflexive  = Weak-bisimilarity.reflexive
-∼D-symmetric  = Weak-bisimilarity.symmetric
-∼D-transitive = Weak-bisimilarity.transitive
+∼D-reflexive  = Delay-monad.Bisimilarity.reflexive
+∼D-symmetric  = Delay-monad.Bisimilarity.symmetric
+∼D-transitive = Delay-monad.Bisimilarity.transitive-≈
 
 ------------------------------------------------------------------------
 -- Section 4.1

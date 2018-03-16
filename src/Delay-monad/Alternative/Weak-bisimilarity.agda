@@ -18,8 +18,8 @@ import Quotient equality-with-J as Quotient′
 open import Delay-monad.Alternative
 open import Delay-monad.Alternative.Equivalence
 open import Delay-monad.Alternative.Partial-order
+import Delay-monad.Bisimilarity as B
 import Delay-monad.Partial-order as PO
-import Delay-monad.Weak-bisimilarity as W
 
 infix 4 _≈_
 
@@ -50,20 +50,20 @@ x ≈ y = x ∥⊑∥ y × y ∥⊑∥ x
 
 ≈⇔≈ :
   Is-set A →
-  ∀ x y → x ≈ y ⇔ _⇔_.to Delay⇔Delay x W.≈ _⇔_.to Delay⇔Delay y
+  ∀ x y → x ≈ y ⇔ _⇔_.to Delay⇔Delay x B.≈ _⇔_.to Delay⇔Delay y
 ≈⇔≈ A-set x y =
   x ∥⊑∥ y × y ∥⊑∥ x                ↝⟨ inverse (⊑⇔∥⊑∥ A-set x y ×-cong ⊑⇔∥⊑∥ A-set y x) ⟩
   x ⊑ y × y ⊑ x                    ↝⟨ ⊑⇔⊑ x y ×-cong ⊑⇔⊑ y x ⟩
   to x PO.⊑ to y × to y PO.⊑ to x  ↝⟨ inverse PO.≈⇔⊑×⊒ ⟩□
-  to x W.≈ to y                    □
+  to x B.≈ to y                    □
   where
   open _⇔_ Delay⇔Delay
 
 ≈⇔≈′ :
   Is-set A →
-  ∀ {x y} → x W.≈ y ⇔ _⇔_.from Delay⇔Delay x ≈ _⇔_.from Delay⇔Delay y
+  ∀ {x y} → x B.≈ y ⇔ _⇔_.from Delay⇔Delay x ≈ _⇔_.from Delay⇔Delay y
 ≈⇔≈′ A-set {x} {y} =
-  x W.≈ y                                ↝⟨ PO.≈⇔⊑×⊒ ⟩
+  x B.≈ y                                ↝⟨ PO.≈⇔⊑×⊒ ⟩
   x PO.⊑ y × y PO.⊑ x                    ↝⟨ ⊑⇔⊑′ ×-cong ⊑⇔⊑′ ⟩
   from x ⊑ from y × from y ⊑ from x      ↝⟨ ⊑⇔∥⊑∥ A-set (from x) (from y) ×-cong ⊑⇔∥⊑∥ A-set (from y) (from x) ⟩□
   from x ∥⊑∥ from y × from y ∥⊑∥ from x  □

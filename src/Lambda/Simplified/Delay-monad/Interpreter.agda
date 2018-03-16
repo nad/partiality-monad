@@ -12,9 +12,8 @@ open import Prelude
 open import Monad equality-with-J
 
 open import Delay-monad
+open import Delay-monad.Bisimilarity
 open import Delay-monad.Monad
-open import Delay-monad.Strong-bisimilarity
-open import Delay-monad.Weak-bisimilarity
 
 open import Lambda.Simplified.Syntax
 

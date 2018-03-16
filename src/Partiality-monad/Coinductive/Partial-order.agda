@@ -21,8 +21,8 @@ open import H-level equality-with-J
 open import H-level.Closure equality-with-J
 
 open import Delay-monad
+open import Delay-monad.Bisimilarity as B using (_≈_)
 import Delay-monad.Partial-order as PO
-open import Delay-monad.Weak-bisimilarity as W using (_≈_)
 
 open import Partiality-monad.Coinductive
 
@@ -48,7 +48,7 @@ LE x y = Quotient.rec
       _↔_.to (⇔↔≡″ ext prop-ext)
              (record { to   = ∥∥-map (flip PO.transitive-⊑≈ x≈y)
                      ; from = ∥∥-map (flip PO.transitive-⊑≈
-                                        (W.symmetric x≈y))
+                                        (B.symmetric x≈y))
                      })
 
     right-lemma-∥∥ : ∀ {x y z} → ∥ x ≈ y ∥ → LE′ z x ≡ LE′ z y
@@ -63,7 +63,7 @@ LE x y = Quotient.rec
     left-lemma x≈y =
       _↔_.to (⇔↔≡″ ext prop-ext)
              (record { to   = ∥∥-map (PO.transitive-≈⊑
-                                        (W.symmetric x≈y))
+                                        (B.symmetric x≈y))
                      ; from = ∥∥-map (PO.transitive-≈⊑ x≈y)
                      })
 

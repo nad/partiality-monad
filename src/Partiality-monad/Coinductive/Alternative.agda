@@ -20,8 +20,7 @@ open import H-level equality-with-J
 import Delay-monad.Alternative as A
 import Delay-monad.Alternative.Equivalence as A
 import Delay-monad.Alternative.Weak-bisimilarity as A
-import Delay-monad.Strong-bisimilarity as Strong-bisimilarity
-import Delay-monad.Weak-bisimilarity as W
+import Delay-monad.Bisimilarity as B
 import Partiality-monad.Coinductive as C
 
 -- The partiality monad, defined as the alternative definition of the
@@ -40,15 +39,15 @@ A ⊥ = A.Delay A / λ x y → (x A.≈ y) , A.≈-propositional x y
 
 ⊥↔⊥ : ∀ {a} {A : Set a} →
       Is-set A →
-      Strong-bisimilarity.Extensionality a →
+      B.Extensionality a →
       A ⊥ ↔ A C.⊥
 ⊥↔⊥ {A = A} A-set delay-ext = D↔D /-cong lemma
   where
   D↔D = A.Delay↔Delay delay-ext
 
   lemma : (x y : A.Delay A) →
-          x A.≈ y ⇔ ∥ _↔_.to D↔D x W.≈ _↔_.to D↔D y ∥
+          x A.≈ y ⇔ ∥ _↔_.to D↔D x B.≈ _↔_.to D↔D y ∥
   lemma x y =
     x A.≈ y                            ↔⟨ inverse $ ∥∥↔ (A.≈-propositional x y) ⟩
     ∥ x A.≈ y ∥                        ↝⟨ ∥∥-cong-⇔ (A.≈⇔≈ A-set x y) ⟩□
-    ∥ _↔_.to D↔D x W.≈ _↔_.to D↔D y ∥  □
+    ∥ _↔_.to D↔D x B.≈ _↔_.to D↔D y ∥  □

@@ -22,7 +22,8 @@ open import Delay-monad hiding (Delay)
 open import Delay-monad.Alternative
 open import Delay-monad.Alternative.Equivalence
 open import Delay-monad.Alternative.Properties
-import Delay-monad.Weak-bisimilarity as W
+import Delay-monad.Bisimilarity as B
+import Delay-monad.Termination as T
 
 infix 4 _⇓_ _∥⇓∥_ _⇓′_
 
@@ -128,7 +129,7 @@ termination-value-unique (f , inc) {y} {z} (m , fm↓y) (n , fn↓z)
 -- (via Delay⇔Delay) to the one defined for the coinductive delay
 -- monad.
 
-⇓⇔⇓ : ∀ x {y} → x ⇓ y ⇔ _⇔_.to Delay⇔Delay x W.⇓ y
+⇓⇔⇓ : ∀ x {y} → x ⇓ y ⇔ _⇔_.to Delay⇔Delay x T.⇓ y
 ⇓⇔⇓ x = record
   { to   = λ { (n , fn↓y) → to n _ (proj₂ x) refl fn↓y }
   ; from = from _ refl
@@ -136,9 +137,9 @@ termination-value-unique (f , inc) {y} {z} (m , fm↓y) (n , fn↓z)
   where
   to : ∀ {f : ℕ → Maybe A} n x {y} →
        Increasing f →
-       x ≡ f 0 → f n ↓ y → Delay⇔Delay.To.to′ f x W.⇓ y
+       x ≡ f 0 → f n ↓ y → Delay⇔Delay.To.to′ f x T.⇓ y
   to (suc n) nothing f-inc f0↑ fn↓y =
-    W.laterʳ (to n _ (f-inc ∘ suc) refl fn↓y)
+    B.laterʳ (to n _ (f-inc ∘ suc) refl fn↓y)
 
   to {f} zero nothing {y} _ f0↑ fn↓y =
     ⊥-elim $ ⊎.inj₁≢inj₂ (
@@ -147,33 +148,33 @@ termination-value-unique (f , inc) {y} {z} (m , fm↓y) (n , fn↓z)
       just y   ∎)
 
   to {f} n (just x) {y} f-inc f0↓x fn↓y =
-    subst (_ W.⇓_)
+    subst (_ T.⇓_)
           (⊎.cancel-inj₂ {A = ⊤}
              (just x  ≡⟨ sym $ ↓-upwards-closed₀ f-inc (sym f0↓x) n ⟩
               f n     ≡⟨ fn↓y ⟩∎
               just y  ∎))
-          W.now
+          B.now
 
   from : ∀ {f : ℕ → Maybe A} {y} x →
-         x ≡ f 0 → Delay⇔Delay.To.to′ f x W.⇓ y → ∃ λ n → f n ↓ y
-  from (just x) f0↓x W.now           = 0 , sym f0↓x
-  from nothing  _    (W.laterʳ to⇓y) =
+         x ≡ f 0 → Delay⇔Delay.To.to′ f x T.⇓ y → ∃ λ n → f n ↓ y
+  from (just x) f0↓x B.now           = 0 , sym f0↓x
+  from nothing  _    (B.laterʳ to⇓y) =
     Σ-map suc id (from _ refl to⇓y)
 
-⇓⇔⇓′ : ∀ {x} {y : A} → x W.⇓ y ⇔ _⇔_.from Delay⇔Delay x ⇓ y
+⇓⇔⇓′ : ∀ {x} {y : A} → x T.⇓ y ⇔ _⇔_.from Delay⇔Delay x ⇓ y
 ⇓⇔⇓′ = record
   { to   = to
   ; from = uncurry (from _)
   }
   where
-  to : ∀ {x y} → x W.⇓ y → Delay⇔Delay.from x ⇓ y
-  to W.now        = 0 , refl
-  to (W.laterʳ p) = Σ-map suc id (to p)
+  to : ∀ {x y} → x T.⇓ y → Delay⇔Delay.from x ⇓ y
+  to B.now        = 0 , refl
+  to (B.laterʳ p) = Σ-map suc id (to p)
 
-  from : ∀ x {y} n → proj₁ (Delay⇔Delay.from x) n ↓ y → x W.⇓ y
-  from (now x)   n       refl = W.now
+  from : ∀ x {y} n → proj₁ (Delay⇔Delay.from x) n ↓ y → x T.⇓ y
+  from (now x)   n       refl = B.now
   from (later x) zero    ()
-  from (later x) (suc n) xn↓y = W.laterʳ (from (force x) n xn↓y)
+  from (later x) (suc n) xn↓y = B.laterʳ (from (force x) n xn↓y)
 
 -- If there is a function f : ℕ → Maybe A satisfying a property
 -- similar to termination-value-unique, then this function can be

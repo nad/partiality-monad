@@ -14,8 +14,8 @@ open import Maybe equality-with-J
 open import Monad equality-with-J
 
 open import Delay-monad.Always
+open import Delay-monad.Bisimilarity
 open import Delay-monad.Monad
-open import Delay-monad.Weak-bisimilarity
 
 open import Lambda.Delay-monad.Interpreter
 open import Lambda.Syntax

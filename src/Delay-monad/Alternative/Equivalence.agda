@@ -21,7 +21,8 @@ open import Surjection equality-with-J using (_↠_)
 open import Delay-monad as D hiding (Delay)
 open import Delay-monad.Alternative
 open import Delay-monad.Alternative.Properties
-open import Delay-monad.Strong-bisimilarity as Strong-bisimilarity
+open import Delay-monad.Bisimilarity as Bisimilarity
+  using (_∼_; now; later; force)
 
 -- Building blocks used in the theorems below.
 
@@ -252,7 +253,7 @@ Delay↠Delay = record
 -- The two definitions of the delay monad are isomorphic (assuming
 -- extensionality).
 
-Delay↔Delay : Strong-bisimilarity.Extensionality a →
+Delay↔Delay : Bisimilarity.Extensionality a →
               Delay A ↔ D.Delay A ∞
 Delay↔Delay delay-ext = record
   { surjection = record
@@ -275,7 +276,7 @@ Delay↔Delay delay-ext = record
 -- Chapman, Uustalu and Veltri prove this result in "Quotienting the
 -- Delay Monad by Weak Bisimilarity".
 
-→↠Delay-coinductive : Strong-bisimilarity.Extensionality a →
+→↠Delay-coinductive : Bisimilarity.Extensionality a →
                       (ℕ → Maybe A) ↠ D.Delay A ∞
 →↠Delay-coinductive delay-ext = record
   { logical-equivalence = record
