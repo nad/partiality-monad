@@ -65,7 +65,7 @@ mutual
     (λ n → evalⁿ (ƛ t) ρ (suc n) >>= k n)                    ∎≳
 
   ⟦⟧-correct (t₁ · t₂) {ρ} {c} {s} {k} {n} hyp =
-    execⁿ ⟨ comp t₁ (comp t₂ (app ∷ c)) , s , comp-env ρ ⟩    ≳⟨ (⟦⟧-correct t₁ λ v₁ → ⟦⟧-correct t₂ λ v₂ → ∙-correct v₁ v₂ hyp) ⟩
+    execⁿ ⟨ comp t₁ (comp t₂ (app ∷ c)) , s , comp-env ρ ⟩    ≳⟨ (⟦⟧-correct t₁ {n = n} λ v₁ → ⟦⟧-correct t₂ λ v₂ → ∙-correct v₁ v₂ hyp) ⟩
 
     (λ n → evalⁿ t₁ ρ (suc n) >>=′ λ v₁ →
            evalⁿ t₂ ρ (suc n) >>=′ λ v₂ →
@@ -113,7 +113,7 @@ mutual
     execⁿ ⟨ comp t₁ (ret ∷ [])
           , ret c (comp-env ρ) ∷ s
           , comp-env (snoc ρ₁ v₂)
-          ⟩                                                     ≳⟨ (⟦⟧-correct t₁ λ v →
+          ⟩                                                     ≳⟨ (⟦⟧-correct t₁ {n = n} λ v →
 
         execⁿ ⟨ ret ∷ []
               , val (comp-val v) ∷ ret c (comp-env ρ) ∷ s

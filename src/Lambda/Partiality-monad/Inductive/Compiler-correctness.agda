@@ -56,7 +56,7 @@ mutual
     (λ n → run (⟦ ƛ t ⟧′ ρ n >>= k n))                       ∎≳
 
   ⟦⟧-correct (t₁ · t₂) {ρ} {c} {s} {k} {n} hyp =
-    steps ⟨ comp t₁ (comp t₂ (app ∷ c)) , s , comp-env ρ ⟩     ≳⟨ (⟦⟧-correct t₁ λ v₁ → ⟦⟧-correct t₂ λ v₂ → ∙-correct v₁ v₂ hyp) ⟩
+    steps ⟨ comp t₁ (comp t₂ (app ∷ c)) , s , comp-env ρ ⟩     ≳⟨ (⟦⟧-correct t₁ {n = n} λ v₁ → ⟦⟧-correct t₂ λ v₂ → ∙-correct v₁ v₂ hyp) ⟩
 
     (λ n → run (⟦ t₁ ⟧′ ρ n >>= λ v₁ →
                 ⟦ t₂ ⟧′ ρ n >>= λ v₂ →
@@ -115,7 +115,7 @@ mutual
     steps ⟨ comp t₁ (ret ∷ [])
           , ret c (comp-env ρ) ∷ s
           , comp-env (snoc ρ₁ v₂)
-          ⟩                                               ≳⟨ (⟦⟧-correct t₁ λ v →
+          ⟩                                               ≳⟨ (⟦⟧-correct t₁ {n = n} λ v →
 
         steps ⟨ ret ∷ []
               , val (comp-val v) ∷ ret c (comp-env ρ) ∷ s
