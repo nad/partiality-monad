@@ -205,7 +205,7 @@ module _ {a} {A : Set a} where
 
   ↑<↓ : ∀ {f : ℕ → Maybe A} {x m n} →
         Increasing f → f m ↑ → f n ↓ x → m N.< n
-  ↑<↓ {f} {x} {m} {n} inc fm↑ fn↓x with N.≤⊎> n m
+  ↑<↓ {f} {x} {m} {n} inc fm↑ fn↓x with n N.≤⊎> m
   ... | inj₂ m<n = m<n
   ... | inj₁ n≤m =
     ⊥-elim $ ⊎.inj₁≢inj₂
