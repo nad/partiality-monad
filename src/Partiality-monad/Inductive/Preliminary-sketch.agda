@@ -16,6 +16,12 @@ open import Prelude hiding (⊥)
 -- pointed out that inductive-inductive types can be encoded as
 -- inductive-recursive types in (roughly) the following way.
 
+-- The code below was developed using some previous version of Agda.
+-- Agda 2.6.0 does not accept that this code is terminating, hence the
+-- following pragma.
+
+{-# TERMINATING #-}
+
 I : ∀ {a} → Set a → Bool → Set a
 
 data D {a} (A : Set a) : (b : Bool) → I A b → Set a
@@ -75,6 +81,12 @@ data D {a} (A : Set a) where
                       (is-ub : Is-upper-bound s ub) → ⨆ s ⊑ ub
 
 -- An example: A monotone map function.
+
+-- The code below was developed using some previous version of Agda.
+-- Agda 2.6.0 does not accept that this code is terminating, hence the
+-- following pragma.
+
+{-# TERMINATING #-}
 
 I-map : ∀ {a b} {A : Set a} {B : Set b} →
         (f : A → B) → ∀ {b} → I A b → I B b
