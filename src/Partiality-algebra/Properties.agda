@@ -2,6 +2,8 @@
 -- Some partiality algebra properties
 ------------------------------------------------------------------------
 
+{-# OPTIONS --without-K #-}
+
 open import Partiality-algebra as PA hiding (id; _∘_)
 
 module Partiality-algebra.Properties

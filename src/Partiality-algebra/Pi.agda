@@ -2,6 +2,8 @@
 -- Pi with partiality algebra families as codomains
 ------------------------------------------------------------------------
 
+{-# OPTIONS --without-K #-}
+
 module Partiality-algebra.Pi where
 
 open import Equality.Propositional
