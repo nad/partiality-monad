@@ -11,6 +11,7 @@ open import Equality.Propositional
 open import Interval using (⟨ext⟩; cong-ext; cong-pre-∘-ext)
 open import Logical-equivalence using (_⇔_)
 open import Prelude hiding (↑)
+open import Size
 
 open import Bijection equality-with-J using (_↔_)
 open import Equality.Decision-procedures equality-with-J

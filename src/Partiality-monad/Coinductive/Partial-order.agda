@@ -15,6 +15,7 @@ open import Interval using (ext)
 open import Logical-equivalence using (_⇔_)
 open import Prelude hiding (⊥; module W)
 open import Quotient.HIT as Quotient
+open import Size
 
 open import Bijection equality-with-J using (_↔_)
 open import H-level equality-with-J

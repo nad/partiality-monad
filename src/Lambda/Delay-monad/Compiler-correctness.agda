@@ -8,6 +8,7 @@ module Lambda.Delay-monad.Compiler-correctness where
 
 import Equality.Propositional as E
 open import Prelude
+open import Size
 
 open import Maybe E.equality-with-J hiding (_>>=′_)
 open import Monad E.equality-with-J

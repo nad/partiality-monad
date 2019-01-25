@@ -8,6 +8,7 @@ module Lambda.Delay-monad.Type-soundness where
 
 open import Equality.Propositional
 open import Prelude
+open import Size
 
 open import Function-universe equality-with-J
 open import Maybe equality-with-J

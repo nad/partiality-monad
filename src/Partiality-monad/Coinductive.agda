@@ -10,6 +10,7 @@ open import Equality.Propositional
 open import H-level.Truncation.Propositional
 open import Prelude hiding (⊥)
 open import Quotient.HIT
+open import Size
 
 open import H-level equality-with-J
 
