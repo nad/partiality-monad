@@ -7,7 +7,7 @@
 module Partiality-monad.Inductive.Monad where
 
 open import Equality.Propositional
-open import H-level.Truncation.Propositional as Trunc
+open import H-level.Truncation.Propositional as Trunc hiding (_>>=′_)
 open import Interval using (ext; ⟨ext⟩)
 open import Logical-equivalence using (_⇔_)
 import Monad
