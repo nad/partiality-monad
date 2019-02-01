@@ -55,7 +55,7 @@ module _ {a} {A : Set a} where
 
   fix′-is-least :
     (f : A → A ⊥) →
-    ∀ x → x >>= f ⊑ x → fix′ f ⊑ x
+    (x : A ⊥) → x >>= f ⊑ x → fix′ f ⊑ x
   fix′-is-least f = fix-is-least (monotone-function (f ∗))
 
   -- Taking steps that are "twice as large" does not affect the end
@@ -65,7 +65,7 @@ module _ {a} {A : Set a} where
   fix′-∘ f =
     fix′ (λ x → f x >>= f)                                    ≡⟨⟩
 
-    fix (monotone-function ((λ x → f x >>= f) ∗))             ≡⟨ cong fix (_↔_.to equality-characterisation-monotone λ x →
+    fix (monotone-function ((λ x → f x >>= f) ∗))             ≡⟨ cong fix (_↔_.to equality-characterisation-monotone λ (x : A ⊥) →
 
         (x >>= λ y → f y >>= f)                                    ≡⟨ associativity x f f ⟩∎
         x >>= f >>= f                                              ∎) ⟩

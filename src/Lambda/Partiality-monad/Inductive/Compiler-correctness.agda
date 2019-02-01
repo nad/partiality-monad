@@ -8,7 +8,7 @@ module Lambda.Partiality-monad.Inductive.Compiler-correctness where
 
 open import Equality.Propositional
 open import Interval using (ext; ⟨ext⟩)
-open import Prelude
+open import Prelude hiding (⊥)
 
 open import Bijection equality-with-J using (_↔_)
 open import Maybe equality-with-J as Maybe
@@ -96,7 +96,7 @@ mutual
 
     const never                               ≡⟨ sym never->>= ⟩≳
 
-    const (never >>= _)                       ≡⟨ cong (_>>= maybe (MaybeT.run ∘ k 0) (return nothing)) (sym never->>=) ⟩≳
+    const (never >>= _)                       ≡⟨ cong (_>>= maybe (MaybeT.run ∘ k 0) (return nothing) ⦂ (_ ⊥ → _)) (sym never->>=) ⟩≳
 
     (λ n → run ((T.ƛ t₁ ρ₁ ∙ v₂) n >>= k n))  ∎≳
 

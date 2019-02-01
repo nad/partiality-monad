@@ -67,7 +67,7 @@ Is-upper-bound s x = ∀ n → s [ n ] ⊑ x
 
 -- _⊥ and _⊑_.
 
-data D {a} (A : Set a) where
+data D {a} A where
   never : A ⊥
   now   : (x : A) → A ⊥
   ⨆     : (s : Increasing-sequence A) → A ⊥
