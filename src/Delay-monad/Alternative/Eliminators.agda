@@ -94,8 +94,8 @@ module _
     -- An abbreviation.
 
     ℕ→/-comm′ =
-      ℕ→/-comm prop-ext cc
-        (Maybeᴾ-preserves-Is-equivalence-relation {R = R} R-equiv)
+      ℕ→/-comm {R = Maybeᴾ R} prop-ext cc
+        (Maybeᴾ-preserves-Is-equivalence-relation R-equiv)
 
   -- →Maybe/→ has a right inverse.
 
