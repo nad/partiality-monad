@@ -2,7 +2,11 @@
 -- Pointers to results from the paper
 ------------------------------------------------------------------------
 
-{-# OPTIONS --without-K #-}
+-- Note that this is a version of the code that does not quite match
+-- the description in the paper. See README for some discussion of the
+-- changes.
+
+{-# OPTIONS --cubical #-}
 
 module README.Pointers-to-results-from-the-paper where
 

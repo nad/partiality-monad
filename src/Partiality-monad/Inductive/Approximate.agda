@@ -2,12 +2,14 @@
 -- A function that runs computations
 ------------------------------------------------------------------------
 
-{-# OPTIONS --without-K #-}
+{-# OPTIONS --cubical #-}
 
 module Partiality-monad.Inductive.Approximate {a} {A : Set a} where
 
-open import H-level.Truncation.Propositional
+open import Equality.Propositional
 open import Prelude hiding (⊥)
+
+open import H-level.Truncation.Propositional equality-with-J
 
 open import Partiality-monad.Inductive
 open import Partiality-monad.Inductive.Eliminators

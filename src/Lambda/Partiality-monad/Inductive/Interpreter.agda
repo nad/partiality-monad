@@ -2,15 +2,15 @@
 -- A definitional interpreter
 ------------------------------------------------------------------------
 
-{-# OPTIONS --without-K #-}
+{-# OPTIONS --cubical #-}
 
 module Lambda.Partiality-monad.Inductive.Interpreter where
 
 open import Equality.Propositional
-open import Interval using (⟨ext⟩)
 open import Prelude hiding (⊥)
 
 open import Bijection equality-with-J using (_↔_)
+open import Equality.Path.Isomorphisms equality-with-J using (⟨ext⟩)
 open import Function-universe equality-with-J hiding (id; _∘_)
 open import Maybe equality-with-J
 open import Monad equality-with-J

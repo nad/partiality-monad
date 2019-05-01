@@ -5,16 +5,16 @@
 -- Note that this module is experimental: it uses postulates to encode
 -- a quotient inductive-inductive type.
 
-{-# OPTIONS --without-K #-}
+{-# OPTIONS --cubical #-}
 
 module Partiality-monad.Inductive where
 
 open import Equality.Propositional
-open import Interval using (ext)
 open import Logical-equivalence using (_⇔_)
 open import Prelude hiding (⊥)
 
 open import Bijection equality-with-J using (_↔_)
+open import Equality.Path.Isomorphisms equality-with-J using (ext)
 open import Equivalence equality-with-J as Eq using (_≃_)
 open import Function-universe equality-with-J hiding (id; _∘_)
 open import H-level equality-with-J hiding (Type)

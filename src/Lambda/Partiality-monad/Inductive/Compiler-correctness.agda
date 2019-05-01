@@ -2,15 +2,16 @@
 -- Compiler correctness
 ------------------------------------------------------------------------
 
-{-# OPTIONS --without-K #-}
+{-# OPTIONS --cubical #-}
 
 module Lambda.Partiality-monad.Inductive.Compiler-correctness where
 
 open import Equality.Propositional
-open import Interval using (ext; ⟨ext⟩)
 open import Prelude hiding (⊥)
 
 open import Bijection equality-with-J using (_↔_)
+open import Equality.Path.Isomorphisms equality-with-J
+  using (ext; ⟨ext⟩)
 open import Maybe equality-with-J as Maybe
 open import Monad equality-with-J
 

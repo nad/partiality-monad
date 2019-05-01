@@ -5,27 +5,27 @@
 -- choice
 ------------------------------------------------------------------------
 
-{-# OPTIONS --without-K --rewriting #-}
+{-# OPTIONS --cubical #-}
 
 module Partiality-monad.Equivalence {a} {A : Set a} where
 
 open import Equality.Propositional
-open import H-level.Truncation.Propositional as Trunc
-open import Interval using (ext)
 open import Logical-equivalence using (_⇔_)
 open import Prelude hiding (⊥; ↑)
-open import Quotient.HIT as Quotient hiding ([_])
 open import Size
 
 open import Bijection equality-with-J using (_↔_)
 open import Embedding equality-with-J
   using (Is-embedding; Injective≃Is-embedding)
+open import Equality.Path.Isomorphisms equality-with-J using (ext)
 open import Equivalence equality-with-J as Eq
   using (_≃_; Is-equivalence)
 open import Function-universe equality-with-J as F hiding (id; _∘_)
 open import H-level equality-with-J
 open import H-level.Closure equality-with-J
+open import H-level.Truncation.Propositional equality-with-J as Trunc
 open import Injection equality-with-J using (Injective)
+open import Quotient.HIT equality-with-J as Quotient hiding ([_])
 open import Univalence-axiom equality-with-J
 
 import Delay-monad as D

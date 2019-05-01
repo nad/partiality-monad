@@ -2,15 +2,15 @@
 -- Strict ω-continuous functions
 ------------------------------------------------------------------------
 
-{-# OPTIONS --without-K #-}
+{-# OPTIONS --cubical #-}
 
 module Partiality-algebra.Strict-omega-continuous where
 
 open import Equality.Propositional
-open import Interval using (ext)
 open import Prelude hiding (⊥)
 
 open import Bijection equality-with-J using (_↔_)
+open import Equality.Path.Isomorphisms equality-with-J using (ext)
 import Equivalence equality-with-J as Eq
 open import Function-universe equality-with-J hiding (_∘_)
 open import H-level.Closure equality-with-J

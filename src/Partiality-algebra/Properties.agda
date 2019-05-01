@@ -2,7 +2,7 @@
 -- Some partiality algebra properties
 ------------------------------------------------------------------------
 
-{-# OPTIONS --without-K #-}
+{-# OPTIONS --cubical #-}
 
 open import Partiality-algebra as PA hiding (id; _∘_)
 
@@ -10,13 +10,13 @@ module Partiality-algebra.Properties
   {a p q} {A : Set a} (P : Partiality-algebra p q A) where
 
 open import Equality.Propositional
-open import H-level.Truncation.Propositional hiding (elim)
-open import Interval using (ext)
 open import Prelude
 
+open import Equality.Path.Isomorphisms equality-with-J using (ext)
 open import Function-universe equality-with-J hiding (id; _∘_)
 open import H-level equality-with-J hiding (Type)
 open import H-level.Closure equality-with-J
+open import H-level.Truncation.Propositional equality-with-J
 open import Nat equality-with-J as Nat
 
 open Partiality-algebra P

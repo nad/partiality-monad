@@ -5,7 +5,18 @@
 -- Thorsten Altenkirch, Nils Anders Danielsson and Nicolai Kraus
 ------------------------------------------------------------------------
 
-{-# OPTIONS --without-K #-}
+-- Note that this is a version of the code that does not quite match
+-- the description in the paper. Some key changes (there might be
+-- others):
+--
+-- * Rewrite rules are no longer used. Instead the propositional
+--   truncation and set quotient operators are defined as QITs using
+--   Cubical Agda.
+--
+-- * The set quotient operator that is used can be applied to
+--   arbitrary binary relations, not only propositional ones.
+
+{-# OPTIONS --cubical #-}
 
 module README where
 

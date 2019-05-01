@@ -7,7 +7,7 @@
 -- The code in this module is based on a suggestion from Paolo
 -- Capriotti.
 
-{-# OPTIONS --without-K #-}
+{-# OPTIONS --cubical #-}
 
 open import Omega-cpo
 

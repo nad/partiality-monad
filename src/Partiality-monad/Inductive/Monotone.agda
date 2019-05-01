@@ -2,7 +2,7 @@
 -- Monotone functions
 ------------------------------------------------------------------------
 
-{-# OPTIONS --without-K #-}
+{-# OPTIONS --cubical #-}
 
 module Partiality-monad.Inductive.Monotone where
 

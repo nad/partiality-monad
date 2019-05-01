@@ -2,7 +2,7 @@
 -- A partial order
 ------------------------------------------------------------------------
 
-{-# OPTIONS --without-K --rewriting #-}
+{-# OPTIONS --cubical #-}
 
 open import Equality.Propositional
 open import Univalence-axiom equality-with-J
@@ -10,16 +10,16 @@ open import Univalence-axiom equality-with-J
 module Partiality-monad.Coinductive.Partial-order
   {a} (prop-ext : Propositional-extensionality a) {A : Set a} where
 
-open import H-level.Truncation.Propositional as Trunc
-open import Interval using (ext)
 open import Logical-equivalence using (_⇔_)
 open import Prelude hiding (⊥; module W)
-open import Quotient.HIT as Quotient
 open import Size
 
 open import Bijection equality-with-J using (_↔_)
+open import Equality.Path.Isomorphisms equality-with-J using (ext)
 open import H-level equality-with-J
 open import H-level.Closure equality-with-J
+open import H-level.Truncation.Propositional equality-with-J as Trunc
+open import Quotient.HIT equality-with-J as Quotient
 
 open import Delay-monad
 open import Delay-monad.Bisimilarity as B using (_≈_)

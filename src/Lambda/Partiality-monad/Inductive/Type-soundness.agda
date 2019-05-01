@@ -2,12 +2,11 @@
 -- A type soundness result
 ------------------------------------------------------------------------
 
-{-# OPTIONS --without-K #-}
+{-# OPTIONS --cubical #-}
 
 module Lambda.Partiality-monad.Inductive.Type-soundness where
 
 open import Equality.Propositional
-open import H-level.Truncation.Propositional as Trunc
 open import Prelude hiding (⊥)
 
 open import Bijection equality-with-J using (_↔_)
@@ -16,6 +15,7 @@ open import Equivalence equality-with-J using (_≃_)
 open import Function-universe equality-with-J hiding (id; _∘_)
 open import H-level equality-with-J
 open import H-level.Closure equality-with-J
+open import H-level.Truncation.Propositional equality-with-J as Trunc
 open import Maybe equality-with-J
 open import Monad equality-with-J
 open import Univalence-axiom equality-with-J

@@ -2,18 +2,19 @@
 -- The partiality monad's monad instance, defined via an adjunction
 ------------------------------------------------------------------------
 
-{-# OPTIONS --without-K #-}
+{-# OPTIONS --cubical #-}
 
 module Partiality-monad.Inductive.Monad.Adjunction where
 
 open import Equality.Propositional
-open import Interval using (ext; ⟨ext⟩)
 open import Logical-equivalence using (_⇔_)
 open import Prelude hiding (⊥)
 
 open import Adjunction equality-with-J
 open import Bijection equality-with-J using (_↔_)
 open import Category equality-with-J
+open import Equality.Path.Isomorphisms equality-with-J
+  using (ext; ⟨ext⟩)
 open import Function-universe equality-with-J hiding (id; _∘_)
 open import Functor equality-with-J
 open import H-level equality-with-J hiding (Type)

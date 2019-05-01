@@ -2,13 +2,14 @@
 -- A compiler
 ------------------------------------------------------------------------
 
-{-# OPTIONS --without-K #-}
+{-# OPTIONS --cubical #-}
 
 module Lambda.Compiler where
 
 open import Equality.Propositional
-open import Interval using (⟨ext⟩)
 open import Prelude
+
+open import Equality.Path.Isomorphisms equality-with-J using (⟨ext⟩)
 
 open import Lambda.Syntax hiding ([_])
 open import Lambda.Virtual-machine

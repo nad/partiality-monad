@@ -2,17 +2,18 @@
 -- The delay monad quotiented by weak bisimilarity
 ------------------------------------------------------------------------
 
-{-# OPTIONS --without-K #-}
+{-# OPTIONS --cubical #-}
 
 module Partiality-monad.Coinductive where
 
 open import Equality.Propositional
-open import H-level.Truncation.Propositional
 open import Prelude hiding (⊥)
-open import Quotient.HIT
 open import Size
 
+open import Bijection equality-with-J using (_↔_)
 open import H-level equality-with-J
+open import H-level.Truncation.Propositional equality-with-J
+open import Quotient.HIT equality-with-J
 
 open import Delay-monad
 open import Delay-monad.Bisimilarity
@@ -21,7 +22,7 @@ open import Delay-monad.Bisimilarity
 -- (propositionally truncated) weak bisimilarity.
 
 _⊥ : ∀ {a} → Set a → Set a
-A ⊥ = Delay A ∞ / λ x y → ∥ x ≈ y ∥ , truncation-is-proposition
+A ⊥ = Delay A ∞ / λ x y → ∥ x ≈ y ∥
 
 -- The partiality monad is a set.
 

@@ -2,12 +2,11 @@
 -- Various properties
 ------------------------------------------------------------------------
 
-{-# OPTIONS --without-K #-}
+{-# OPTIONS --cubical #-}
 
 module Delay-monad.Alternative.Properties where
 
 open import Equality.Propositional
-open import Interval using (ext; ⟨ext⟩)
 open import Logical-equivalence using (_⇔_)
 open import Prelude hiding (↑)
 
@@ -15,6 +14,8 @@ open import Bijection equality-with-J as Bijection using (_↔_)
 open import Embedding equality-with-J as Embedding using (Embedding)
 open import Equality.Decision-procedures equality-with-J
 import Equality.Groupoid equality-with-J as EG
+open import Equality.Path.Isomorphisms equality-with-J
+  using (ext; ⟨ext⟩)
 open import Equivalence equality-with-J as Eq using (_≃_)
 open import Function-universe equality-with-J hiding (id; _∘_)
 open import Groupoid equality-with-J
@@ -56,14 +57,14 @@ module _ {a} {A : Set a} where
 
          ; (inj₁ p)         (inj₁ q)         →
                                  $⟨ ↑-propositional _ ⟩
-           Is-proposition (x ↑)  ↝⟨ (λ hyp → _⇔_.to propositional⇔irrelevant hyp _ _) ⟩
+           Is-proposition (x ↑)  ↝⟨ (λ hyp → _⇔_.to propositional⇔irrelevant hyp _ _) ⦂ (_ → _) ⟩
            sym p ≡ sym q         ↔⟨ Eq.≃-≡ $ from-bijection $ Groupoid.⁻¹-bijection (EG.groupoid _) ⟩
            p ≡ q                 ↔⟨ Bijection.≡↔inj₁≡inj₁ ⟩□
            inj₁ p ≡ inj₁ q       □
 
          ; (inj₂ p) (inj₂ q) →
                                                $⟨ ×-closure 1 (↑-propositional _) (¬-propositional ext) ⟩
-           Is-proposition (nothing ↑ × ¬ x ↑)  ↝⟨ (λ hyp → _⇔_.to propositional⇔irrelevant hyp _ _) ⟩
+           Is-proposition (nothing ↑ × ¬ x ↑)  ↝⟨ (λ hyp → _⇔_.to propositional⇔irrelevant hyp _ _) ⦂ (_ → _) ⟩
            p ≡ q                               ↔⟨ Bijection.≡↔inj₂≡inj₂ ⟩□
            inj₂ p ≡ inj₂ q                     □
          })

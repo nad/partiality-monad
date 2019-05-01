@@ -2,15 +2,16 @@
 -- Pointed and non-pointed ω-cpos
 ------------------------------------------------------------------------
 
-{-# OPTIONS --without-K #-}
+{-# OPTIONS --cubical #-}
 
 module Omega-cpo where
 
 open import Equality.Propositional
-open import Interval using (ext; ⟨ext⟩)
 open import Logical-equivalence using (_⇔_)
 open import Prelude
 
+open import Equality.Path.Isomorphisms equality-with-J
+  using (ext; ⟨ext⟩)
 open import Equivalence equality-with-J as Eq using (_≃_)
 open import H-level equality-with-J hiding (Type)
 open import H-level.Closure equality-with-J

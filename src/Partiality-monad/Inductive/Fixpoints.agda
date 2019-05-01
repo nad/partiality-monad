@@ -2,16 +2,17 @@
 -- Fixpoint combinators
 ------------------------------------------------------------------------
 
-{-# OPTIONS --without-K #-}
+{-# OPTIONS --cubical #-}
 
 module Partiality-monad.Inductive.Fixpoints where
 
 open import Equality.Propositional
-open import Interval using (ext; ⟨ext⟩; bad-ext)
 open import Logical-equivalence using (_⇔_)
 open import Prelude hiding (⊥)
 
 open import Bijection equality-with-J using (_↔_)
+open import Equality.Path.Isomorphisms equality-with-J
+  using (ext; ⟨ext⟩; bad-ext)
 import Equivalence equality-with-J as Eq
 open import Function-universe equality-with-J hiding (id; _∘_)
 open import H-level equality-with-J

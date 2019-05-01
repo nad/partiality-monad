@@ -3,19 +3,20 @@
 -- delay monad quotiented by a notion of weak bisimilarity
 ------------------------------------------------------------------------
 
-{-# OPTIONS --without-K #-}
+{-# OPTIONS --cubical #-}
 
 module Partiality-monad.Coinductive.Alternative where
 
 open import Equality.Propositional
-open import H-level.Truncation.Propositional
 open import Logical-equivalence using (_⇔_)
 open import Prelude hiding (⊥)
-open import Quotient.HIT
 
 open import Bijection equality-with-J using (_↔_)
+open import Equality.Path.Isomorphisms equality-with-J
 open import Function-universe equality-with-J hiding (⊥↔⊥)
 open import H-level equality-with-J
+open import H-level.Truncation.Propositional equality-with-J
+open import Quotient.HIT equality-with-J
 
 import Delay-monad.Alternative as A
 import Delay-monad.Alternative.Equivalence as A
@@ -27,7 +28,7 @@ import Partiality-monad.Coinductive as C
 -- delay monad quotiented by weak bisimilarity.
 
 _⊥ : ∀ {a} → Set a → Set a
-A ⊥ = A.Delay A / λ x y → (x A.≈ y) , A.≈-propositional x y
+A ⊥ = A.Delay A / A._≈_
 
 -- The partiality monad is a set.
 

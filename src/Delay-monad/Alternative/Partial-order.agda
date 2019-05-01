@@ -2,20 +2,20 @@
 -- Information orderings
 ------------------------------------------------------------------------
 
-{-# OPTIONS --without-K #-}
+{-# OPTIONS --cubical #-}
 
 module Delay-monad.Alternative.Partial-order {a} {A : Set a} where
 
 open import Equality.Propositional
-open import H-level.Truncation.Propositional
-open import Interval using (ext)
 open import Logical-equivalence using (_⇔_)
 open import Prelude hiding (module W)
 
 open import Bijection equality-with-J using (_↔_)
+open import Equality.Path.Isomorphisms equality-with-J using (ext)
 open import Function-universe equality-with-J as F hiding (id; _∘_)
 open import H-level equality-with-J
 open import H-level.Closure equality-with-J
+open import H-level.Truncation.Propositional equality-with-J
 
 open import Delay-monad.Alternative
 open import Delay-monad.Alternative.Equivalence

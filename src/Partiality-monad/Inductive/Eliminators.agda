@@ -2,7 +2,7 @@
 -- Specialised eliminators
 ------------------------------------------------------------------------
 
-{-# OPTIONS --without-K #-}
+{-# OPTIONS --cubical #-}
 
 module Partiality-monad.Inductive.Eliminators where
 

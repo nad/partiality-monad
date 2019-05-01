@@ -2,22 +2,24 @@
 -- The partiality monad's monad instance
 ------------------------------------------------------------------------
 
-{-# OPTIONS --without-K #-}
+{-# OPTIONS --cubical #-}
 
 module Partiality-monad.Inductive.Monad where
 
 open import Equality.Propositional
-open import H-level.Truncation.Propositional as Trunc hiding (_>>=′_)
-open import Interval using (ext; ⟨ext⟩)
 open import Logical-equivalence using (_⇔_)
 import Monad
 open import Prelude hiding (⊥)
 
 open import Bijection equality-with-J using (_↔_)
+open import Equality.Path.Isomorphisms equality-with-J
+  using (ext; ⟨ext⟩)
 open import Equivalence equality-with-J as Eq using (_≃_)
 open import Function-universe equality-with-J as F hiding (id; _∘_)
 open import H-level equality-with-J
 open import H-level.Closure equality-with-J
+open import H-level.Truncation.Propositional equality-with-J as Trunc
+  hiding (_>>=′_)
 open import Nat equality-with-J as Nat
 open import Univalence-axiom equality-with-J
 
