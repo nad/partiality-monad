@@ -28,7 +28,7 @@ module README where
 -- types in homotopy type theory" by Awodey, Gambino and Sojakova,
 -- "Inductive Types in Homotopy Type Theory" by Sojakova, "Quotient
 -- inductive-inductive types" by Altenkirch, Capriotti, Dijkstra and
--- Nordvall Forsberg, and Gabe Dijkstra's forthcoming PhD thesis.
+-- Nordvall Forsberg, and Gabe Dijkstra's PhD thesis.
 
 ------------------------------------------------------------------------
 -- Pointers to results from the paper
