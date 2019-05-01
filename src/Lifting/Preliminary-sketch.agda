@@ -24,12 +24,6 @@ private
 -- pointed out that inductive-inductive types can be encoded as
 -- inductive-recursive types in (roughly) the following way.
 
--- The code below was developed using some previous version of Agda.
--- Agda 2.6.0 does not accept that this code is terminating, hence the
--- following pragma.
-
-{-# TERMINATING #-}
-
 I : Bool → Set ℓ
 
 data D : (b : Bool) → I b → Set ℓ
