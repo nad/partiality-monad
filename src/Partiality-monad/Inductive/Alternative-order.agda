@@ -85,8 +85,7 @@ private
     where
     abstract
       ps : Is-set (Proposition a)
-      ps =
-        Is-set-∃-Is-proposition ext prop-ext
+      ps = Is-set-∃-Is-proposition ext prop-ext
 
 infix 4 now[_]≲_
 
