@@ -185,7 +185,7 @@ constˢ x = const x , const (⊑-refl x)
 -- An alternative characterisation of _⊑_
 
 -- A relation which, /for the partiality monad/, is pointwise
--- equivalent to _⊑_ (assuming propositional extensionality). See
+-- equivalent to _⊑_. See
 -- Partiality-monad.Inductive.Alternative-order.≼≃⊑ for the proof.
 
 _≼_ : Type → Type → Set (a ⊔ p)

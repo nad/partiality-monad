@@ -45,60 +45,55 @@ does-not-go-wrong {σ} {x} always =
   ∥ ⊥₀ ∥               ↝⟨ _↔_.to (not-inhabited⇒∥∥↔⊥ id) ⟩□
   ⊥₀                   □
 
--- Well-typed programs do not "go wrong" (assuming propositional
--- extensionality).
+-- Some "constructors" for □ ∘ ∥WF-MV∥.
 
-module _ (prop-ext : Propositional-extensionality lzero) where
+return-wf :
+  ∀ {σ v} →
+  WF-Value σ v →
+  □ (∥WF-MV∥ σ) (MaybeT.run (return v))
+return-wf v-wf = □-now truncation-is-proposition ∣ v-wf ∣
 
-  -- Some "constructors" for □ ∘ ∥WF-MV∥.
+_>>=-wf_ :
+  ∀ {σ τ} {x : M Value} {f : Value → M Value} →
+  □ (∥WF-MV∥ σ) (run x) →
+  (∀ {v} → WF-Value σ v → □ (∥WF-MV∥ τ) (run (f v))) →
+  □ (∥WF-MV∥ τ) (MaybeT.run (x >>= f))
+_>>=-wf_ {σ} {τ} {f = f} x-wf f-wf =
+  □->>= (λ _ → truncation-is-proposition) x-wf
+    λ { {nothing} → Trunc.rec prop ⊥-elim
+      ; {just v}  → Trunc.rec prop f-wf
+      }
+  where
+  prop : ∀ {x} → Is-proposition (□ (∥WF-MV∥ τ) x)
+  prop = □-closure 1 (λ _ → truncation-is-proposition)
 
-  return-wf :
-    ∀ {σ v} →
-    WF-Value σ v →
-    □ (∥WF-MV∥ σ) (MaybeT.run (return v))
-  return-wf v-wf = □-now prop-ext truncation-is-proposition ∣ v-wf ∣
+-- Type soundness.
 
-  _>>=-wf_ :
-    ∀ {σ τ} {x : M Value} {f : Value → M Value} →
-    □ (∥WF-MV∥ σ) (run x) →
-    (∀ {v} → WF-Value σ v → □ (∥WF-MV∥ τ) (run (f v))) →
-    □ (∥WF-MV∥ τ) (MaybeT.run (x >>= f))
-  _>>=-wf_ {σ} {τ} {f = f} x-wf f-wf =
-    □->>= prop-ext prop-ext (λ _ → truncation-is-proposition) x-wf
-      λ { {nothing} → Trunc.rec prop ⊥-elim
-        ; {just v}  → Trunc.rec prop f-wf
-        }
-    where
-    prop : ∀ {x} → Is-proposition (□ (∥WF-MV∥ τ) x)
-    prop = □-closure 1 (λ _ → truncation-is-proposition)
+mutual
 
-  -- Type soundness.
+  ⟦⟧′-wf : ∀ {n Γ} (t : Tm n) {σ} → Γ ⊢ t ∈ σ →
+           ∀ {ρ} → WF-Env Γ ρ →
+           ∀ n → □ (∥WF-MV∥ σ) (run (⟦ t ⟧′ ρ n))
+  ⟦⟧′-wf (con i)   con             ρ-wf n = return-wf con
+  ⟦⟧′-wf (var x)   var             ρ-wf n = return-wf (ρ-wf x)
+  ⟦⟧′-wf (ƛ t)     (ƛ t∈)          ρ-wf n = return-wf (ƛ t∈ ρ-wf)
+  ⟦⟧′-wf (t₁ · t₂) (t₁∈ · t₂∈) {ρ} ρ-wf n =
+     ⟦⟧′-wf t₁ t₁∈ ρ-wf n >>=-wf λ f-wf →
+     ⟦⟧′-wf t₂ t₂∈ ρ-wf n >>=-wf λ v-wf →
+     ∙-wf f-wf v-wf n
 
-  mutual
+  ∙-wf : ∀ {σ τ f v} →
+         WF-Value (σ ⇾ τ) f → WF-Value (force σ) v →
+         ∀ n → □ (∥WF-MV∥ (force τ)) (run ((f ∙ v) n))
+  ∙-wf (ƛ t₁∈ ρ₁-wf) v₂-wf (suc n) = ⟦⟧′-wf _ t₁∈ (snoc-wf ρ₁-wf v₂-wf) n
+  ∙-wf (ƛ t₁∈ ρ₁-wf) v₂-wf zero    =         $⟨ □-never ⟩
+    □ (∥WF-MV∥ _) never                      ↝⟨ ≡⇒↝ bijection $ cong (□ (∥WF-MV∥ _)) (sym never->>=) ⟩□
+    □ (∥WF-MV∥ _) (never >>= return ∘ just)  □
 
-    ⟦⟧′-wf : ∀ {n Γ} (t : Tm n) {σ} → Γ ⊢ t ∈ σ →
-             ∀ {ρ} → WF-Env Γ ρ →
-             ∀ n → □ (∥WF-MV∥ σ) (run (⟦ t ⟧′ ρ n))
-    ⟦⟧′-wf (con i)   con             ρ-wf n = return-wf con
-    ⟦⟧′-wf (var x)   var             ρ-wf n = return-wf (ρ-wf x)
-    ⟦⟧′-wf (ƛ t)     (ƛ t∈)          ρ-wf n = return-wf (ƛ t∈ ρ-wf)
-    ⟦⟧′-wf (t₁ · t₂) (t₁∈ · t₂∈) {ρ} ρ-wf n =
-       ⟦⟧′-wf t₁ t₁∈ ρ-wf n >>=-wf λ f-wf →
-       ⟦⟧′-wf t₂ t₂∈ ρ-wf n >>=-wf λ v-wf →
-       ∙-wf f-wf v-wf n
-
-    ∙-wf : ∀ {σ τ f v} →
-           WF-Value (σ ⇾ τ) f → WF-Value (force σ) v →
-           ∀ n → □ (∥WF-MV∥ (force τ)) (run ((f ∙ v) n))
-    ∙-wf (ƛ t₁∈ ρ₁-wf) v₂-wf (suc n) = ⟦⟧′-wf _ t₁∈ (snoc-wf ρ₁-wf v₂-wf) n
-    ∙-wf (ƛ t₁∈ ρ₁-wf) v₂-wf zero    =         $⟨ □-never prop-ext ⟩
-      □ (∥WF-MV∥ _) never                      ↝⟨ ≡⇒↝ bijection $ cong (□ (∥WF-MV∥ _)) (sym never->>=) ⟩□
-      □ (∥WF-MV∥ _) (never >>= return ∘ just)  □
-
-  type-soundness : ∀ {t : Tm 0} {σ} →
-                   empty ⊢ t ∈ σ → ¬ ⟦ t ⟧ empty ≡ fail
-  type-soundness {t} {σ} =
-    empty ⊢ t ∈ σ                                 ↝⟨ (λ t∈ → ⟦⟧′-wf _ t∈ empty-wf) ⟩
-    (∀ n → □ (∥WF-MV∥ σ) (run (⟦ t ⟧′ empty n)))  ↝⟨ □-⨆ prop-ext (λ _ → truncation-is-proposition) ⟩
-    □ (∥WF-MV∥ σ) (run (⟦ t ⟧ empty))             ↝⟨ does-not-go-wrong ⟩□
-    ¬ ⟦ t ⟧ empty ≡ fail                          □
+type-soundness : ∀ {t : Tm 0} {σ} →
+                 empty ⊢ t ∈ σ → ¬ ⟦ t ⟧ empty ≡ fail
+type-soundness {t} {σ} =
+  empty ⊢ t ∈ σ                                 ↝⟨ (λ t∈ → ⟦⟧′-wf _ t∈ empty-wf) ⟩
+  (∀ n → □ (∥WF-MV∥ σ) (run (⟦ t ⟧′ empty n)))  ↝⟨ □-⨆ (λ _ → truncation-is-proposition) ⟩
+  □ (∥WF-MV∥ σ) (run (⟦ t ⟧ empty))             ↝⟨ does-not-go-wrong ⟩□
+  ¬ ⟦ t ⟧ empty ≡ fail                          □

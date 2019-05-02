@@ -5,22 +5,17 @@
 
 {-# OPTIONS --cubical #-}
 
-open import Equality.Propositional
-open import Univalence-axiom equality-with-J
-
--- The characterisation uses propositional extensionality.
-
 module Partiality-monad.Inductive.Alternative-order
-         {a} (prop-ext : Propositional-extensionality a) {A : Set a}
-         where
+         {a} {A : Set a} where
 
+open import Equality.Propositional
 open import Logical-equivalence using (_⇔_)
 open import Prelude hiding (⊥)
 
 open import Bijection equality-with-J using (_↔_)
 open import Double-negation equality-with-J as DN
 open import Equality.Path.Isomorphisms equality-with-J
-  using (ext; ⟨ext⟩)
+  using (ext; ⟨ext⟩; prop-ext)
 open import Equivalence equality-with-J as Eq using (_≃_)
 open import Function-universe equality-with-J as F hiding (id; _∘_)
 open import H-level equality-with-J
@@ -28,6 +23,7 @@ open import H-level.Closure equality-with-J
 open import H-level.Truncation.Propositional equality-with-J as Trunc
 open import Monad equality-with-J
 open import Nat equality-with-J
+open import Univalence-axiom equality-with-J
 
 open import Partiality-monad.Inductive
 open import Partiality-monad.Inductive.Eliminators
@@ -178,8 +174,8 @@ now⊑never≃⊥ {x} =
   now[ x ]≲ never  ↝⟨ ≡⇒↝ _ now[]≲never ⟩□
   Prelude.⊥        □
 
--- Defined values of the form now x are never smaller than or equal
--- to never (assuming propositional extensionality).
+-- Defined values of the form now x are never smaller than or equal to
+-- never.
 --
 -- This lemma was proved together with Paolo Capriotti.
 

@@ -79,13 +79,11 @@ map f = Σ-map (mapᴹ f ∘_) mapᴹ-Increasing
 →Maybe/→ f =
   _↠_.to →↠Delay-function (_↔_.to Maybe/-comm ∘ ℕ→/-comm-to f)
 
--- The definitions below make use of some assumptions: propositional
--- extensionality and countable choice, and a propositional
--- equivalence relation R.
+-- The definitions below make use of some assumptions: countable
+-- choice and a propositional equivalence relation R.
 
 module _
   {a r} {A : Set a} {R : A → A → Set r}
-  (prop-ext : Propositional-extensionality r)
   (cc : Axiom-of-countable-choice (a ⊔ r))
   (R-equiv : Is-equivalence-relation R)
   (R-prop : ∀ {x y} → Is-proposition (R x y))
@@ -96,7 +94,7 @@ module _
     -- An abbreviation.
 
     ℕ→/-comm′ =
-      ℕ→/-comm prop-ext cc
+      ℕ→/-comm cc
         (Maybeᴾ-preserves-Is-equivalence-relation R-equiv)
         (λ {x} → Maybeᴾ-preserves-Is-proposition R-prop {x = x})
 
@@ -284,13 +282,11 @@ module _
     helper f nothing  zero    = refl
     helper f nothing  (suc n) = helper (f ∘ suc) (f 1) n
 
--- The definitions below make use of some assumptions: propositional
--- extensionality and countable choice, and a propositional
--- equivalence relation R.
+-- The definitions below make use of some assumptions: countable
+-- choice and a propositional equivalence relation R.
 
 module _
   {a p r} {A : Set a} {R : A → A → Set r}
-  (prop-ext : Propositional-extensionality r)
   (cc : Axiom-of-countable-choice (a ⊔ r))
   (R-equiv : Is-equivalence-relation R)
   (R-prop : ∀ {x y} → Is-proposition (R x y))
@@ -312,7 +308,7 @@ module _
       (∀ x → Is-set (P x)) →
       ∀ x → P x
     Delay/-elim₂ P p-[] ok P-set =
-      Delay/-elim₁ prop-ext cc R-equiv R-prop P
+      Delay/-elim₁ cc R-equiv R-prop P
       (λ f → subst P (lemma₁ f) (p-[] (_↠_.to →↠Delay-function f)))
       lemma₂ P-set
       where
@@ -362,24 +358,24 @@ module _
       (P-set : ∀ x → Is-set (P x)) →
       ∀ x → Delay/-elim₂ P p-[] ok P-set (map [_] x) ≡ p-[] x
     Delay/-elim₂-[] P p-[] ok P-set x =
-      Delay/-elim₁ prop-ext cc R-equiv R-prop P
+      Delay/-elim₁ cc R-equiv R-prop P
         (λ f → subst P (lemma₁ f) (p-[] (_↠_.to →↠Delay-function f)))
         _ P-set (map [_] x)                                                ≡⟨ sym $ dependent-cong
-                                                                                      (Delay/-elim₁ prop-ext cc R-equiv R-prop P
+                                                                                      (Delay/-elim₁ cc R-equiv R-prop P
                                                                                                     (λ f → subst P (lemma₁ f)
                                                                                                              (p-[] (_↠_.to →↠Delay-function f)))
                                                                                                     _ P-set)
                                                                                       lemma₂ ⟩
       subst P lemma₂
-        (Delay/-elim₁ prop-ext cc R-equiv R-prop P
+        (Delay/-elim₁ cc R-equiv R-prop P
            (λ f → subst P (lemma₁ f) (p-[] (_↠_.to →↠Delay-function f)))
            _ P-set (→Maybe/→ [ proj₁ x ]))                                 ≡⟨⟩
 
       subst P lemma₂
-        (Delay/-elim₁ prop-ext cc R-equiv R-prop P
+        (Delay/-elim₁ cc R-equiv R-prop P
            (λ f → subst P (lemma₁ f) (p-[] (_↠_.to →↠Delay-function f)))
            _ P-set (→Maybe/→ [ proj₁ x ]))                                 ≡⟨ cong (subst P lemma₂) $
-                                                                                Delay/-elim₁-[] prop-ext cc R-equiv R-prop P _ _ _ x ⟩
+                                                                                Delay/-elim₁-[] cc R-equiv R-prop P _ _ _ x ⟩
       subst P lemma₂
         (subst P (lemma₁ (proj₁ x))
            (p-[] (_↠_.to →↠Delay-function (proj₁ x))))                     ≡⟨ subst-subst P (lemma₁ (proj₁ x)) lemma₂ _ ⟩

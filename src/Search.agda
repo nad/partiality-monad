@@ -77,9 +77,7 @@ module Direct {a} {A : Set a} (q : A → Bool) where
   search-fixpoint : search ≡ Φ search
   search-fixpoint = fix→-is-fixpoint-combinator Φ-ω
 
--- An arguably more convenient implementation, with the potential
--- drawback that one of the lemmas depends on propositional
--- extensionality.
+-- An arguably more convenient implementation.
 
 module Indirect {a} {A : Set a} (q : A → Bool) where
 
@@ -101,7 +99,5 @@ module Indirect {a} {A : Set a} (q : A → Bool) where
     ∀ xs → search xs ⊑ f xs
   search-least = fixP-is-least ΦP
 
-  search-fixpoint :
-    Propositional-extensionality a →
-    search ≡ Φ search
-  search-fixpoint prop-ext = fixP-is-fixpoint-combinator prop-ext ΦP
+  search-fixpoint : search ≡ Φ search
+  search-fixpoint = fixP-is-fixpoint-combinator ΦP

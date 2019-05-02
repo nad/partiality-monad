@@ -24,7 +24,7 @@ open import Nat equality-with-J as Nat
 open import Univalence-axiom equality-with-J
 
 open import Partiality-monad.Inductive
-import Partiality-monad.Inductive.Alternative-order as Alternative-order
+open import Partiality-monad.Inductive.Alternative-order
 open import Partiality-monad.Inductive.Eliminators
 open import Partiality-monad.Inductive.Monotone
 open import Partiality-monad.Inductive.Omega-continuous
@@ -239,18 +239,16 @@ map-∘ f g =
 >>=-⇓ :
   ∀ {a b} {A : Set a} {B : Set b}
     {x : A ⊥} {f : A → B ⊥} {y} →
-  Propositional-extensionality a →
-  Propositional-extensionality b →
   (x >>=′ f ⇓ y) ≃ ∥ ∃ (λ z → x ⇓ z × f z ⇓ y) ∥
->>=-⇓ {x = x} {f} {y} prop-ext-a prop-ext-b = ⊥-rec-⊥
+>>=-⇓ {x = x} {f} {y} = ⊥-rec-⊥
   (record
      { P  = λ x → (x >>=′ f ⇓ y) ≃ ∥ ∃ (λ z → x ⇓ z × f z ⇓ y) ∥
      ; pe = never >>=′ f ⇓ y                   ↝⟨ ≡⇒↝ _ (cong (_⇓ y) never->>=) ⟩
-            never ⇓ y                          ↝⟨ B.never⇓≃⊥ ⟩
+            never ⇓ y                          ↝⟨ never⇓≃⊥ ⟩
             Prelude.⊥                          ↔⟨ inverse (not-inhabited⇒∥∥↔⊥ id) ⟩
             ∥ Prelude.⊥ ∥                      ↔⟨ ∥∥-cong (inverse ×-right-zero) ⟩
             ∥ ∃ (λ z → ⊥₀) ∥                   ↔⟨ ∥∥-cong (∃-cong (λ _ → inverse ×-left-zero)) ⟩
-            ∥ ∃ (λ z → Prelude.⊥ × f z ⇓ y) ∥  ↝⟨ ∥∥-cong (∃-cong (λ _ → inverse A.never⇓≃⊥ ×-cong F.id)) ⟩□
+            ∥ ∃ (λ z → Prelude.⊥ × f z ⇓ y) ∥  ↝⟨ ∥∥-cong (∃-cong (λ _ → inverse never⇓≃⊥ ×-cong F.id)) ⟩□
             ∥ ∃ (λ z → never ⇓ z × f z ⇓ y) ∥  □
      ; po = λ x →
               now x >>=′ f ⇓ y                                   ↝⟨ ≡⇒↝ _ (cong (_⇓ y) now->>=) ⟩
@@ -262,11 +260,11 @@ map-∘ f g =
                                                                       (λ F → ∃ (λ _ → F (_ ≡ _) × _))
                                                                       (λ f → Σ-map id (Σ-map f id))
                                                                       (λ { (x , y , z) → ∥∥-map ((x ,_) ∘ (_, z)) y }) ⟩
-              ∥ ∃ (λ z → ∥ x ≡ z ∥ × f z ⇓ y) ∥                  ↝⟨ ∥∥-cong (∃-cong λ _ → inverse A.now≡now≃∥≡∥ ×-cong F.id) ⟩□
+              ∥ ∃ (λ z → ∥ x ≡ z ∥ × f z ⇓ y) ∥                  ↝⟨ ∥∥-cong (∃-cong λ _ → inverse now≡now≃∥≡∥ ×-cong F.id) ⟩□
               ∥ ∃ (λ z → now x ⇓ z × f z ⇓ y) ∥                  □
      ; pl = λ s ih →
               ⨆ s >>=′ f ⇓ y                                     ↝⟨ ≡⇒↝ _ (cong (_⇓ y) ⨆->>=) ⟩
-              ⨆ (f ∗-inc s) ⇓ y                                  ↝⟨ B.⨆⇓≃∥∃⇓∥ ⟩
+              ⨆ (f ∗-inc s) ⇓ y                                  ↝⟨ ⨆⇓≃∥∃⇓∥ ⟩
               ∥ (∃ λ n → s [ n ] >>=′ f ⇓ y) ∥                   ↝⟨ ∥∥-cong (∃-cong ih) ⟩
               ∥ (∃ λ n → ∥ ∃ (λ z → s [ n ] ⇓ z × f z ⇓ y) ∥) ∥  ↔⟨ Trunc.flatten′ (λ F → ∃ λ _ → F (∃ λ _ → _ × _))
                                                                                    (λ f → Σ-map id f)
@@ -277,27 +275,21 @@ map-∘ f g =
                                                                       (λ F → (∃ λ _ → F (∃ λ _ → _ ⇓ _) × _))
                                                                       (λ f → Σ-map id (Σ-map f id))
                                                                       (λ { (x , y , z) → ∥∥-map ((x ,_) ∘ (_, z)) y }) ⟩
-              ∥ (∃ λ z → ∥ (∃ λ n → s [ n ] ⇓ z) ∥ × f z ⇓ y) ∥  ↝⟨ ∥∥-cong (∃-cong λ _ → inverse A.⨆⇓≃∥∃⇓∥ ×-cong F.id) ⟩□
+              ∥ (∃ λ z → ∥ (∃ λ n → s [ n ] ⇓ z) ∥ × f z ⇓ y) ∥  ↝⟨ ∥∥-cong (∃-cong λ _ → inverse ⨆⇓≃∥∃⇓∥ ×-cong F.id) ⟩□
               ∥ ∃ (λ z → ⨆ s ⇓ z × f z ⇓ y) ∥                    □
      ; pp = λ _ → Eq.right-closure ext 0 truncation-is-proposition
      })
   x
-  where
-  module A = Alternative-order prop-ext-a
-  module B = Alternative-order prop-ext-b
 
--- □ is closed, in a certain sense, under bind (assuming propositional
--- extensionality).
+-- □ is closed, in a certain sense, under bind.
 
 □->>= :
   ∀ {a b p q} {A : Set a} {B : Set b} {P : A → Set p} {Q : B → Set q}
     {x : A ⊥} {f : A → B ⊥} →
-  Propositional-extensionality a →
-  Propositional-extensionality b →
   (∀ x → Is-proposition (Q x)) →
   □ P x → (∀ {x} → P x → □ Q (f x)) → □ Q (x >>=′ f)
-□->>= {Q = Q} {x} {f} prop-ext-a prop-ext-b Q-prop □-x □-f y =
-  x >>=′ f ⇓ y                   ↔⟨ >>=-⇓ prop-ext-a prop-ext-b ⟩
+□->>= {Q = Q} {x} {f} Q-prop □-x □-f y =
+  x >>=′ f ⇓ y                   ↔⟨ >>=-⇓ ⟩
   ∥ (∃ λ z → x ⇓ z × f z ⇓ y) ∥  ↝⟨ Trunc.rec (Q-prop y) (λ { (z , x⇓z , fz⇓y) → □-f (□-x z x⇓z) y fz⇓y }) ⟩□
   Q y                            □
 
@@ -322,23 +314,20 @@ map-∘ f g =
      })
   ◇-x
 
--- Certain nested occurrences of ⨆ can be replaced by a single one
--- (assuming propositional extensionality).
+-- Certain nested occurrences of ⨆ can be replaced by a single one.
 
 ⨆>>=⨆≡⨆>>= :
   ∀ {a b} {A : Set a} {B : Set b} →
-  Propositional-extensionality a →
-  Propositional-extensionality b →
   ∀ (s : Increasing-sequence A) (f : A → Increasing-sequence B)
     {inc₁ inc₂} →
   ⨆ ((λ n → s [ n ] >>=′ ⨆ ∘ f) , inc₁) ≡
   ⨆ ((λ n → s [ n ] >>=′ λ y → f y [ n ]) , inc₂)
-⨆>>=⨆≡⨆>>= prop-ext-a prop-ext-b s f = antisymmetry
+⨆>>=⨆≡⨆>>= s f = antisymmetry
   (least-upper-bound _ _ λ n →
-   _≃_.to (Alternative-order.≼≃⊑ prop-ext-b) $ λ z →
+   _≃_.to ≼≃⊑ $ λ z →
 
-     s [ n ] >>=′ ⨆ ∘ f ⇓ z                                   ↔⟨ >>=-⇓ prop-ext-a prop-ext-b ⟩
-     ∥ (∃ λ y → s [ n ] ⇓ y × ⨆ (f y) ⇓ z) ∥                  ↔⟨ ∥∥-cong (∃-cong λ _ → F.id ×-cong Alternative-order.⨆⇓≃∥∃⇓∥ prop-ext-b) ⟩
+     s [ n ] >>=′ ⨆ ∘ f ⇓ z                                   ↔⟨ >>=-⇓ ⟩
+     ∥ (∃ λ y → s [ n ] ⇓ y × ⨆ (f y) ⇓ z) ∥                  ↔⟨ ∥∥-cong (∃-cong λ _ → F.id ×-cong ⨆⇓≃∥∃⇓∥) ⟩
      ∥ (∃ λ y → s [ n ] ⇓ y × ∥ (∃ λ m → f y [ m ] ⇓ z) ∥) ∥  ↔⟨ Trunc.flatten′
                                                                    (λ F → ∃ λ _ → _ × F (∃ λ _ → _ ⇓ _))
                                                                    (λ f → Σ-map id (Σ-map id f))
@@ -350,8 +339,8 @@ map-∘ f g =
                                                                    (λ F → ∃ λ _ → F (∃ λ _ → _ × _))
                                                                    (λ f → Σ-map id f)
                                                                    (λ { (m , p) → ∥∥-map (m ,_) p }) ⟩
-     ∥ (∃ λ m → ∥ (∃ λ y → s [ m ] ⇓ y × f y [ m ] ⇓ z) ∥) ∥  ↔⟨ ∥∥-cong (∃-cong λ _ → inverse $ >>=-⇓ prop-ext-a prop-ext-b) ⟩
-     ∥ (∃ λ m → (s [ m ] >>=′ λ y → f y [ m ]) ⇓ z) ∥         ↔⟨ inverse $ Alternative-order.⨆⇓≃∥∃⇓∥ prop-ext-b ⟩□
+     ∥ (∃ λ m → ∥ (∃ λ y → s [ m ] ⇓ y × f y [ m ] ⇓ z) ∥) ∥  ↔⟨ ∥∥-cong (∃-cong λ _ → inverse $ >>=-⇓) ⟩
+     ∥ (∃ λ m → (s [ m ] >>=′ λ y → f y [ m ]) ⇓ z) ∥         ↔⟨ inverse ⨆⇓≃∥∃⇓∥ ⟩□
      ⨆ ((λ m → s [ m ] >>=′ λ y → f y [ m ]) , _) ⇓ z         □)
 
   (⨆-mono λ n →
@@ -367,9 +356,7 @@ map-∘ f g =
   lemma {n} (m , p , q) with Nat.total m n
   ... | inj₁ m≤n = n
                  , p
-                 , _≃_.from (Alternative-order.≼≃⊑ prop-ext-b)
-                     (later-larger (f _) m≤n) _ q
+                 , _≃_.from ≼≃⊑ (later-larger (f _) m≤n) _ q
   ... | inj₂ n≤m = m
-                 , _≃_.from (Alternative-order.≼≃⊑ prop-ext-a)
-                     (later-larger s n≤m) _ p
+                 , _≃_.from ≼≃⊑ (later-larger s n≤m) _ p
                  , q

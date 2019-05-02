@@ -1,8 +1,7 @@
 ------------------------------------------------------------------------
 -- The partiality monads in Partiality-monad.Inductive and
 -- Partiality-monad.Coinductive are pointwise equivalent, for sets,
--- assuming extensionality, propositional extensionality and countable
--- choice
+-- assuming extensionality and countable choice
 ------------------------------------------------------------------------
 
 {-# OPTIONS --cubical #-}
@@ -114,69 +113,68 @@ Delay→⊥-≈→≡ A-set x y =
 -- A lemma
 
 -- I._⇓_ and A._∥⇓∥_ are pointwise logically equivalent (via Delay→⊥),
--- for sets, assuming propositional extensionality.
+-- for sets.
 
 ⇓⇔∥⇓∥ :
-  Is-set A → Propositional-extensionality a →
+  Is-set A →
   ∀ x {y} → Delay→⊥ x I.⇓ y ⇔ x A.∥⇓∥ y
-⇓⇔∥⇓∥ A-set prop-ext x@(f , _) {y} =
+⇓⇔∥⇓∥ A-set x@(f , _) {y} =
   Delay→⊥ x I.⇓ y                    ↔⟨⟩
-  ⨆ (Delay→Inc-seq x) I.⇓ y          ↔⟨ ⨆⇓≃∥∃⇓∥ prop-ext ⟩
+  ⨆ (Delay→Inc-seq x) I.⇓ y          ↔⟨ ⨆⇓≃∥∃⇓∥ ⟩
   ∥ (∃ λ n → Maybe→⊥ (f n) I.⇓ y) ∥  ↝⟨ ∥∥-cong-⇔ (∃-cong λ _ → record { to = to _; from = cong Maybe→⊥ }) ⟩
   ∥ (∃ λ n → f n ↓ y) ∥              ↝⟨ F.id ⟩□
   x A.∥⇓∥ y                          □
   where
   to : ∀ n → Maybe→⊥ (f n) I.⇓ y → f n ↓ y
   to n f⇓y with f n
-  ... | nothing = ⊥-elim $ now≢never prop-ext _ (sym f⇓y)
+  ... | nothing = ⊥-elim $ now≢never _ (sym f⇓y)
   ... | just y′ =
     just y′  ≡⟨ cong just y′≡y ⟩∎
     just y   ∎
     where
     y′≡y =            $⟨ f⇓y ⟩
-      now y′ ≡ now y  ↔⟨ now≡now≃∥≡∥ prop-ext ⟩
+      now y′ ≡ now y  ↔⟨ now≡now≃∥≡∥ ⟩
       ∥ y′ ≡ y ∥      ↝⟨ ∥∥↔ (A-set _ _) ⟩□
       y′ ≡ y          □
 
 ------------------------------------------------------------------------
 -- ⊥→⊥ is injective
 
--- Delay→⊥ is (kind of) injective (if A is a set, assuming
--- propositional extensionality).
+-- Delay→⊥ is (kind of) injective (if A is a set).
 
 Delay→⊥-injective :
-  Is-set A → Propositional-extensionality a →
+  Is-set A →
   ∀ x y → Delay→⊥ x ≡ Delay→⊥ y → x A.≈ y
-Delay→⊥-injective A-set prop-ext x y x≡y =
-    lemma A-set prop-ext x y (≡→⊑      x≡y)
-  , lemma A-set prop-ext y x (≡→⊑ (sym x≡y))
+Delay→⊥-injective A-set x y x≡y =
+    lemma A-set x y (≡→⊑      x≡y)
+  , lemma A-set y x (≡→⊑ (sym x≡y))
   where
   ≡→⊑ : ∀ {x y} → x ≡ y → x I.⊑ y
   ≡→⊑ refl = ⊑-refl _
 
   lemma :
-    Is-set A → Propositional-extensionality a →
+    Is-set A →
     ∀ x y → Delay→⊥ x I.⊑ Delay→⊥ y → x A.∥⊑∥ y
-  lemma A-set prop-ext x y x⊑y z =
-    x A.∥⇓∥ z            ↝⟨ _⇔_.from (⇓⇔∥⇓∥ A-set prop-ext x) ⟩
-    Delay→⊥ x I.⇓ z      ↔⟨ ⇓≃now⊑ prop-ext ⟩
+  lemma A-set x y x⊑y z =
+    x A.∥⇓∥ z            ↝⟨ _⇔_.from (⇓⇔∥⇓∥ A-set x) ⟩
+    Delay→⊥ x I.⇓ z      ↔⟨ ⇓≃now⊑ ⟩
     now z I.⊑ Delay→⊥ x  ↝⟨ flip ⊑-trans x⊑y ⟩
-    now z I.⊑ Delay→⊥ y  ↔⟨ inverse (⇓≃now⊑ prop-ext) ⟩
-    Delay→⊥ y I.⇓ z      ↝⟨ _⇔_.to (⇓⇔∥⇓∥ A-set prop-ext y) ⟩□
+    now z I.⊑ Delay→⊥ y  ↔⟨ inverse ⇓≃now⊑ ⟩
+    Delay→⊥ y I.⇓ z      ↝⟨ _⇔_.to (⇓⇔∥⇓∥ A-set y) ⟩□
     y A.∥⇓∥ z            □
 
--- ⊥→⊥ A-set is injective (assuming propositional extensionality).
+-- ⊥→⊥ A-set is injective.
 
 ⊥→⊥-injective :
-  (A-set : Is-set A) → Propositional-extensionality a →
+  (A-set : Is-set A) →
   Injective (⊥→⊥ A-set)
-⊥→⊥-injective A-set prop-ext {x} {y} =
+⊥→⊥-injective A-set {x} {y} =
   Quotient.elim-Prop
     (λ x → ⊥→⊥ A-set x ≡ ⊥→⊥ A-set y → x ≡ y)
     (λ x → Quotient.elim-Prop
        (λ y → Delay→⊥ x ≡ ⊥→⊥ A-set y → Quotient.[ x ] ≡ y)
        (λ y → []-respects-relation ∘
-              Delay→⊥-injective A-set prop-ext x y)
+              Delay→⊥-injective A-set x y)
        (λ _ → Π-closure ext 1 λ _ →
               /-is-set _ _)
        y)
@@ -187,15 +185,13 @@ Delay→⊥-injective A-set prop-ext x y x≡y =
 ------------------------------------------------------------------------
 -- ⊥→⊥ is surjective
 
--- Delay→⊥ is surjective (if A is a set, assuming propositional
--- extensionality and countable choice).
+-- Delay→⊥ is surjective (if A is a set, assuming countable choice).
 
 Delay→⊥-surjective :
   Is-set A →
-  Propositional-extensionality a →
   Axiom-of-countable-choice a →
   Surjective Delay→⊥
-Delay→⊥-surjective A-set prop-ext cc =
+Delay→⊥-surjective A-set cc =
   ⊥-rec-⊥ (record
     { pe = constant-sequence nothing
     ; po = constant-sequence ∘ just
@@ -244,15 +240,15 @@ Delay→⊥-surjective A-set prop-ext cc =
       y ≡ y′
     termination-value-unique-f₂ {m} {n} {y} {m′} {n′} {y′} =
       f₂ m n ↓ y × f₂ m′ n′ ↓ y′  ↝⟨ f₂↓→⨆s⇓ ×-cong f₂↓→⨆s⇓ ⟩
-      ⨆ s I.⇓ y × ⨆ s I.⇓ y′      ↝⟨ uncurry (termination-value-merely-unique prop-ext) ⟩
+      ⨆ s I.⇓ y × ⨆ s I.⇓ y′      ↝⟨ uncurry termination-value-merely-unique ⟩
       ∥ y ≡ y′ ∥                  ↔⟨ ∥∥↔ (A-set _ _) ⟩□
       y ≡ y′                      □
       where
       f₂↓→⨆s⇓ : ∀ {y m n} → f₂ m n ↓ y → ⨆ s I.⇓ y
       f₂↓→⨆s⇓ {y} {m} f₂↓ =
-        terminating-element-is-⨆ prop-ext s
+        terminating-element-is-⨆ s
           (s [ m ]        ≡⟨ sym (h m) ⟩
-           Delay→⊥ (f m)  ≡⟨ _⇔_.from (⇓⇔∥⇓∥ A-set prop-ext (f m)) ∣ _ , f₂↓ ∣ ⟩∎
+           Delay→⊥ (f m)  ≡⟨ _⇔_.from (⇓⇔∥⇓∥ A-set (f m)) ∣ _ , f₂↓ ∣ ⟩∎
            now y          ∎)
 
     termination-value-unique-f₁ :
@@ -301,7 +297,7 @@ Delay→⊥-surjective A-set prop-ext cc =
 
       f⇓ : Delay→⊥ (f n₁) I.⇓ y
       f⇓ =
-        _≃_.from (⇓≃now⊑ prop-ext)
+        _≃_.from ⇓≃now⊑
           (now y                        ≡⟨ cong Maybe→⊥ $ sym $ proj₂ f₁↓ ⟩⊑
            Maybe→⊥ (f₁ n)               ⊑⟨⟩
            Maybe→⊥ (f₂ n₁ n₂)           ⊑⟨⟩
@@ -335,62 +331,56 @@ Delay→⊥-surjective A-set prop-ext cc =
          Delay→⊥ (f m)  ⊑⟨ Delay→⊥-mono A-set (f m) x (∥∥-map ∘ f⊑x m) ⟩■
          Delay→⊥ x      ■)
 
--- ⊥→⊥ A-set is surjective (assuming propositional extensionality and
--- countable choice).
+-- ⊥→⊥ A-set is surjective (assuming countable choice).
 
 ⊥→⊥-surjective :
   (A-set : Is-set A) →
-  Propositional-extensionality a →
   Axiom-of-countable-choice a →
   Surjective (⊥→⊥ A-set)
-⊥→⊥-surjective A-set prop-ext cc x =
+⊥→⊥-surjective A-set cc x =
   ∥∥-map (λ { (pre , can-pre≡x) → Quotient.[ pre ] , can-pre≡x })
-         (Delay→⊥-surjective A-set prop-ext cc x)
+         (Delay→⊥-surjective A-set cc x)
 
 ------------------------------------------------------------------------
 -- ⊥→⊥ is an equivalence
 
--- ⊥→⊥ A-set is an equivalence (assuming propositional extensionality
--- and countable choice).
+-- ⊥→⊥ A-set is an equivalence (assuming countable choice).
 
 ⊥→⊥-equiv :
   (A-set : Is-set A) →
-  Propositional-extensionality a →
   Axiom-of-countable-choice a →
   Is-equivalence (⊥→⊥ A-set)
-⊥→⊥-equiv A-set prop-ext cc =                        $⟨ _,_ {B = const _}
-                                                            (⊥→⊥-surjective A-set prop-ext cc)
-                                                            (λ {_ _} → ⊥→⊥-injective A-set prop-ext) ⟩
+⊥→⊥-equiv A-set cc =                                 $⟨ _,_ {B = const _}
+                                                            (⊥→⊥-surjective A-set cc)
+                                                            (λ {_ _} → ⊥→⊥-injective A-set) ⟩
   Surjective (⊥→⊥ A-set) × Injective (⊥→⊥ A-set)     ↝⟨ Σ-map id (_≃_.to (Injective≃Is-embedding ext /-is-set ⊥-is-set _)) ⟩
   Surjective (⊥→⊥ A-set) × Is-embedding (⊥→⊥ A-set)  ↝⟨ _≃_.to surjective×embedding≃equivalence ⟩□
   Is-equivalence (⊥→⊥ A-set)                         □
 
 -- Thus the inductive definition of the partiality monad is equivalent
 -- to the definition in Partiality-monad.Coinductive.Alternative, for
--- sets, assuming propositional extensionality and countable choice.
+-- sets, assuming countable choice.
 
 ⊥≃⊥′ :
   Is-set A →
-  Propositional-extensionality a →
   Axiom-of-countable-choice a →
   A CA.⊥ ≃ A I.⊥
-⊥≃⊥′ A-set prop-ext choice = Eq.⟨ _ , ⊥→⊥-equiv A-set prop-ext choice ⟩
+⊥≃⊥′ A-set choice = Eq.⟨ _ , ⊥→⊥-equiv A-set choice ⟩
 
 ------------------------------------------------------------------------
 -- The two definitions of the partiality monad are equivalent
 
 -- The inductive and coinductive definitions of the partiality monad
--- are pointwise equivalent, for sets, assuming extensionality,
--- propositional extensionality and countable choice.
+-- are pointwise equivalent, for sets, assuming extensionality and
+-- countable choice.
 
 ⊥≃⊥ :
   Is-set A →
   B.Extensionality a →
-  Propositional-extensionality a →
   Axiom-of-countable-choice a →
   A I.⊥ ≃ A C.⊥
-⊥≃⊥ A-set delay-ext prop-ext choice =
-  A I.⊥   ↝⟨ inverse (⊥≃⊥′ A-set prop-ext choice) ⟩
+⊥≃⊥ A-set delay-ext choice =
+  A I.⊥   ↝⟨ inverse (⊥≃⊥′ A-set choice) ⟩
   A CA.⊥  ↔⟨ CA.⊥↔⊥ A-set delay-ext ⟩□
   A C.⊥   □
 

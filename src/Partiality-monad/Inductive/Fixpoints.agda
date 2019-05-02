@@ -279,13 +279,8 @@ record Partial
 
   field
     -- The function must be ω-continuous in the following sense.
-    --
-    -- The proof can make use of propositional extensionality. This
-    -- assumption is included so that the monad instance can be
-    -- defined without a corresponding assumption.
 
-    ω-continuous : Propositional-extensionality c →
-                   (recs : (x : A) → Increasing-sequence (B x)) →
+    ω-continuous : (recs : (x : A) → Increasing-sequence (B x)) →
                    function (⨆ ∘ recs) ≡ ⨆ (sequence recs)
 
 -- The first two arguments of Partial specify the domain and codomain
@@ -296,7 +291,7 @@ rec : ∀ {a b} {A : Set a} {B : A → Set b} →
 rec x = record
   { function     = _$ x
   ; monotone     = _$ x
-  ; ω-continuous = λ _ _ → refl
+  ; ω-continuous = λ _ → refl
   }
 
 -- Turns certain Partial-valued functions into monotone partial
@@ -312,14 +307,13 @@ transformer f = record
   open Partial
 
 -- Turns certain Partial-valued functions into ω-continuous partial
--- function transformers (assuming propositional extensionality).
+-- function transformers.
 
 transformer-ω : ∀ {a b} {A : Set a} {B : A → Set b} →
-                Propositional-extensionality b →
                 ((x : A) → Partial A B (B x)) → Trans-ω A B
-transformer-ω prop-ext f = record
+transformer-ω f = record
   { monotone-function = transformer f
-  ; ω-continuous      = λ _ → ⟨ext⟩ λ x → ω-continuous (f x) prop-ext _
+  ; ω-continuous      = λ _ → ⟨ext⟩ λ x → ω-continuous (f x) _
   }
   where
   open Partial
@@ -333,16 +327,14 @@ fixP {A = A} {B} =
   Trans-⊑ A B                    ↝⟨ fix→ ⟩□
   ((x : A) → B x ⊥)              □
 
--- The fixpoint combinator produces fixpoints (assuming propositional
--- extensionality).
+-- The fixpoint combinator produces fixpoints.
 
 fixP-is-fixpoint-combinator :
   ∀ {a b} {A : Set a} {B : A → Set b} →
-  Propositional-extensionality b →
   (f : (x : A) → Partial A B (B x)) →
   fixP f ≡ flip (Partial.function ∘ f) (fixP f)
-fixP-is-fixpoint-combinator prop-ext =
-  fix→-is-fixpoint-combinator ∘ transformer-ω prop-ext
+fixP-is-fixpoint-combinator =
+  fix→-is-fixpoint-combinator ∘ transformer-ω
 
 -- The result of the fixpoint combinator is pointwise smaller than
 -- or equal to every "pointwise post-fixpoint".
@@ -369,9 +361,9 @@ Partial.function     ((f ∘P g) x) = λ h →
 Partial.monotone     ((f ∘P g) x) = λ hyp →
                                       Partial.monotone (f x) λ y →
                                       Partial.monotone (g y) hyp
-Partial.ω-continuous ((f ∘P g) x) = λ prop-ext recs →
-  function (f x) (λ y → function (g y) (⨆ ∘ recs))  ≡⟨ cong (function (f x)) (⟨ext⟩ λ y → ω-continuous (g y) prop-ext recs) ⟩
-  function (f x) (λ y → ⨆ (sequence (g y) recs))    ≡⟨ ω-continuous (f x) prop-ext (λ y → sequence (g y) recs) ⟩∎
+Partial.ω-continuous ((f ∘P g) x) = λ recs →
+  function (f x) (λ y → function (g y) (⨆ ∘ recs))  ≡⟨ cong (function (f x)) (⟨ext⟩ λ y → ω-continuous (g y) recs) ⟩
+  function (f x) (λ y → ⨆ (sequence (g y) recs))    ≡⟨ ω-continuous (f x) (λ y → sequence (g y) recs) ⟩∎
   ⨆ (sequence (f x) λ y → sequence (g y) recs)      ∎
   where
   open Partial
@@ -449,7 +441,6 @@ equality-characterisation-Partial {f = f} {g} =
                                                       Π-closure          ext 1 λ _ →
                                                       ⊑-propositional) λ _ →
                                                      Π-closure ext 1 λ _ →
-                                                     Π-closure ext 1 λ _ →
                                                      ⊥-is-set _ _) ⟩
   (function f , _) ≡ (function g , _)        ↔⟨ Eq.≃-≡ (Eq.↔⇒≃ lemma) ⟩□
   f ≡ g                                      □
@@ -483,7 +474,7 @@ non-recursive :
 non-recursive x = record
   { function     = const x
   ; monotone     = const (x ■)
-  ; ω-continuous = λ _ _ →
+  ; ω-continuous = λ _ →
       x             ≡⟨ sym ⨆-const ⟩∎
       ⨆ (constˢ x)  ∎
   }
@@ -502,17 +493,16 @@ instance
     ; monotone     = λ rec⊑rec →
                        monotone x rec⊑rec >>=-mono λ y →
                        monotone (f y) rec⊑rec
-    ; ω-continuous = λ prop-ext recs →
-        (function x (⨆ ∘ recs) >>=′ λ y → function (f y) (⨆ ∘ recs))     ≡⟨ cong₂ _>>=′_ (ω-continuous x prop-ext recs)
-                                                                                         (⟨ext⟩ λ y → ω-continuous (f y) prop-ext recs) ⟩
+    ; ω-continuous = λ recs →
+        (function x (⨆ ∘ recs) >>=′ λ y → function (f y) (⨆ ∘ recs))     ≡⟨ cong₂ _>>=′_ (ω-continuous x recs)
+                                                                                         (⟨ext⟩ λ y → ω-continuous (f y) recs) ⟩
         (⨆ (sequence x recs) >>=′ λ y → ⨆ (sequence (f y) recs))         ≡⟨ ⨆->>= ⟩
 
         ⨆ ( (λ n →
                function x (λ z → recs z [ n ]) >>=′ λ y →
                ⨆ (sequence (f y) recs))
           , _
-          )                                                              ≡⟨ ⨆>>=⨆≡⨆>>= prop-ext prop-ext
-                                                                                       (sequence x recs)
+          )                                                              ≡⟨ ⨆>>=⨆≡⨆>>= (sequence x recs)
                                                                                        (λ y → sequence (f y) recs) ⟩∎
         ⨆ ( (λ n → function x (λ z → recs z [ n ]) >>=′ λ y →
                    function (f y) (λ z → recs z [ n ]))
