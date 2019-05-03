@@ -2,7 +2,7 @@
 -- The partiality monad's monad instance
 ------------------------------------------------------------------------
 
-{-# OPTIONS --cubical #-}
+{-# OPTIONS --cubical --safe #-}
 
 module Partiality-monad.Inductive.Monad where
 

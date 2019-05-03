@@ -3,7 +3,7 @@
 -- with related results
 ------------------------------------------------------------------------
 
-{-# OPTIONS --cubical #-}
+{-# OPTIONS --cubical --safe #-}
 
 module Partiality-monad.Inductive.Alternative-order
          {a} {A : Set a} where

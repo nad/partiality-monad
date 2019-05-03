@@ -2,7 +2,7 @@
 -- Pi with partiality algebra families as codomains
 ------------------------------------------------------------------------
 
-{-# OPTIONS --cubical #-}
+{-# OPTIONS --cubical --safe #-}
 
 module Partiality-algebra.Pi where
 

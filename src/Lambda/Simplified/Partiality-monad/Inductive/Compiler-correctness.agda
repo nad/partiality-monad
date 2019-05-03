@@ -2,7 +2,7 @@
 -- Compiler correctness
 ------------------------------------------------------------------------
 
-{-# OPTIONS --cubical #-}
+{-# OPTIONS --cubical --safe #-}
 
 module Lambda.Simplified.Partiality-monad.Inductive.Compiler-correctness
   where

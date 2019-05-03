@@ -2,7 +2,7 @@
 -- Partiality algebras
 ------------------------------------------------------------------------
 
-{-# OPTIONS --cubical #-}
+{-# OPTIONS --cubical --safe #-}
 
 module Partiality-algebra where
 

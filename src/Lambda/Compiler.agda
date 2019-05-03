@@ -2,7 +2,7 @@
 -- A compiler
 ------------------------------------------------------------------------
 
-{-# OPTIONS --cubical #-}
+{-# OPTIONS --cubical --safe --sized-types #-}
 
 module Lambda.Compiler where
 

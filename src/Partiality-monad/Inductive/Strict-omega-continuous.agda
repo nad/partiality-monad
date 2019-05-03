@@ -2,7 +2,7 @@
 -- Strict ω-continuous functions
 ------------------------------------------------------------------------
 
-{-# OPTIONS --cubical #-}
+{-# OPTIONS --cubical --safe #-}
 
 module Partiality-monad.Inductive.Strict-omega-continuous where
 

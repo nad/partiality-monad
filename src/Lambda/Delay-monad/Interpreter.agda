@@ -2,7 +2,7 @@
 -- A definitional interpreter
 ------------------------------------------------------------------------
 
-{-# OPTIONS --without-K #-}
+{-# OPTIONS --without-K --safe --sized-types #-}
 
 module Lambda.Delay-monad.Interpreter where
 
@@ -74,5 +74,5 @@ mutual
 
 -- The semantics of Ω is the non-terminating computation never.
 
-Ω-loops : run (⟦ Ω ⟧ nil) ∼ never
+Ω-loops : ∀ {i} → [ i ] run (⟦ Ω ⟧ nil) ∼ never
 Ω-loops = later λ { .force → Ω-loops }

@@ -2,7 +2,7 @@
 -- A definitional interpreter
 ------------------------------------------------------------------------
 
-{-# OPTIONS --cubical #-}
+{-# OPTIONS --cubical --safe #-}
 
 module Lambda.Simplified.Partiality-monad.Inductive.Interpreter where
 

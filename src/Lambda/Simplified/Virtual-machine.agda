@@ -2,7 +2,7 @@
 -- Most of a virtual machine
 ------------------------------------------------------------------------
 
-{-# OPTIONS --without-K #-}
+{-# OPTIONS --without-K --safe #-}
 
 module Lambda.Simplified.Virtual-machine where
 

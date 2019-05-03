@@ -2,7 +2,7 @@
 -- Termination predicates
 ------------------------------------------------------------------------
 
-{-# OPTIONS --cubical #-}
+{-# OPTIONS --cubical --safe --sized-types #-}
 
 module Delay-monad.Alternative.Termination {a} {A : Set a} where
 

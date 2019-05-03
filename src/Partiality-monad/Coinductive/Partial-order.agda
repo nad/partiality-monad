@@ -2,7 +2,7 @@
 -- A partial order
 ------------------------------------------------------------------------
 
-{-# OPTIONS --cubical #-}
+{-# OPTIONS --cubical --safe --sized-types #-}
 
 module Partiality-monad.Coinductive.Partial-order {a} {A : Set a} where
 

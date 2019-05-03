@@ -2,7 +2,7 @@
 -- Information orderings
 ------------------------------------------------------------------------
 
-{-# OPTIONS --cubical #-}
+{-# OPTIONS --cubical --safe --sized-types #-}
 
 module Delay-monad.Alternative.Partial-order {a} {A : Set a} where
 

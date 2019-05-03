@@ -2,7 +2,7 @@
 -- A virtual machine
 ------------------------------------------------------------------------
 
-{-# OPTIONS --cubical #-}
+{-# OPTIONS --cubical --safe #-}
 
 module Lambda.Simplified.Partiality-monad.Inductive.Virtual-machine
   where

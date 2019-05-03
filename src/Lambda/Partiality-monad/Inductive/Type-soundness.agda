@@ -2,12 +2,13 @@
 -- A type soundness result
 ------------------------------------------------------------------------
 
-{-# OPTIONS --cubical #-}
+{-# OPTIONS --cubical --safe --sized-types #-}
 
 module Lambda.Partiality-monad.Inductive.Type-soundness where
 
 open import Equality.Propositional
 open import Prelude hiding (⊥)
+open import Size
 
 open import Bijection equality-with-J using (_↔_)
 open import Equality.Decision-procedures equality-with-J
@@ -32,7 +33,7 @@ open Closure Tm
 
 -- A propositionally truncated variant of WF-MV.
 
-∥WF-MV∥ : Ty → Maybe Value → Set
+∥WF-MV∥ : Ty ∞ → Maybe Value → Set
 ∥WF-MV∥ σ x = ∥ WF-MV σ x ∥
 
 -- If we can prove □ (∥WF-MV∥ σ) (run x), then x does not "go wrong".

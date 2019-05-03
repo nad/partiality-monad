@@ -2,7 +2,7 @@
 -- Examples involving simple λ-calculi
 ------------------------------------------------------------------------
 
-{-# OPTIONS --cubical #-}
+{-# OPTIONS --cubical --safe --sized-types #-}
 
 module README.Lambda where
 

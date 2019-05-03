@@ -6,7 +6,7 @@
 -- The code in this module is based on a suggestion from Paolo
 -- Capriotti.
 
-{-# OPTIONS --cubical #-}
+{-# OPTIONS --cubical --safe #-}
 
 open import Prelude hiding (⊥)
 

@@ -3,7 +3,7 @@
 -- element satisfying a predicate
 ------------------------------------------------------------------------
 
-{-# OPTIONS --cubical #-}
+{-# OPTIONS --cubical --safe #-}
 
 module Search where
 

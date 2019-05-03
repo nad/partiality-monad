@@ -3,12 +3,13 @@
 -- constants
 ------------------------------------------------------------------------
 
-{-# OPTIONS --without-K #-}
+{-# OPTIONS --without-K --safe --sized-types #-}
 
 module Lambda.Syntax where
 
 open import Equality.Propositional
 open import Prelude
+open import Size
 
 open import Maybe equality-with-J
 open import Vec.Function equality-with-J
@@ -57,28 +58,32 @@ infixr 8 _⇾_
 
 mutual
 
-  data Ty : Set where
-    nat : Ty
-    _⇾_ : (σ τ : ∞Ty) → Ty
+  data Ty (i : Size) : Set where
+    nat : Ty i
+    _⇾_ : (σ τ : ∞Ty i) → Ty i
 
-  record ∞Ty : Set where
+  record ∞Ty (i : Size) : Set where
     coinductive
-    constructor [_]
     field
-      force : Ty
+      force : {j : Size< i} → Ty j
 
 open ∞Ty public
+
+-- A conversion function.
+
+[_] : Ty ∞ → ∞Ty ∞
+[ σ ] .force = σ
 
 -- Contexts.
 
 Ctxt : ℕ → Set
-Ctxt n = Vec Ty n
+Ctxt n = Vec (Ty ∞) n
 
 -- Type system.
 
 infix 4 _⊢_∈_
 
-data _⊢_∈_ {n} (Γ : Ctxt n) : Tm n → Ty → Set where
+data _⊢_∈_ {n} (Γ : Ctxt n) : Tm n → Ty ∞ → Set where
   con : ∀ {i} → Γ ⊢ con i ∈ nat
   var : ∀ {x} → Γ ⊢ var x ∈ Γ x
   ƛ   : ∀ {t σ τ} →
@@ -98,7 +103,7 @@ open Closure Tm
 
 mutual
 
-  data WF-Value : Ty → Value → Set where
+  data WF-Value : Ty ∞ → Value → Set where
     con : ∀ {i} → WF-Value nat (con i)
     ƛ   : ∀ {n Γ σ τ} {t : Tm (1 + n)} {ρ} →
           cons (force σ) Γ ⊢ t ∈ force τ →
@@ -108,7 +113,7 @@ mutual
   WF-Env : ∀ {n} → Ctxt n → Env n → Set
   WF-Env Γ ρ = ∀ x → WF-Value (Γ x) (ρ x)
 
-WF-MV : Ty → Maybe Value → Set
+WF-MV : Ty ∞ → Maybe Value → Set
 WF-MV σ v = maybe (WF-Value σ) Prelude.⊥ v
 
 -- Some "constructors" for WF-Env.
@@ -134,12 +139,12 @@ cons-wf v-wf ρ-wf (fsuc x) = ρ-wf x
 
 -- Ω is well-typed.
 
-Ω-well-typed : (τ : Ty) → nil ⊢ Ω ∈ τ
+Ω-well-typed : (τ : Ty ∞) → nil ⊢ Ω ∈ τ
 Ω-well-typed τ =
   _·_ {σ = σ} {τ = [ τ ]} (ƛ (var · var)) (ƛ (var · var))
   where
-  σ : ∞Ty
-  force σ = σ ⇾ [ τ ]
+  σ : ∀ {i} → ∞Ty i
+  σ .force = σ ⇾ [ τ ]
 
 -- A call-by-value fixpoint combinator.
 
@@ -160,5 +165,5 @@ Z-well-typed {σ = σ} {τ = τ} =
          (ƛ (var · ƛ (var · var · var)))
          (ƛ (var · ƛ (var · var · var))))
   where
-  υ : ∞Ty
+  υ : ∀ {i} → ∞Ty i
   force υ = υ ⇾ [ [ σ ] ⇾ [ τ ] ]

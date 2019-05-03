@@ -2,7 +2,7 @@
 -- Some partiality algebra properties
 ------------------------------------------------------------------------
 
-{-# OPTIONS --cubical #-}
+{-# OPTIONS --cubical --safe #-}
 
 open import Partiality-algebra as PA hiding (id; _∘_)
 

@@ -4,7 +4,7 @@
 -- assuming extensionality and countable choice
 ------------------------------------------------------------------------
 
-{-# OPTIONS --cubical #-}
+{-# OPTIONS --cubical --safe --sized-types #-}
 
 module Partiality-monad.Equivalence {a} {A : Set a} where
 

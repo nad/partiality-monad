@@ -2,7 +2,7 @@
 -- Eliminators and initiality
 ------------------------------------------------------------------------
 
-{-# OPTIONS --cubical #-}
+{-# OPTIONS --cubical --safe #-}
 
 module Partiality-algebra.Eliminators where
 

@@ -3,7 +3,7 @@
 -- monad to the alternative one and to another type
 ------------------------------------------------------------------------
 
-{-# OPTIONS --cubical #-}
+{-# OPTIONS --cubical --safe --sized-types #-}
 
 module Delay-monad.Alternative.Equivalence {a} {A : Set a} where
 
@@ -24,7 +24,11 @@ open import Delay-monad as D hiding (Delay)
 open import Delay-monad.Alternative
 open import Delay-monad.Alternative.Properties
 open import Delay-monad.Bisimilarity as Bisimilarity
-  using (_∼_; now; later; force)
+  using ([_]_∼_; now; later; force)
+
+private
+  variable
+    i : Size
 
 -- Building blocks used in the theorems below.
 
@@ -36,15 +40,15 @@ module Delay⇔Delay where
   -- from their function ε, which is defined so that (with the
   -- terminology used here) ε (now x) (suc n) = nothing.
 
-  to₁ : (ℕ → Maybe A) → D.Delay A ∞
+  to₁ : (ℕ → Maybe A) → D.Delay A i
   to₁ f = to′ (f 0)
     module To where
-    to′ : Maybe A → D.Delay A ∞
+    to′ : Maybe A → D.Delay A i
     to′ (just x) = now x
     to′ nothing  =
       later λ { .force → to₁ (f ∘ suc) }
 
-  to : Delay A → D.Delay A ∞
+  to : Delay A → D.Delay A i
   to = to₁ ∘ proj₁
 
   from : D.Delay A ∞ → Delay A
@@ -267,7 +271,7 @@ Delay↔Delay delay-ext = record
   where
   open Delay⇔Delay
 
-  to∘from : ∀ x → to (from x) ∼ x
+  to∘from : ∀ x → [ i ] to (from x) ∼ x
   to∘from (now x)   = now
   to∘from (later x) = later λ { .force → to∘from (force x) }
 

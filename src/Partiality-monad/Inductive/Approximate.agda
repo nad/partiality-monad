@@ -2,7 +2,7 @@
 -- A function that runs computations
 ------------------------------------------------------------------------
 
-{-# OPTIONS --cubical #-}
+{-# OPTIONS --cubical --safe #-}
 
 module Partiality-monad.Inductive.Approximate {a} {A : Set a} where
 

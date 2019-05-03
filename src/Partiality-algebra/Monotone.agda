@@ -2,7 +2,7 @@
 -- Monotone functions
 ------------------------------------------------------------------------
 
-{-# OPTIONS --cubical #-}
+{-# OPTIONS --cubical --safe #-}
 
 module Partiality-algebra.Monotone where
 

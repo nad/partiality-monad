@@ -2,7 +2,7 @@
 -- Fixpoint combinators
 ------------------------------------------------------------------------
 
-{-# OPTIONS --cubical #-}
+{-# OPTIONS --cubical --safe #-}
 
 module Partiality-monad.Inductive.Fixpoints where
 
