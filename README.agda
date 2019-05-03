@@ -9,9 +9,13 @@
 -- the description in the paper. Some key changes (there might be
 -- others):
 --
+-- * The partiality monad is not postulated, but defined as a QIIT
+--   (Agda's cubical features are used). The types and eliminators are
+--   marked as "abstract", so the eliminators do not compute.
+--
 -- * Rewrite rules are no longer used. Instead the propositional
---   truncation and set quotient operators are defined as QITs using
---   Cubical Agda.
+--   truncation and set quotient operators are defined as
+--   (non-abstract) QITs.
 --
 -- * The set quotient operator that is used can be applied to
 --   arbitrary binary relations, not only propositional ones.
@@ -38,15 +42,6 @@ module README where
 -- referenced below is not discussed at all in the paper.
 
 import README.Pointers-to-results-from-the-paper
-
-------------------------------------------------------------------------
--- Preliminaries
-
--- A partial inductive-recursive definition of the partiality monad,
--- without path or truncation constructors, in order to get the basics
--- right.
-
-import Partiality-monad.Inductive.Preliminary-sketch
 
 ------------------------------------------------------------------------
 -- Partiality algebras
@@ -210,12 +205,6 @@ import Omega-cpo
 
 -- The code in the following three modules is based on a suggestion
 -- from Paolo Capriotti.
-
--- A partial inductive-recursive definition of the lifting
--- construction on ω-cpos, without path or truncation constructors, in
--- order to get the basics right.
-
-import Lifting.Preliminary-sketch
 
 -- A quotient inductive-inductive definition of the lifting
 -- construction on ω-cpos.

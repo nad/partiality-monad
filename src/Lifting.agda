@@ -6,21 +6,19 @@
 -- The code in this module is based on a suggestion from Paolo
 -- Capriotti.
 
--- Note that this module is experimental: it uses postulates to encode
--- a quotient inductive-inductive type.
-
 {-# OPTIONS --cubical #-}
 
 open import Omega-cpo
 
 module Lifting {ℓ} (cpo : ω-cpo ℓ ℓ) where
 
+import Equality.Path as P
 open import Equality.Propositional
 open import Logical-equivalence using (_⇔_)
 open import Prelude hiding (⊥)
 
 open import Bijection equality-with-J using (_↔_)
-open import Equality.Path.Isomorphisms equality-with-J using (ext)
+open import Equality.Path.Isomorphisms equality-with-J
 open import Equivalence equality-with-J as Eq using (_≃_)
 open import Function-universe equality-with-J hiding (_∘_)
 open import H-level equality-with-J
@@ -37,12 +35,15 @@ private
 
 infix 4 _⊑_ _⊒_
 
-postulate
-  Carrier : Set ℓ
-  _⊑_     : Carrier → Carrier → Set ℓ
+data Carrier : Set ℓ
+data _⊑_     : Carrier → Carrier → Set ℓ
 
 _⊒_ : Carrier → Carrier → Set ℓ
 x ⊒ y = y ⊑ x
+
+private
+  variable
+    x y : Carrier
 
 -- Increasing sequences.
 
@@ -65,36 +66,78 @@ increasing = proj₂
 Is-upper-bound : Increasing-sequence → Carrier → Set ℓ
 Is-upper-bound s x = ∀ n → s [ n ] ⊑ x
 
-postulate
+-- Originally these types were postulated. After the release of
+-- Cubical Agda they were turned into a QIIT, but in order to not get
+-- any extra computation rules they were made abstract.
+
+abstract
 
   -- _⊥ "constructors".
 
-  never        : Carrier
-  now          : CPO.Carrier → Carrier
-  ⨆            : Increasing-sequence → Carrier
-  antisymmetry : ∀ {x y} → x ⊑ y → x ⊒ y → x ≡ y
-
-private
-  postulate
+  data Carrier where
+    never′        : Carrier
+    now′          : CPO.Carrier → Carrier
+    ⨆′            : Increasing-sequence → Carrier
+    antisymmetry′ : x ⊑ y → x ⊒ y → x P.≡ y
 
     -- We have chosen to explicitly make the type set-truncated.
-    -- However, this "constructor" is private in order to highlight
-    -- that it is not used anywhere in the development.
-    ≡-proof-irrelevant : {x y : Carrier} → Proof-irrelevant (x ≡ y)
-
-postulate
+    -- However, this constructor is only used in the definition of the
+    -- eliminator below.
+    ≡-proof-irrelevant′ : P.Uniqueness-of-identity-proofs Carrier
 
   -- _⊑_ "constructors".
 
-  ⊑-refl             : ∀ x → x ⊑ x
-  ⊑-trans            : ∀ x y z → x ⊑ y → y ⊑ z → x ⊑ z
-  never⊑             : ∀ x → never ⊑ x
-  upper-bound        : ∀ s → Is-upper-bound s (⨆ s)
-  least-upper-bound  : ∀ s ub → Is-upper-bound s ub → ⨆ s ⊑ ub
-  now-mono           : ∀ {x y} → x CPO.⊑ y → now x ⊑ now y
-  now-⨆′             : ∀ s →
-                       now (CPO.⨆ s) ⊑ ⨆ (Σ-map (now ∘_) (now-mono ∘_) s)
+  data _⊑_ where
+    ⊑-refl′             : ∀ x → x ⊑ x
+    ⊑-trans′            : ∀ x y z → x ⊑ y → y ⊑ z → x ⊑ z
+    never⊑′             : ∀ x → never′ ⊑ x
+    upper-bound′        : ∀ s → Is-upper-bound s (⨆′ s)
+    least-upper-bound′  : ∀ s ub → Is-upper-bound s ub → ⨆′ s ⊑ ub
+    now-mono′           : ∀ {x y} → x CPO.⊑ y → now′ x ⊑ now′ y
+    now-⨆″              : ∀ s →
+                          now′ (CPO.⨆ s) ⊑
+                          ⨆′ (Σ-map (now′ ∘_) (now-mono′ ∘_) s)
+    ⊑-proof-irrelevant′ : ∀ {x y} → P.Proof-irrelevant (x ⊑ y)
+
+  never : Carrier
+  never = never′
+
+  now : CPO.Carrier → Carrier
+  now = now′
+
+  ⨆ : Increasing-sequence → Carrier
+  ⨆ = ⨆′
+
+  antisymmetry : x ⊑ y → y ⊑ x → x ≡ y
+  antisymmetry = λ p q → _↔_.from ≡↔≡ (antisymmetry′ p q)
+
+  ⊑-refl : ∀ x → x ⊑ x
+  ⊑-refl = ⊑-refl′
+
+  ⊑-trans : ∀ x y z → x ⊑ y → y ⊑ z → x ⊑ z
+  ⊑-trans = ⊑-trans′
+
+  never⊑ : ∀ x → never ⊑ x
+  never⊑ = never⊑′
+
+  upper-bound : ∀ s → Is-upper-bound s (⨆ s)
+  upper-bound = upper-bound′
+
+  least-upper-bound : ∀ s ub → Is-upper-bound s ub → ⨆ s ⊑ ub
+  least-upper-bound = least-upper-bound′
+
+  now-mono : ∀ {x y} → x CPO.⊑ y → now x ⊑ now y
+  now-mono = now-mono′
+
+  now-⨆′ : ∀ s → now (CPO.⨆ s) ⊑ ⨆ (Σ-map (now ∘_) (now-mono ∘_) s)
+  now-⨆′ = now-⨆″
+
   ⊑-proof-irrelevant : ∀ {x y} → Proof-irrelevant (x ⊑ y)
+  ⊑-proof-irrelevant {x = x} {y = y} =
+                                $⟨ ⊑-proof-irrelevant′ ⟩
+    P.Proof-irrelevant (x ⊑ y)  ↔⟨ inverse propositional↔irrelevant ⟩
+    Is-proposition (x ⊑ y)      ↝⟨ _⇔_.to propositional⇔irrelevant ⟩□
+    Proof-irrelevant (x ⊑ y)    □
 
 -- The construction above is an ω-cppo.
 
@@ -177,22 +220,73 @@ module _ {p q}
 
   open Rec-args args
 
-  postulate
-    ⊥-rec : (x : Carrier) → P x
-    ⊑-rec : ∀ {x y} (x⊑y : x ⊑ y) → Q (⊥-rec x) (⊥-rec y) x⊑y
+  mutual
 
-  inc-rec : (s : Increasing-sequence) → Inc P Q s
-  inc-rec (s , inc) = ( (λ n → ⊥-rec (s   n))
+    inc-rec : (s : Increasing-sequence) → Inc P Q s
+    inc-rec (s , inc) = (λ n → ⊥-rec (s   n))
                       , (λ n → ⊑-rec (inc n))
-                      )
 
-  -- Some "computation" rules.
+    abstract
 
-  postulate
+      ⊥-rec : (x : Carrier) → P x
+      ⊥-rec never′ = pe
 
-    ⊥-rec-never : ⊥-rec never ≡ pe
-    ⊥-rec-now   : ∀ x → ⊥-rec (now x) ≡ po x
-    ⊥-rec-⨆     : ∀ s → ⊥-rec (⨆ s) ≡ pl s (inc-rec s)
+      ⊥-rec (now′ x) = po x
+
+      ⊥-rec (⨆′ s) = pl s (inc-rec s)
+
+      ⊥-rec (antisymmetry′ {x = x} {y = y} p q i) =
+        subst≡→[]≡ (pa p q (⊥-rec x) (⊥-rec y) (⊑-rec p) (⊑-rec q)) i
+
+      ⊥-rec (≡-proof-irrelevant′ {x = x} {y = y} p q i j) = lemma i j
+        where
+        lemma :
+          P.[ (λ i → P.[ (λ j → P (≡-proof-irrelevant′ p q i j)) ]
+                       ⊥-rec x ≡ ⊥-rec y) ]
+            (λ i → ⊥-rec (p i)) ≡ (λ i → ⊥-rec (q i))
+        lemma = P.heterogeneous-UIP
+                  (λ x → _↔_.to (H-level↔H-level _)
+                           (_⇔_.from set⇔UIP (pp {x = x})))
+                  (≡-proof-irrelevant′ p q)
+
+      ⊑-rec : (x⊑y : x ⊑ y) → Q (⊥-rec x) (⊥-rec y) x⊑y
+      ⊑-rec (⊑-refl′ x) = qr x (⊥-rec x)
+
+      ⊑-rec (⊑-trans′ x y z p q) =
+        qt p q (⊥-rec x) (⊥-rec y) (⊥-rec z) (⊑-rec p) (⊑-rec q)
+
+      ⊑-rec (never⊑′ x) = qe x (⊥-rec x)
+
+      ⊑-rec (upper-bound′ s n) = qu s (inc-rec s) n
+
+      ⊑-rec (least-upper-bound′ s ub is-ub) =
+        ql s ub is-ub (inc-rec s) (⊥-rec ub) (λ n → ⊑-rec (is-ub n))
+
+      ⊑-rec (now-mono′ x) = qm x
+
+      ⊑-rec (now-⨆″ s) = q⨆ s
+
+      ⊑-rec (⊑-proof-irrelevant′ {x = x} {y = y} p q i) = lemma i
+        where
+        lemma : P.[ (λ i → Q (⊥-rec x) (⊥-rec y)
+                             (⊑-proof-irrelevant′ p q i)) ]
+                  ⊑-rec p ≡ ⊑-rec q
+        lemma =
+          P.heterogeneous-irrelevance
+            (λ p → _↔_.to (H-level↔H-level _)
+                     (_⇔_.from propositional⇔irrelevant
+                        (qp (⊥-rec x) (⊥-rec y) p)))
+
+      -- Some computation rules.
+
+      ⊥-rec-never : ⊥-rec never ≡ pe
+      ⊥-rec-never = refl
+
+      ⊥-rec-now : ∀ x → ⊥-rec (now x) ≡ po x
+      ⊥-rec-now _ = refl
+
+      ⊥-rec-⨆ : ∀ s → ⊥-rec (⨆ s) ≡ pl s (inc-rec s)
+      ⊥-rec-⨆ _ = refl
 
 ------------------------------------------------------------------------
 -- Some lemmas

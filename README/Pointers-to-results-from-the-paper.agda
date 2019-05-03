@@ -114,14 +114,14 @@ _∘_ = Partiality-algebra._∘_
 
 category = Partiality-algebra.Category.category
 
--- The partiality monad as a postulated partiality algebra. The proof
--- α is called antisymmetry.
-
-partiality-monad = Partiality-monad.partiality-algebra
-
--- The partiality monad.
+-- The partiality monad, defined as a QIIT. (The proof α is called
+-- antisymmetry.)
 
 _⊥ = Partiality-monad._⊥
+
+-- A partiality algebra for the partiality monad.
+
+partiality-monad = Partiality-monad.partiality-algebra
 
 -- Initiality.
 
