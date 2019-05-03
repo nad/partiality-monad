@@ -6,9 +6,10 @@
 
 module Lambda.Simplified.Syntax where
 
+open import Equality.Propositional
 open import Prelude
 
-open import Lambda.Syntax public using (Vec; empty; snoc)
+open import Vec.Function equality-with-J
 
 ------------------------------------------------------------------------
 -- Terms

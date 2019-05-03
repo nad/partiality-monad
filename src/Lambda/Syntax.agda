@@ -11,6 +11,7 @@ open import Equality.Propositional
 open import Prelude
 
 open import Maybe equality-with-J
+open import Vec.Function equality-with-J
 
 ------------------------------------------------------------------------
 -- Terms
@@ -24,24 +25,6 @@ data Tm (n : ℕ) : Set where
   var : (x : Fin n) → Tm n
   ƛ   : Tm (suc n) → Tm n
   _·_ : Tm n → Tm n → Tm n
-
-------------------------------------------------------------------------
--- Vectors
-
--- Vectors.
-
-Vec : ∀ {a} → Set a → ℕ → Set a
-Vec A n = Fin n → A
-
--- An empty vector.
-
-empty : ∀ {a} {A : Set a} → Vec A 0
-empty ()
-
--- Adds one element to a vector.
-
-snoc : ∀ {a} {A : Set a} {n} → Vec A n → A → Vec A (suc n)
-snoc xs x = [ const x , xs ]
 
 ------------------------------------------------------------------------
 -- Closure-based definition of values
@@ -99,7 +82,7 @@ data _⊢_∈_ {n} (Γ : Ctxt n) : Tm n → Ty → Set where
   con : ∀ {i} → Γ ⊢ con i ∈ nat
   var : ∀ {x} → Γ ⊢ var x ∈ Γ x
   ƛ   : ∀ {t σ τ} →
-        snoc Γ (force σ) ⊢ t ∈ force τ → Γ ⊢ ƛ t ∈ σ ⇾ τ
+        cons (force σ) Γ ⊢ t ∈ force τ → Γ ⊢ ƛ t ∈ σ ⇾ τ
   _·_ : ∀ {t₁ t₂ σ τ} →
         Γ ⊢ t₁ ∈ σ ⇾ τ → Γ ⊢ t₂ ∈ force σ →
         Γ ⊢ t₁ · t₂ ∈ force τ
@@ -118,7 +101,7 @@ mutual
   data WF-Value : Ty → Value → Set where
     con : ∀ {i} → WF-Value nat (con i)
     ƛ   : ∀ {n Γ σ τ} {t : Tm (1 + n)} {ρ} →
-          snoc Γ (force σ) ⊢ t ∈ force τ →
+          cons (force σ) Γ ⊢ t ∈ force τ →
           WF-Env Γ ρ →
           WF-Value (σ ⇾ τ) (ƛ t ρ)
 
@@ -130,13 +113,13 @@ WF-MV σ v = maybe (WF-Value σ) Prelude.⊥ v
 
 -- Some "constructors" for WF-Env.
 
-empty-wf : WF-Env empty empty
-empty-wf ()
+nil-wf : WF-Env nil nil
+nil-wf ()
 
-snoc-wf : ∀ {n} {Γ : Ctxt n} {ρ σ v} →
-          WF-Env Γ ρ → WF-Value σ v → WF-Env (snoc Γ σ) (snoc ρ v)
-snoc-wf ρ-wf v-wf fzero    = v-wf
-snoc-wf ρ-wf v-wf (fsuc x) = ρ-wf x
+cons-wf : ∀ {n} {Γ : Ctxt n} {ρ σ v} →
+          WF-Value σ v → WF-Env Γ ρ → WF-Env (cons σ Γ) (cons v ρ)
+cons-wf v-wf ρ-wf fzero    = v-wf
+cons-wf v-wf ρ-wf (fsuc x) = ρ-wf x
 
 ------------------------------------------------------------------------
 -- Examples
@@ -151,7 +134,7 @@ snoc-wf ρ-wf v-wf (fsuc x) = ρ-wf x
 
 -- Ω is well-typed.
 
-Ω-well-typed : (τ : Ty) → empty ⊢ Ω ∈ τ
+Ω-well-typed : (τ : Ty) → nil ⊢ Ω ∈ τ
 Ω-well-typed τ =
   _·_ {σ = σ} {τ = [ τ ]} (ƛ (var · var)) (ƛ (var · var))
   where
@@ -170,8 +153,8 @@ Z = ƛ (t · t)
 
 Z-well-typed :
   ∀ {σ τ} →
-  empty ⊢ Z ∈ [ [ [ σ ] ⇾ [ τ ] ] ⇾ [ [ σ ] ⇾ [ τ ] ] ] ⇾
-              [ [ σ ] ⇾ [ τ ] ]
+  nil ⊢ Z ∈ [ [ [ σ ] ⇾ [ τ ] ] ⇾ [ [ σ ] ⇾ [ τ ] ] ] ⇾
+            [ [ σ ] ⇾ [ τ ] ]
 Z-well-typed {σ = σ} {τ = τ} =
   ƛ (_·_ {σ = υ} {τ = [ _ ]}
          (ƛ (var · ƛ (var · var · var)))

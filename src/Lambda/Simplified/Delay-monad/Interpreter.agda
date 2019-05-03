@@ -10,6 +10,7 @@ open import Equality.Propositional
 open import Prelude
 
 open import Monad equality-with-J
+open import Vec.Function equality-with-J
 
 open import Delay-monad
 open import Delay-monad.Bisimilarity
@@ -34,12 +35,12 @@ mutual
                   v₁ ∙ v₂
 
   _∙_ : ∀ {i} → Value → Value → Delay Value i
-  ƛ t₁ ρ ∙ v₂ = later λ { .force → ⟦ t₁ ⟧ (snoc ρ v₂) }
+  ƛ t₁ ρ ∙ v₂ = later λ { .force → ⟦ t₁ ⟧ (cons v₂ ρ) }
 
 ------------------------------------------------------------------------
 -- An example
 
 -- The semantics of Ω is the non-terminating computation never.
 
-Ω-loops : ⟦ Ω ⟧ empty ∼ never
+Ω-loops : ⟦ Ω ⟧ nil ∼ never
 Ω-loops = later λ { .force → Ω-loops }

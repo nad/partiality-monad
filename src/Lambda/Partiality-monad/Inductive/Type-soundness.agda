@@ -19,6 +19,7 @@ open import H-level.Truncation.Propositional equality-with-J as Trunc
 open import Maybe equality-with-J
 open import Monad equality-with-J
 open import Univalence-axiom equality-with-J
+open import Vec.Function equality-with-J
 
 open import Partiality-monad.Inductive
 open import Partiality-monad.Inductive.Alternative-order
@@ -85,15 +86,15 @@ mutual
   ∙-wf : ∀ {σ τ f v} →
          WF-Value (σ ⇾ τ) f → WF-Value (force σ) v →
          ∀ n → □ (∥WF-MV∥ (force τ)) (run ((f ∙ v) n))
-  ∙-wf (ƛ t₁∈ ρ₁-wf) v₂-wf (suc n) = ⟦⟧′-wf _ t₁∈ (snoc-wf ρ₁-wf v₂-wf) n
+  ∙-wf (ƛ t₁∈ ρ₁-wf) v₂-wf (suc n) = ⟦⟧′-wf _ t₁∈ (cons-wf v₂-wf ρ₁-wf) n
   ∙-wf (ƛ t₁∈ ρ₁-wf) v₂-wf zero    =         $⟨ □-never ⟩
     □ (∥WF-MV∥ _) never                      ↝⟨ ≡⇒↝ bijection $ cong (□ (∥WF-MV∥ _)) (sym never->>=) ⟩□
     □ (∥WF-MV∥ _) (never >>= return ∘ just)  □
 
 type-soundness : ∀ {t : Tm 0} {σ} →
-                 empty ⊢ t ∈ σ → ¬ ⟦ t ⟧ empty ≡ fail
+                 nil ⊢ t ∈ σ → ¬ ⟦ t ⟧ nil ≡ fail
 type-soundness {t} {σ} =
-  empty ⊢ t ∈ σ                                 ↝⟨ (λ t∈ → ⟦⟧′-wf _ t∈ empty-wf) ⟩
-  (∀ n → □ (∥WF-MV∥ σ) (run (⟦ t ⟧′ empty n)))  ↝⟨ □-⨆ (λ _ → truncation-is-proposition) ⟩
-  □ (∥WF-MV∥ σ) (run (⟦ t ⟧ empty))             ↝⟨ does-not-go-wrong ⟩□
-  ¬ ⟦ t ⟧ empty ≡ fail                          □
+  nil ⊢ t ∈ σ                                 ↝⟨ (λ t∈ → ⟦⟧′-wf _ t∈ nil-wf) ⟩
+  (∀ n → □ (∥WF-MV∥ σ) (run (⟦ t ⟧′ nil n)))  ↝⟨ □-⨆ (λ _ → truncation-is-proposition) ⟩
+  □ (∥WF-MV∥ σ) (run (⟦ t ⟧ nil))             ↝⟨ does-not-go-wrong ⟩□
+  ¬ ⟦ t ⟧ nil ≡ fail                          □

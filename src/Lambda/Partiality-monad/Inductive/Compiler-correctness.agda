@@ -14,6 +14,7 @@ open import Equality.Path.Isomorphisms equality-with-J
   using (ext; ⟨ext⟩)
 open import Maybe equality-with-J as Maybe
 open import Monad equality-with-J
+open import Vec.Function equality-with-J
 
 open import Partiality-monad.Inductive
 open import Partiality-monad.Inductive.Monad
@@ -110,17 +111,17 @@ mutual
 
     steps ⟨ comp t₁ (ret ∷ [])
           , ret c (comp-env ρ) ∷ s
-          , snoc (comp-env ρ₁) (comp-val v₂)
+          , cons (comp-val v₂) (comp-env ρ₁)
           ⟩                                               ∀≡⟨ (λ n → cong (λ ρ′ → steps ⟨ comp t₁ (ret ∷ []) , ret c (comp-env ρ) ∷ s , ρ′ ⟩ n) $
-                                                                          sym comp-snoc) ⟩≳
+                                                                          sym comp-cons) ⟩≳
     steps ⟨ comp t₁ (ret ∷ [])
           , ret c (comp-env ρ) ∷ s
-          , comp-env (snoc ρ₁ v₂)
+          , comp-env (cons v₂ ρ₁)
           ⟩                                               ≳⟨ (⟦⟧-correct t₁ {n = n} λ v →
 
         steps ⟨ ret ∷ []
               , val (comp-val v) ∷ ret c (comp-env ρ) ∷ s
-              , comp-env (snoc ρ₁ v₂)
+              , comp-env (cons v₂ ρ₁)
               ⟩                                                ≳⟨ step⇓ ⟩
 
         steps ⟨ c , val (comp-val v) ∷ s , comp-env ρ ⟩        ≳⟨ hyp v ⟩
@@ -129,7 +130,7 @@ mutual
 
         (λ n → run (k (suc n) v))                              ∎≳) ⟩
 
-    (λ n → run (⟦ t₁ ⟧′ (snoc ρ₁ v₂) n >>= k (suc n)))    ≳⟨⟩
+    (λ n → run (⟦ t₁ ⟧′ (cons v₂ ρ₁) n >>= k (suc n)))    ≳⟨⟩
 
     (λ n → run ((T.ƛ t₁ ρ₁ ∙ v₂) (suc n) >>= k (suc n)))  ∎≳)
 
@@ -137,21 +138,21 @@ mutual
 
 correct :
   ∀ t →
-  wrap (exec ⟨ comp t [] , [] , empty ⟩) ≡
-  (⟦ t ⟧ empty >>= λ v → return (comp-val v))
+  wrap (exec ⟨ comp t [] , [] , nil ⟩) ≡
+  (⟦ t ⟧ nil >>= λ v → return (comp-val v))
 correct t =
-  wrap (exec ⟨ comp t [] , [] , empty ⟩)                   ≡⟨ cong (λ ρ → wrap (exec ⟨ comp t [] , [] , ρ ⟩)) $ sym comp-empty ⟩
+  wrap (exec ⟨ comp t [] , [] , nil ⟩)                     ≡⟨ cong (λ ρ → wrap (exec ⟨ comp t [] , [] , ρ ⟩)) $ sym comp-nil ⟩
 
-  wrap (exec ⟨ comp t [] , [] , comp-env empty ⟩)          ≡⟨⟩
+  wrap (exec ⟨ comp t [] , [] , comp-env nil ⟩)            ≡⟨⟩
 
-  wrap (⨆ (stepsˢ ⟨ comp t [] , [] , comp-env empty ⟩))    ≡⟨ cong wrap (≳→⨆≡⨆ 0 $ ⟦⟧-correct t λ v →
+  wrap (⨆ (stepsˢ ⟨ comp t [] , [] , comp-env nil ⟩))      ≡⟨ cong wrap (≳→⨆≡⨆ 0 $ ⟦⟧-correct t λ v →
                                                                                      const (MaybeT.run (return (comp-val v))) ∎≳) ⟩
-  wrap (⨆ (⟦ t ⟧ˢ empty >>=ˢ λ v →
+  wrap (⨆ (⟦ t ⟧ˢ nil >>=ˢ λ v →
            constˢ (MaybeT.run (return (comp-val v)))))     ≡⟨ cong (λ s → wrap (⨆ s))
                                                                    (_↔_.to equality-characterisation-increasing (λ _ → refl)) ⟩
   wrap (⨆ (maybe (λ v → MaybeT.run (return (comp-val v)))
                  (return nothing)
              ∗-inc
-           ⟦ t ⟧ˢ empty))                                  ≡⟨ cong wrap (sym ⨆->>=) ⟩∎
+           ⟦ t ⟧ˢ nil))                                    ≡⟨ cong wrap (sym ⨆->>=) ⟩∎
 
-  (⟦ t ⟧ empty >>= λ v → return (comp-val v))              ∎
+  (⟦ t ⟧ nil >>= λ v → return (comp-val v))                ∎

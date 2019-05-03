@@ -14,6 +14,7 @@ open import Equality.Path.Isomorphisms equality-with-J using (⟨ext⟩)
 open import Function-universe equality-with-J hiding (id; _∘_)
 open import Maybe equality-with-J
 open import Monad equality-with-J
+open import Vec.Function equality-with-J
 
 open import Partiality-monad.Inductive
 open import Partiality-monad.Inductive.Fixpoints
@@ -82,7 +83,7 @@ module Interpreter₁ where
     _∙_ : Value → Value → ℕ → M Value
     (con i  ∙ v₂) n       = fail
     (ƛ t₁ ρ ∙ v₂) zero    = liftʳ never
-    (ƛ t₁ ρ ∙ v₂) (suc n) = ⟦ t₁ ⟧′ (snoc ρ v₂) n
+    (ƛ t₁ ρ ∙ v₂) (suc n) = ⟦ t₁ ⟧′ (cons v₂ ρ) n
 
   mutual
 
@@ -98,11 +99,11 @@ module Interpreter₁ where
 
     ∙-increasing : ∀ v₁ v₂ n → (v₁ ∙ v₂) n ⊑M (v₁ ∙ v₂) (suc n)
     ∙-increasing (con i)  v₂ n       = run fail ■
-    ∙-increasing (ƛ t₁ ρ) v₂ (suc n) = ⟦⟧′-increasing t₁ (snoc ρ v₂) n
+    ∙-increasing (ƛ t₁ ρ) v₂ (suc n) = ⟦⟧′-increasing t₁ (cons v₂ ρ) n
     ∙-increasing (ƛ t₁ ρ) v₂ zero    =
       never >>= return ∘ just      ≡⟨ never->>= ⟩⊑
       never                        ⊑⟨ never⊑ _ ⟩■
-      run (⟦ t₁ ⟧′ (snoc ρ v₂) 0)  ■
+      run (⟦ t₁ ⟧′ (cons v₂ ρ) 0)  ■
 
   ⟦_⟧ˢ : ∀ {n} → Tm n → Env n → Increasing-sequence (Maybe Value)
   ⟦ t ⟧ˢ ρ = MaybeT.run ∘ ⟦ t ⟧′ ρ , ⟦⟧′-increasing t ρ
@@ -124,7 +125,7 @@ module Interpreter₂ where
 
   _∙_ : Value → Value → M′ Value
   con i  ∙ v₂ = fail
-  ƛ t₁ ρ ∙ v₂ = wrap (rec (_ , t₁ , snoc ρ v₂))
+  ƛ t₁ ρ ∙ v₂ = wrap (rec (_ , t₁ , cons v₂ ρ))
 
   ⟦_⟧′ : ∀ {n} → Tm n → Env n → M′ Value
   ⟦ con i ⟧′   ρ = return (con i)
@@ -187,7 +188,7 @@ interpreters-equal = λ t ρ →
     ∙-lemma (con i)  v₂ n       = refl
     ∙-lemma (ƛ t₁ ρ) v₂ zero    = never >>= return ∘ just  ≡⟨ never->>= ⟩∎
                                   never                    ∎
-    ∙-lemma (ƛ t₁ ρ) v₂ (suc n) = ⟦⟧-lemma t₁ (snoc ρ v₂) n
+    ∙-lemma (ƛ t₁ ρ) v₂ (suc n) = ⟦⟧-lemma t₁ (cons v₂ ρ) n
 
 -- Let us use Interpreter₁ as the default interpreter.
 
@@ -198,25 +199,25 @@ open Interpreter₁ public
 
 -- The semantics of Ω is the non-terminating computation never.
 
-Ω-loops : run (⟦ Ω ⟧ empty) ≡ never
+Ω-loops : run (⟦ Ω ⟧ nil) ≡ never
 Ω-loops =
   antisymmetry (least-upper-bound _ _ lemma) (never⊑ _)
   where
-  ω-empty = ƛ (var fzero · var fzero) empty
+  ω-nil = ƛ (var fzero · var fzero) nil
 
   reduce-twice :
-    ∀ n → run (⟦ Ω ⟧′ empty n) ≡ run ((ω-empty ∙ ω-empty) n)
+    ∀ n → run (⟦ Ω ⟧′ nil n) ≡ run ((ω-nil ∙ ω-nil) n)
   reduce-twice n =
-    run (⟦ Ω ⟧′ empty n)                              ≡⟨ now->>= ⟩
-    run (⟦ ω ⟧′ empty n >>= λ v₂ → (ω-empty ∙ v₂) n)  ≡⟨ now->>= ⟩∎
-    run ((ω-empty ∙ ω-empty) n)                       ∎
+    run (⟦ Ω ⟧′ nil n)                            ≡⟨ now->>= ⟩
+    run (⟦ ω ⟧′ nil n >>= λ v₂ → (ω-nil ∙ v₂) n)  ≡⟨ now->>= ⟩∎
+    run ((ω-nil ∙ ω-nil) n)                       ∎
 
-  lemma : ∀ n → run (⟦ Ω ⟧′ empty n) ⊑ never
+  lemma : ∀ n → run (⟦ Ω ⟧′ nil n) ⊑ never
   lemma zero    =
-    run (⟦ Ω ⟧′ empty zero)         ≡⟨ reduce-twice zero ⟩⊑
-    run ((ω-empty ∙ ω-empty) zero)  ≡⟨ never->>= ⟩⊑
-    never                           ■
-  lemma (suc n) =
-    run (⟦ Ω ⟧′ empty (suc n))  ≡⟨ reduce-twice (suc n) ⟩⊑
-    run (⟦ Ω ⟧′ empty n)        ⊑⟨ lemma n ⟩■
+    run (⟦ Ω ⟧′ nil zero)       ≡⟨ reduce-twice zero ⟩⊑
+    run ((ω-nil ∙ ω-nil) zero)  ≡⟨ never->>= ⟩⊑
     never                       ■
+  lemma (suc n) =
+    run (⟦ Ω ⟧′ nil (suc n))  ≡⟨ reduce-twice (suc n) ⟩⊑
+    run (⟦ Ω ⟧′ nil n)        ⊑⟨ lemma n ⟩■
+    never                     ■

@@ -12,6 +12,7 @@ open import Size
 
 open import Maybe E.equality-with-J hiding (_>>=′_)
 open import Monad E.equality-with-J
+open import Vec.Function E.equality-with-J
 
 open import Delay-monad.Bisimilarity
 open import Delay-monad.Monad
@@ -119,25 +120,25 @@ mutual
 
       run (exec ⟨ comp t₁ (ret ∷ [])
                 , ret c (comp-env ρ) ∷ s
-                , snoc (comp-env ρ₁) (comp-val v₂)
+                , cons (comp-val v₂) (comp-env ρ₁)
              ⟩)                                                          ≡⟨ E.cong (λ ρ′ → run (exec ⟨ comp t₁ (ret ∷ []) ,
                                                                                                        ret c (comp-env ρ) ∷ s , ρ′ ⟩))
-                                                                                   (E.sym comp-snoc) ⟩
+                                                                                   (E.sym comp-cons) ⟩
       run (exec ⟨ comp t₁ (ret ∷ [])
                 , ret c (comp-env ρ) ∷ s
-                , comp-env (snoc ρ₁ v₂)
+                , comp-env (cons v₂ ρ₁)
                 ⟩)                                                       ≈⟨ ⟦⟧-correct t₁ (λ v →
 
         run (exec ⟨ ret ∷ []
                   , val (comp-val v) ∷ ret c (comp-env ρ) ∷ s
-                  , comp-env (snoc ρ₁ v₂)
+                  , comp-env (cons v₂ ρ₁)
                   ⟩)                                                          ≳⟨⟩
 
         run (exec ⟨ c , val (comp-val v) ∷ s , comp-env ρ ⟩)                  ≈⟨ hyp v ⟩∎
 
         run (k v)                                                             ∎) ⟩∼
 
-      run (⟦ t₁ ⟧ (snoc ρ₁ v₂) >>= k)                                    ∎ }) ⟩∎
+      run (⟦ t₁ ⟧ (cons v₂ ρ₁) >>= k)                                    ∎ }) ⟩∎
 
     run (T.ƛ t₁ ρ₁ ∙ v₂ >>= k)                                      ∎
 
@@ -145,9 +146,9 @@ mutual
 
 correct :
   ∀ t →
-  exec ⟨ comp t [] , [] , empty ⟩ ≈M
-  ⟦ t ⟧ empty >>= λ v → return (comp-val v)
+  exec ⟨ comp t [] , [] , nil ⟩ ≈M
+  ⟦ t ⟧ nil >>= λ v → return (comp-val v)
 correct t =
-  run (exec ⟨ comp t [] , [] , empty ⟩)            ≡⟨ E.cong (λ ρ → run (exec ⟨ comp t [] , [] , ρ ⟩)) $ E.sym comp-empty ⟩
-  run (exec ⟨ comp t [] , [] , comp-env empty ⟩)   ≈⟨ ⟦⟧-correct t (λ v → return (just (comp-val v)) ∎) ⟩
-  run (⟦ t ⟧ empty >>= λ v → return (comp-val v))  ∎
+  run (exec ⟨ comp t [] , [] , nil ⟩)            ≡⟨ E.cong (λ ρ → run (exec ⟨ comp t [] , [] , ρ ⟩)) $ E.sym comp-nil ⟩
+  run (exec ⟨ comp t [] , [] , comp-env nil ⟩)   ≈⟨ ⟦⟧-correct t (λ v → return (just (comp-val v)) ∎) ⟩
+  run (⟦ t ⟧ nil >>= λ v → return (comp-val v))  ∎

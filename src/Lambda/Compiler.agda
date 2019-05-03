@@ -9,7 +9,8 @@ module Lambda.Compiler where
 open import Equality.Propositional
 open import Prelude
 
-open import Equality.Path.Isomorphisms equality-with-J using (⟨ext⟩)
+open import Equality.Path.Isomorphisms equality-with-J using (ext)
+open import Vec.Function equality-with-J
 
 open import Lambda.Syntax hiding ([_])
 open import Lambda.Virtual-machine
@@ -39,11 +40,11 @@ mutual
 
 -- Compilation takes empty environments to empty environments.
 
-comp-empty : comp-env empty ≡ empty
-comp-empty = ⟨ext⟩ (λ ())
+comp-nil : comp-env nil ≡ nil
+comp-nil = empty≡nil ext
 
--- Compilation commutes with snoc.
+-- Compilation commutes with cons.
 
-comp-snoc : ∀ {n} {ρ : T.Env n} {v} →
-            comp-env (snoc ρ v) ≡ snoc (comp-env ρ) (comp-val v)
-comp-snoc = ⟨ext⟩ [ (λ _ → refl) , (λ _ → refl) ]
+comp-cons : ∀ {n} {ρ : T.Env n} {v} →
+            comp-env (cons v ρ) ≡ cons (comp-val v) (comp-env ρ)
+comp-cons = non-empty≡cons-head-tail ext _

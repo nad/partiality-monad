@@ -6,7 +6,10 @@
 
 module Lambda.Simplified.Virtual-machine where
 
+open import Equality.Propositional
 open import Prelude
+
+open import Vec.Function equality-with-J
 
 open import Lambda.Simplified.Syntax
 
@@ -64,9 +67,9 @@ data Result : Set where
 -- A single step of the computation.
 
 step : State → Result
-step ⟨ var x  ∷ c ,                          s , ρ ⟩ = continue ⟨ c  , val (ρ x)    ∷ s ,      ρ    ⟩
-step ⟨ clo c′ ∷ c ,                          s , ρ ⟩ = continue ⟨ c  , val (ƛ c′ ρ) ∷ s ,      ρ    ⟩
-step ⟨ app    ∷ c , val v ∷ val (ƛ c′ ρ′) ∷  s , ρ ⟩ = continue ⟨ c′ , ret c ρ      ∷ s , snoc ρ′ v ⟩
-step ⟨ ret    ∷ c , val v ∷ ret c′ ρ′     ∷  s , ρ ⟩ = continue ⟨ c′ , val v        ∷ s ,      ρ′   ⟩
+step ⟨ var x  ∷ c ,                          s , ρ ⟩ = continue ⟨ c  , val (ρ x)    ∷ s ,        ρ  ⟩
+step ⟨ clo c′ ∷ c ,                          s , ρ ⟩ = continue ⟨ c  , val (ƛ c′ ρ) ∷ s ,        ρ  ⟩
+step ⟨ app    ∷ c , val v ∷ val (ƛ c′ ρ′) ∷  s , ρ ⟩ = continue ⟨ c′ , ret c ρ      ∷ s , cons v ρ′ ⟩
+step ⟨ ret    ∷ c , val v ∷ ret c′ ρ′     ∷  s , ρ ⟩ = continue ⟨ c′ , val v        ∷ s ,        ρ′ ⟩
 step ⟨ zero ∣ []  ,                 val v ∷ [] , ρ ⟩ = done v
 step _                                               = crash

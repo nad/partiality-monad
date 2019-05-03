@@ -13,6 +13,7 @@ open import Size
 open import Function-universe equality-with-J
 open import Maybe equality-with-J
 open import Monad equality-with-J
+open import Vec.Function equality-with-J
 
 open import Delay-monad.Always
 open import Delay-monad.Bisimilarity
@@ -63,11 +64,11 @@ mutual
          WF-Value (σ ⇾ τ) f → WF-Value (force σ) v →
          □ i (WF-MV (force τ)) (run (f ∙ v))
   ∙-wf (ƛ t₁∈ ρ₁-wf) v₂-wf =
-    later λ { .force → ⟦⟧-wf _ t₁∈ (snoc-wf ρ₁-wf v₂-wf) }
+    later λ { .force → ⟦⟧-wf _ t₁∈ (cons-wf v₂-wf ρ₁-wf) }
 
 type-soundness : ∀ {t : Tm 0} {σ} →
-                 empty ⊢ t ∈ σ → ¬ ⟦ t ⟧ empty ≈M fail
+                 nil ⊢ t ∈ σ → ¬ ⟦ t ⟧ nil ≈M fail
 type-soundness {t} {σ} =
-  empty ⊢ t ∈ σ                      ↝⟨ (λ t∈ → ⟦⟧-wf _ t∈ empty-wf) ⟩
-  □ ∞ (WF-MV σ) (run (⟦ t ⟧ empty))  ↝⟨ does-not-go-wrong ⟩□
-  ¬ ⟦ t ⟧ empty ≈M fail              □
+  nil ⊢ t ∈ σ                      ↝⟨ (λ t∈ → ⟦⟧-wf _ t∈ nil-wf) ⟩
+  □ ∞ (WF-MV σ) (run (⟦ t ⟧ nil))  ↝⟨ does-not-go-wrong ⟩□
+  ¬ ⟦ t ⟧ nil ≈M fail              □

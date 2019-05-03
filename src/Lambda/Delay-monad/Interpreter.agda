@@ -12,6 +12,7 @@ open import Size
 
 open import Maybe equality-with-J
 open import Monad equality-with-J
+open import Vec.Function equality-with-J
 
 open import Delay-monad
 open import Delay-monad.Bisimilarity
@@ -63,7 +64,7 @@ mutual
 
   _∙_ : ∀ {i} → Value → Value → M i Value
   con i  ∙ v₂ = fail
-  ƛ t₁ ρ ∙ v₂ = laterM (⟦ t₁ ⟧′ (snoc ρ v₂))
+  ƛ t₁ ρ ∙ v₂ = laterM (⟦ t₁ ⟧′ (cons v₂ ρ))
 
   ⟦_⟧′ : ∀ {i n} → Tm n → Env n → M′ i Value
   force (run (⟦ t ⟧′ ρ)) = run (⟦ t ⟧ ρ)
@@ -73,5 +74,5 @@ mutual
 
 -- The semantics of Ω is the non-terminating computation never.
 
-Ω-loops : run (⟦ Ω ⟧ empty) ∼ never
+Ω-loops : run (⟦ Ω ⟧ nil) ∼ never
 Ω-loops = later λ { .force → Ω-loops }

@@ -12,6 +12,7 @@ open import Prelude hiding (⊥)
 
 open import Equality.Path.Isomorphisms equality-with-J using (⟨ext⟩)
 open import Monad equality-with-J
+open import Vec.Function equality-with-J
 
 open import Partiality-monad.Inductive
 open import Partiality-monad.Inductive.Fixpoints hiding (comp; app)
@@ -107,17 +108,17 @@ mutual
 
     execⁿ ⟨ comp t₁ (ret ∷ [])
           , ret c (comp-env ρ) ∷ s
-          , snoc (comp-env ρ₁) (comp-val v₂)
+          , cons (comp-val v₂) (comp-env ρ₁)
           ⟩                                                     ∀≡⟨ (λ n → cong (λ ρ′ → execⁿ ⟨ comp t₁ (ret ∷ []) , ret c (comp-env ρ) ∷ s , ρ′ ⟩ n)
-                                                                                (sym comp-snoc)) ⟩≳
+                                                                                (sym comp-cons)) ⟩≳
     execⁿ ⟨ comp t₁ (ret ∷ [])
           , ret c (comp-env ρ) ∷ s
-          , comp-env (snoc ρ₁ v₂)
+          , comp-env (cons v₂ ρ₁)
           ⟩                                                     ≳⟨ (⟦⟧-correct t₁ {n = n} λ v →
 
         execⁿ ⟨ ret ∷ []
               , val (comp-val v) ∷ ret c (comp-env ρ) ∷ s
-              , comp-env (snoc ρ₁ v₂)
+              , comp-env (cons v₂ ρ₁)
               ⟩                                                       ≳⟨ step⇓ ⟩
 
         execⁿ ⟨ c , val (comp-val v) ∷ s , comp-env ρ ⟩               ≳⟨ hyp v ⟩
@@ -126,7 +127,7 @@ mutual
 
         (λ n → k (suc n) v)                                           ∎≳) ⟩
 
-    (λ n → evalⁿ t₁ (snoc ρ₁ v₂) (suc n) >>= k (suc n))         ≳⟨⟩
+    (λ n → evalⁿ t₁ (cons v₂ ρ₁) (suc n) >>= k (suc n))         ≳⟨⟩
 
     (λ n → (T.ƛ t₁ ρ₁ ∙ⁿ v₂) (suc n) >>= k (suc n))             ∎≳)
 
@@ -134,23 +135,23 @@ mutual
 
 correct :
   ∀ t →
-  exec ⟨ comp t [] , [] , empty ⟩ ≡
-  (⟦ t ⟧ empty >>= λ v → return (just (comp-val v)))
+  exec ⟨ comp t [] , [] , nil ⟩ ≡
+  (⟦ t ⟧ nil >>= λ v → return (just (comp-val v)))
 correct t =
-  exec ⟨ comp t [] , [] , empty ⟩                            ≡⟨ cong (λ ρ → exec ⟨ comp t [] , [] , ρ ⟩) $ sym comp-empty ⟩
+  exec ⟨ comp t [] , [] , nil ⟩                            ≡⟨ cong (λ ρ → exec ⟨ comp t [] , [] , ρ ⟩) $ sym comp-nil ⟩
 
-  exec ⟨ comp t [] , [] , comp-env empty ⟩                   ≡⟨⟩
+  exec ⟨ comp t [] , [] , comp-env nil ⟩                   ≡⟨⟩
 
-  ⨆ ( execⁿ ⟨ comp t [] , [] , comp-env empty ⟩
+  ⨆ ( execⁿ ⟨ comp t [] , [] , comp-env nil ⟩
     , _
-    )                                                        ≡⟨ ≳→⨆≡⨆ 1 (⟦⟧-correct t $ λ v →
+    )                                                      ≡⟨ ≳→⨆≡⨆ 1 (⟦⟧-correct t $ λ v →
 
-      execⁿ ⟨ [] , val (comp-val v) ∷ [] , comp-env empty ⟩       ≳⟨ step⇓ ⟩
-      const (return (just (comp-val v)))                          ∎≳) ⟩
+      execⁿ ⟨ [] , val (comp-val v) ∷ [] , comp-env nil ⟩       ≳⟨ step⇓ ⟩
+      const (return (just (comp-val v)))                        ∎≳) ⟩
 
-  ⨆ ( (λ n → evalⁿ t empty n >>= λ v →
+  ⨆ ( (λ n → evalⁿ t nil n >>= λ v →
              return (just (comp-val v)))
     , _
-    )                                                        ≡⟨ sym ⨆->>= ⟩
+    )                                                      ≡⟨ sym ⨆->>= ⟩
 
-  (⟦ t ⟧ empty >>= λ v → return (just (comp-val v)))         ∎
+  (⟦ t ⟧ nil >>= λ v → return (just (comp-val v)))         ∎
