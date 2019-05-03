@@ -70,14 +70,80 @@ map f = Σ-map (mapᴹ f ∘_) mapᴹ-Increasing
 ------------------------------------------------------------------------
 -- The first eliminator
 
+private
+  variable
+    a r : Level
+    A B : Set a
+    R   : A → A → Set r
+    f   : A → B
+
+-- Some abstract redefinitions, intended to make the code type-check
+-- faster.
+
+private
+
+  abstract
+
+    ℕ→/-comm-to′ : (ℕ → A) / (ℕ →ᴾ R) → (ℕ → A / R)
+    ℕ→/-comm-to′ = ℕ→/-comm-to
+
+    ℕ→/-comm-to′-[] : ℕ→/-comm-to′ {R = R} [ f ] ≡ [_] ∘ f
+    ℕ→/-comm-to′-[] = refl
+
+  ℕ→/-comm′ :
+    {A : Set a} {R : A → A → Set r} →
+    Axiom-of-countable-choice (a ⊔ r) →
+    Is-equivalence-relation R →
+    (∀ {x y} → Is-proposition (R x y)) →
+    (ℕ → A) / (ℕ →ᴾ R) ↔ (ℕ → A / R)
+  ℕ→/-comm′ {A = A} {R} cc R-equiv R-prop = record
+    { surjection = record
+      { logical-equivalence = record
+        { to   = ℕ→/-comm-to′
+        ; from = from
+        }
+      ; right-inverse-of = to∘from
+      }
+    ; left-inverse-of = from∘to
+    }
+    where
+    iso = ℕ→/-comm cc R-equiv R-prop
+
+    abstract
+
+      from : (ℕ → A / R) → (ℕ → A) / (ℕ →ᴾ R)
+      from = _↔_.from iso
+
+      to∘from : ∀ f → ℕ→/-comm-to′ (from f) ≡ f
+      to∘from = _↔_.right-inverse-of iso
+
+      from∘to : ∀ f → from (ℕ→/-comm-to′ f) ≡ f
+      from∘to = _↔_.left-inverse-of iso
+
+  abstract
+
+    Maybe/-comm′ : Maybe A / Maybeᴾ R ↔ Maybe (A / R)
+    Maybe/-comm′ = Maybe/-comm
+
+    Maybe/-comm′-[] :
+      _↔_.to Maybe/-comm′ ∘ [_] ≡ ⊎-map id ([_] {R = R})
+    Maybe/-comm′-[] = Maybe/-comm-[]
+
 -- There is a function from (ℕ → Maybe A) / (ℕ →ᴾ Maybeᴾ R) to
 -- Delay (A / R).
 
-→Maybe/→ :
-  ∀ {a r} {A : Set a} {R : A → A → Set r} →
-  (ℕ → Maybe A) / (ℕ →ᴾ Maybeᴾ R) → Delay (A / R)
+→Maybe/→ : (ℕ → Maybe A) / (ℕ →ᴾ Maybeᴾ R) → Delay (A / R)
 →Maybe/→ f =
-  _↠_.to →↠Delay-function (_↔_.to Maybe/-comm ∘ ℕ→/-comm-to f)
+  _↠_.to →↠Delay-function (_↔_.to Maybe/-comm′ ∘ ℕ→/-comm-to′ f)
+
+-- A "computation" rule for →Maybe/→.
+
+→Maybe/→-[] :
+  →Maybe/→ [ f ] ≡
+  _↠_.to →↠Delay-function (_↔_.to (Maybe/-comm′ {R = R}) ∘ [_] ∘ f)
+→Maybe/→-[] =
+  cong (λ g → _↠_.to →↠Delay-function (_↔_.to Maybe/-comm′ ∘ g))
+    ℕ→/-comm-to′-[]
 
 -- The definitions below make use of some assumptions: countable
 -- choice and a propositional equivalence relation R.
@@ -93,8 +159,8 @@ module _
 
     -- An abbreviation.
 
-    ℕ→/-comm′ =
-      ℕ→/-comm cc
+    ℕ→/-comm″ =
+      ℕ→/-comm′ cc
         (Maybeᴾ-preserves-Is-equivalence-relation R-equiv)
         (λ {x} → Maybeᴾ-preserves-Is-proposition R-prop {x = x})
 
@@ -103,8 +169,8 @@ module _
   →Maybe/↠ :
     (ℕ → Maybe A) / (ℕ →ᴾ Maybeᴾ R) ↠ Delay (A / R)
   →Maybe/↠ =
-    (ℕ → Maybe A) / (ℕ →ᴾ Maybeᴾ R)  ↔⟨ ℕ→/-comm′ ⟩
-    (ℕ → Maybe A / Maybeᴾ R)         ↔⟨ ∀-cong ext (λ _ → Maybe/-comm) ⟩
+    (ℕ → Maybe A) / (ℕ →ᴾ Maybeᴾ R)  ↔⟨ ℕ→/-comm″ ⟩
+    (ℕ → Maybe A / Maybeᴾ R)         ↔⟨ ∀-cong ext (λ _ → Maybe/-comm′) ⟩
     (ℕ → Maybe (A / R))              ↝⟨ →↠Delay-function ⟩□
     Delay (A / R)                    □
 
@@ -120,89 +186,79 @@ module _
     (x : Delay A) →
     _↠_.from →Maybe/↠ (→Maybe/→ [ proj₁ x ]) ≡ [ proj₁ x ]
   →Maybe/↠-partial-left-inverse (f , inc) =
-    _↠_.from →Maybe/↠ (→Maybe/→ [ f ])                                ≡⟨⟩
+    _↠_.from →Maybe/↠ (→Maybe/→ [ f ])                                 ≡⟨ cong (_↠_.from →Maybe/↠) →Maybe/→-[] ⟩
 
-    _↔_.from ℕ→/-comm′ (λ n →
-      _↔_.from Maybe/-comm $
+    _↔_.from ℕ→/-comm″ (λ n →
+      _↔_.from Maybe/-comm′ $
       _↠_.from →↠Delay-function
-        (_↠_.to →↠Delay-function (_↔_.to Maybe/-comm ∘ [_] ∘ f))
-        n)                                                            ≡⟨ cong (λ g → _↔_.from ℕ→/-comm′ λ n →
-                                                                                       _↔_.from Maybe/-comm (_↠_.from →↠Delay-function
-                                                                                                               (_↠_.to →↠Delay-function (g ∘ f))
-                                                                                                               n)) $
-                                                                           Maybe/-comm-[] ⟩
-    _↔_.from ℕ→/-comm′ (λ n →
-      _↔_.from Maybe/-comm $
+        (_↠_.to →↠Delay-function (_↔_.to Maybe/-comm′ ∘ [_] ∘ f))
+        n)                                                             ≡⟨ cong (λ g → _↔_.from ℕ→/-comm″ λ n →
+                                                                                        _↔_.from Maybe/-comm′ (_↠_.from →↠Delay-function
+                                                                                                                 (_↠_.to →↠Delay-function (g ∘ f))
+                                                                                                                 n)) $
+                                                                            Maybe/-comm′-[] ⟩
+    _↔_.from ℕ→/-comm″ (λ n →
+      _↔_.from Maybe/-comm′ $
       _↠_.from →↠Delay-function
         (_↠_.to →↠Delay-function (mapᴹ [_] ∘ f))
-        n)                                                            ≡⟨⟩
+        n)                                                             ≡⟨⟩
 
-    _↔_.from ℕ→/-comm′ (λ n →
-      _↔_.from Maybe/-comm $
+    _↔_.from ℕ→/-comm″ (λ n →
+      _↔_.from Maybe/-comm′ $
       _↠_.from →↠Delay-function
         (_↠_.to →↠Delay-function
            (_↠_.from →↠Delay-function (map [_] (f , inc))))
-        n)                                                            ≡⟨ cong (λ x → _↔_.from ℕ→/-comm′ λ n →
-                                                                                       _↔_.from Maybe/-comm (_↠_.from →↠Delay-function x n)) $
-                                                                           _↠_.right-inverse-of →↠Delay-function (map [_] (f , inc)) ⟩
-    _↔_.from ℕ→/-comm′ (λ n →
-      _↔_.from Maybe/-comm $
-      _↠_.from →↠Delay-function (map [_] (f , inc)) n)                ≡⟨⟩
+        n)                                                             ≡⟨ cong (λ x → _↔_.from ℕ→/-comm″ λ n →
+                                                                                        _↔_.from Maybe/-comm′ (_↠_.from →↠Delay-function x n)) $
+                                                                            _↠_.right-inverse-of →↠Delay-function (map [_] (f , inc)) ⟩
+    _↔_.from ℕ→/-comm″ (λ n →
+      _↔_.from Maybe/-comm′ $
+      _↠_.from →↠Delay-function (map [_] (f , inc)) n)                 ≡⟨⟩
 
-    _↔_.from ℕ→/-comm′ (λ n → _↔_.from Maybe/-comm $ mapᴹ [_] (f n))  ≡⟨ cong (λ g → _↔_.from ℕ→/-comm′ λ n → _↔_.from Maybe/-comm (g (f n))) $
-                                                                           sym Maybe/-comm-[] ⟩
-    _↔_.from ℕ→/-comm′ (λ n →
-      _↔_.from Maybe/-comm (_↔_.to Maybe/-comm [ f n ]))              ≡⟨ cong (_↔_.from ℕ→/-comm′) (⟨ext⟩ λ n →
-                                                                           _↔_.left-inverse-of Maybe/-comm [ f n ]) ⟩
-    _↔_.from ℕ→/-comm′ (λ n → [ f n ])                                ≡⟨⟩
+    _↔_.from ℕ→/-comm″ (λ n → _↔_.from Maybe/-comm′ $ mapᴹ [_] (f n))  ≡⟨ cong (λ g → _↔_.from ℕ→/-comm″ λ n → _↔_.from Maybe/-comm′ (g (f n))) $
+                                                                            sym Maybe/-comm′-[] ⟩
+    _↔_.from ℕ→/-comm″ (λ n →
+      _↔_.from Maybe/-comm′ (_↔_.to Maybe/-comm′ [ f n ]))             ≡⟨ cong (_↔_.from ℕ→/-comm″) (⟨ext⟩ λ n →
+                                                                            _↔_.left-inverse-of Maybe/-comm′ [ f n ]) ⟩
 
-    _↔_.from ℕ→/-comm′ (ℕ→/-comm-to [ f ])                            ≡⟨ _↔_.left-inverse-of ℕ→/-comm′ [ f ] ⟩∎
+    _↔_.from ℕ→/-comm″ (λ n → [ f n ])                                 ≡⟨ cong (_↔_.from ℕ→/-comm″) $ sym ℕ→/-comm-to′-[] ⟩
 
-    [ f ]                                                             ∎
+    _↔_.from ℕ→/-comm″ (ℕ→/-comm-to′ [ f ])                            ≡⟨ _↔_.left-inverse-of ℕ→/-comm″ [ f ] ⟩∎
 
-  private
+    [ f ]                                                              ∎
 
-    -- Dummy is a local module used to ensure that the definitions
-    -- inside it get their own abstract block.
+  -- A quotient-like eliminator for Delay (A / R).
 
-    module Dummy where
+  Delay/-elim₁ :
+    ∀ {p} (P : Delay (A / R) → Set p)
+    (p-[] : (f : ℕ → Maybe A) → P (→Maybe/→ [ f ])) →
+    (∀ {f g} (r : (ℕ →ᴾ Maybeᴾ R) f g) →
+     subst P (cong →Maybe/→
+                   ([]-respects-relation {x = f} {y = g} r))
+             (p-[] f) ≡
+     p-[] g) →
+    (∀ x → Is-set (P x)) →
+    ∀ x → P x
+  Delay/-elim₁ = ↠-eliminator →Maybe/↠
 
-      abstract
+  -- Simplification lemma for Delay/-elim₁.
 
-        -- A quotient-like eliminator for Delay (A / R).
-
-        Delay/-elim₁ :
-          ∀ {p} (P : Delay (A / R) → Set p)
-          (p-[] : (f : ℕ → Maybe A) → P (→Maybe/→ [ f ])) →
-          (∀ {f g} (r : (ℕ →ᴾ Maybeᴾ R) f g) →
-           subst P (cong →Maybe/→
-                         ([]-respects-relation {x = f} {y = g} r))
-                   (p-[] f) ≡
-           p-[] g) →
-          (∀ x → Is-set (P x)) →
-          ∀ x → P x
-        Delay/-elim₁ = ↠-eliminator →Maybe/↠
-
-        -- Simplification lemma for Delay/-elim₁.
-
-        Delay/-elim₁-[] :
-          ∀ {p} (P : Delay (A / R) → Set p)
-          (p-[] : (f : ℕ → Maybe A) → P (→Maybe/→ [ f ]))
-          (ok :
-             ∀ {f g} (r : (ℕ →ᴾ Maybeᴾ R) f g) →
-             subst P (cong →Maybe/→
-                           ([]-respects-relation {x = f} {y = g} r))
-                     (p-[] f) ≡
-             p-[] g)
-          (P-set : ∀ x → Is-set (P x)) (x : Delay A) →
-          Delay/-elim₁ P p-[] ok P-set (→Maybe/→ [ proj₁ x ]) ≡
-          p-[] (proj₁ x)
-        Delay/-elim₁-[] P p-[] ok P-set x =
-          ↠-eliminator-[] →Maybe/↠ P p-[] ok P-set
-            (_↠_.from →↠Delay-function x)
-            (→Maybe/↠-partial-left-inverse x)
-
-  open Dummy public
+  Delay/-elim₁-[] :
+    ∀ {p} (P : Delay (A / R) → Set p)
+    (p-[] : (f : ℕ → Maybe A) → P (→Maybe/→ [ f ]))
+    (ok :
+       ∀ {f g} (r : (ℕ →ᴾ Maybeᴾ R) f g) →
+       subst P (cong →Maybe/→
+                     ([]-respects-relation {x = f} {y = g} r))
+               (p-[] f) ≡
+       p-[] g)
+    (P-set : ∀ x → Is-set (P x)) (x : Delay A) →
+    Delay/-elim₁ P p-[] ok P-set (→Maybe/→ [ proj₁ x ]) ≡
+    p-[] (proj₁ x)
+  Delay/-elim₁-[] P p-[] ok P-set x =
+    ↠-eliminator-[] →Maybe/↠ P p-[] ok P-set
+      (_↠_.from →↠Delay-function x)
+      (→Maybe/↠-partial-left-inverse x)
 
 ------------------------------------------------------------------------
 -- The second eliminator
@@ -262,16 +318,16 @@ module _
 
   -- A simplification lemma for →Maybe/→.
 
-  →Maybe/→-[] :
+  →Maybe/→-[]′ :
     (f : ℕ → Maybe A) →
     →Maybe/→ [ f ] ≡
     map ([_] {R = R}) (_↠_.to →↠Delay-function f)
-  →Maybe/→-[] f = _↔_.to (equality-characterisation /-is-set)
-    (proj₁ (→Maybe/→ [ f ])                                          ≡⟨⟩
-     proj₁ (_↠_.to →↠Delay-function (_↔_.to Maybe/-comm ∘ [_] ∘ f))  ≡⟨ cong (λ g → proj₁ (_↠_.to →↠Delay-function (g ∘ f))) $ Maybe/-comm-[] ⟩
-     proj₁ (_↠_.to →↠Delay-function (mapᴹ [_] ∘ f))                  ≡⟨ ⟨ext⟩ (helper f (f 0)) ⟩
-     mapᴹ [_] ∘ proj₁ (_↠_.to →↠Delay-function f)                    ≡⟨⟩
-     proj₁ (map [_] (_↠_.to →↠Delay-function f))                     ∎)
+  →Maybe/→-[]′ f = _↔_.to (equality-characterisation /-is-set)
+    (proj₁ (→Maybe/→ [ f ])                                           ≡⟨ cong proj₁ →Maybe/→-[] ⟩
+     proj₁ (_↠_.to →↠Delay-function (_↔_.to Maybe/-comm′ ∘ [_] ∘ f))  ≡⟨ cong (λ g → proj₁ (_↠_.to →↠Delay-function (g ∘ f))) $ Maybe/-comm′-[] ⟩
+     proj₁ (_↠_.to →↠Delay-function (mapᴹ [_] ∘ f))                   ≡⟨ ⟨ext⟩ (helper f (f 0)) ⟩
+     mapᴹ [_] ∘ proj₁ (_↠_.to →↠Delay-function f)                     ≡⟨⟩
+     proj₁ (map [_] (_↠_.to →↠Delay-function f))                      ∎)
     where
     helper :
        ∀ f x n →
@@ -290,112 +346,98 @@ module _
   (cc : Axiom-of-countable-choice (a ⊔ r))
   (R-equiv : Is-equivalence-relation R)
   (R-prop : ∀ {x y} → Is-proposition (R x y))
+  (P : Delay (A / R) → Set p)
+  (p-[] : (x : Delay A) → P (map [_] x))
+  (ok : ∀ {x y} (r : Delayᴾ R x y) →
+        subst P (map-[]-cong x y r) (p-[] x) ≡ p-[] y)
+  (P-set : ∀ x → Is-set (P x))
   where
 
-  abstract
+  private
 
-    -- A second quotient-like eliminator for Delay (A / R).
-    --
-    -- This eliminator corresponds to Theorem 1 in "Quotienting the
-    -- Delay Monad by Weak Bisimilarity" by Chapman, Uustalu and
-    -- Veltri.
+    lemma₁ = sym ∘ →Maybe/→-[]′ {R = R}
 
-    Delay/-elim₂ :
-      (P : Delay (A / R) → Set p)
-      (p-[] : (x : Delay A) → P (map [_] x)) →
-      (∀ {x y} (r : Delayᴾ R x y) →
-       subst P (map-[]-cong x y r) (p-[] x) ≡ p-[] y) →
-      (∀ x → Is-set (P x)) →
-      ∀ x → P x
-    Delay/-elim₂ P p-[] ok P-set =
-      Delay/-elim₁ cc R-equiv R-prop P
+    lemma₂ :
+      ∀ {f g} r →
+      subst P
+        (cong →Maybe/→ ([]-respects-relation {x = f} {y = g} r))
+        (subst P (lemma₁ f) (p-[] (_↠_.to →↠Delay-function f))) ≡
+      subst P (lemma₁ g) (p-[] (_↠_.to →↠Delay-function g))
+    lemma₂ {f} {g} r =
+      let p  = p-[] (_↠_.to →↠Delay-function f)
+          r′ = cong →Maybe/→ ([]-respects-relation {x = f} {y = g} r)
+          r″ = trans (trans (lemma₁ f) r′) (sym (lemma₁ g))
+      in
+      subst P r′ (subst P (lemma₁ f) p)                               ≡⟨ subst-subst P (lemma₁ f) r′ p ⟩
+
+      subst P (trans (lemma₁ f) r′) p                                 ≡⟨ cong (λ eq → subst P eq p) $
+                                                                           sym $ trans-[trans-sym]- _ (lemma₁ g) ⟩
+      subst P (trans r″ (lemma₁ g)) p                                 ≡⟨ sym $ subst-subst P
+                                                                                 (trans (trans (lemma₁ f) r′) (sym (lemma₁ g)))
+                                                                                 (lemma₁ g)
+                                                                                 p ⟩
+      subst P (lemma₁ g) (subst P r″ p)                               ≡⟨ cong (λ eq → subst P (lemma₁ g) (subst P eq p)) $
+                                                                           _⇔_.to propositional⇔irrelevant
+                                                                             (Delay-closure 0 /-is-set _ _)
+                                                                             r″
+                                                                             (map-[]-cong (_↠_.to →↠Delay-function f)
+                                                                                          (_↠_.to →↠Delay-function g)
+                                                                                          (from-to-→↠Delay-function-cong f g r)) ⟩
+      subst P (lemma₁ g)
+        (subst P (map-[]-cong (_↠_.to →↠Delay-function f)
+                              (_↠_.to →↠Delay-function g)
+                              (from-to-→↠Delay-function-cong f g r))
+                 p)                                                   ≡⟨ cong (subst P (lemma₁ g)) (ok _) ⟩∎
+
+      subst P (lemma₁ g) (p-[] (_↠_.to →↠Delay-function g))           ∎
+
+  -- A second quotient-like eliminator for Delay (A / R).
+  --
+  -- This eliminator corresponds to Theorem 1 in "Quotienting the
+  -- Delay Monad by Weak Bisimilarity" by Chapman, Uustalu and
+  -- Veltri.
+
+  Delay/-elim₂ : ∀ x → P x
+  Delay/-elim₂ =
+    Delay/-elim₁ cc R-equiv R-prop P
+    (λ f → subst P (lemma₁ f) (p-[] (_↠_.to →↠Delay-function f)))
+    lemma₂ P-set
+
+  -- Simplification lemma for Delay/-elim₂.
+
+  Delay/-elim₂-[] : ∀ x → Delay/-elim₂ (map [_] x) ≡ p-[] x
+  Delay/-elim₂-[] x =
+    Delay/-elim₁ cc R-equiv R-prop P
       (λ f → subst P (lemma₁ f) (p-[] (_↠_.to →↠Delay-function f)))
-      lemma₂ P-set
-      where
-      lemma₁ = sym ∘ →Maybe/→-[]
+      lemma₂ P-set (map [_] x)                                           ≡⟨ sym $ dependent-cong
+                                                                                    (Delay/-elim₁ cc R-equiv R-prop P
+                                                                                                  (λ f → subst P (lemma₁ f)
+                                                                                                           (p-[] (_↠_.to →↠Delay-function f)))
+                                                                                                  lemma₂ P-set)
+                                                                                    lemma₃ ⟩
+    subst P lemma₃
+      (Delay/-elim₁ cc R-equiv R-prop P
+         (λ f → subst P (lemma₁ f) (p-[] (_↠_.to →↠Delay-function f)))
+         lemma₂ P-set (→Maybe/→ [ proj₁ x ]))                            ≡⟨ cong (subst P lemma₃) $
+                                                                              Delay/-elim₁-[] cc R-equiv R-prop P _ lemma₂ P-set x ⟩
+    subst P lemma₃
+      (subst P (lemma₁ (proj₁ x))
+         (p-[] (_↠_.to →↠Delay-function (proj₁ x))))                     ≡⟨ subst-subst P (lemma₁ (proj₁ x)) lemma₃ _ ⟩
 
-      lemma₂ :
-        ∀ {f g} r →
-        subst P
-          (cong →Maybe/→ ([]-respects-relation {x = f} {y = g} r))
-          (subst P (lemma₁ f) (p-[] (_↠_.to →↠Delay-function f))) ≡
-        subst P (lemma₁ g) (p-[] (_↠_.to →↠Delay-function g))
-      lemma₂ {f} {g} r =
-        let p  = p-[] (_↠_.to →↠Delay-function f)
-            r′ = cong →Maybe/→ ([]-respects-relation {x = f} {y = g} r)
-            r″ = trans (trans (lemma₁ f) r′) (sym (lemma₁ g))
-        in
-        subst P r′ (subst P (lemma₁ f) p)                               ≡⟨ subst-subst P (lemma₁ f) r′ p ⟩
+    subst P (trans (lemma₁ (proj₁ x)) lemma₃)
+      (p-[] (_↠_.to →↠Delay-function (proj₁ x)))                         ≡⟨ cong (λ p → subst P p (p-[] (_↠_.to →↠Delay-function (proj₁ x)))) $
+                                                                              trans--[trans-sym]
+                                                                                (lemma₁ (proj₁ x))
+                                                                                (cong (map [_]) $ _↠_.right-inverse-of →↠Delay-function x) ⟩
+    subst P (cong (map [_]) $ _↠_.right-inverse-of →↠Delay-function x)
+      (p-[] (_↠_.to →↠Delay-function (proj₁ x)))                         ≡⟨ sym $ subst-∘ P (map [_]) (_↠_.right-inverse-of →↠Delay-function x) ⟩
 
-        subst P (trans (lemma₁ f) r′) p                                 ≡⟨ cong (λ eq → subst P eq p) $
-                                                                             sym $ trans-[trans-sym]- _ (lemma₁ g) ⟩
-        subst P (trans r″ (lemma₁ g)) p                                 ≡⟨ sym $ subst-subst P
-                                                                                   (trans (trans (lemma₁ f) r′) (sym (lemma₁ g)))
-                                                                                   (lemma₁ g)
-                                                                                   p ⟩
-        subst P (lemma₁ g) (subst P r″ p)                               ≡⟨ cong (λ eq → subst P (lemma₁ g) (subst P eq p)) $
-                                                                             _⇔_.to propositional⇔irrelevant
-                                                                               (Delay-closure 0 /-is-set _ _)
-                                                                               r″
-                                                                               (map-[]-cong (_↠_.to →↠Delay-function f)
-                                                                                            (_↠_.to →↠Delay-function g)
-                                                                                            (from-to-→↠Delay-function-cong f g r)) ⟩
-        subst P (lemma₁ g)
-          (subst P (map-[]-cong (_↠_.to →↠Delay-function f)
-                                (_↠_.to →↠Delay-function g)
-                                (from-to-→↠Delay-function-cong f g r))
-                   p)                                                   ≡⟨ cong (subst P (lemma₁ g)) (ok _) ⟩∎
+    subst (P ∘ map [_]) (_↠_.right-inverse-of →↠Delay-function x)
+      (p-[] (_↠_.to →↠Delay-function (proj₁ x)))                         ≡⟨ dependent-cong p-[] (_↠_.right-inverse-of →↠Delay-function x) ⟩∎
 
-        subst P (lemma₁ g) (p-[] (_↠_.to →↠Delay-function g))           ∎
-
-    -- Simplification lemma for Delay/-elim₂.
-
-    Delay/-elim₂-[] :
-      (P : Delay (A / R) → Set p)
-      (p-[] : (x : Delay A) → P (map [_] x))
-      (ok : ∀ {x y} (r : Delayᴾ R x y) →
-            subst P (map-[]-cong x y r) (p-[] x) ≡ p-[] y)
-      (P-set : ∀ x → Is-set (P x)) →
-      ∀ x → Delay/-elim₂ P p-[] ok P-set (map [_] x) ≡ p-[] x
-    Delay/-elim₂-[] P p-[] ok P-set x =
-      Delay/-elim₁ cc R-equiv R-prop P
-        (λ f → subst P (lemma₁ f) (p-[] (_↠_.to →↠Delay-function f)))
-        _ P-set (map [_] x)                                                ≡⟨ sym $ dependent-cong
-                                                                                      (Delay/-elim₁ cc R-equiv R-prop P
-                                                                                                    (λ f → subst P (lemma₁ f)
-                                                                                                             (p-[] (_↠_.to →↠Delay-function f)))
-                                                                                                    _ P-set)
-                                                                                      lemma₂ ⟩
-      subst P lemma₂
-        (Delay/-elim₁ cc R-equiv R-prop P
-           (λ f → subst P (lemma₁ f) (p-[] (_↠_.to →↠Delay-function f)))
-           _ P-set (→Maybe/→ [ proj₁ x ]))                                 ≡⟨⟩
-
-      subst P lemma₂
-        (Delay/-elim₁ cc R-equiv R-prop P
-           (λ f → subst P (lemma₁ f) (p-[] (_↠_.to →↠Delay-function f)))
-           _ P-set (→Maybe/→ [ proj₁ x ]))                                 ≡⟨ cong (subst P lemma₂) $
-                                                                                Delay/-elim₁-[] cc R-equiv R-prop P _ _ _ x ⟩
-      subst P lemma₂
-        (subst P (lemma₁ (proj₁ x))
-           (p-[] (_↠_.to →↠Delay-function (proj₁ x))))                     ≡⟨ subst-subst P (lemma₁ (proj₁ x)) lemma₂ _ ⟩
-
-      subst P (trans (lemma₁ (proj₁ x)) lemma₂)
-        (p-[] (_↠_.to →↠Delay-function (proj₁ x)))                         ≡⟨ cong (λ p → subst P p (p-[] (_↠_.to →↠Delay-function (proj₁ x)))) $
-                                                                                trans--[trans-sym]
-                                                                                  (lemma₁ (proj₁ x))
-                                                                                  (cong (map [_]) $ _↠_.right-inverse-of →↠Delay-function x) ⟩
-      subst P (cong (map [_]) $ _↠_.right-inverse-of →↠Delay-function x)
-        (p-[] (_↠_.to →↠Delay-function (proj₁ x)))                         ≡⟨ sym $ subst-∘ P (map [_]) (_↠_.right-inverse-of →↠Delay-function x) ⟩
-
-      subst (P ∘ map [_]) (_↠_.right-inverse-of →↠Delay-function x)
-        (p-[] (_↠_.to →↠Delay-function (proj₁ x)))                         ≡⟨ dependent-cong p-[] (_↠_.right-inverse-of →↠Delay-function x) ⟩∎
-
-      p-[] x                                                               ∎
-      where
-      lemma₁ = sym ∘ →Maybe/→-[]
-
-      lemma₂ =
-        →Maybe/→ [ proj₁ x ]                         ≡⟨ sym $ lemma₁ (proj₁ x) ⟩
-        map [_] (_↠_.to →↠Delay-function (proj₁ x))  ≡⟨ cong (map [_]) $ _↠_.right-inverse-of →↠Delay-function x ⟩∎
-        map [_] x                                    ∎
+    p-[] x                                                               ∎
+    where
+    lemma₃ =
+      →Maybe/→ [ proj₁ x ]                         ≡⟨ sym $ lemma₁ (proj₁ x) ⟩
+      map [_] (_↠_.to →↠Delay-function (proj₁ x))  ≡⟨ cong (map [_]) $ _↠_.right-inverse-of →↠Delay-function x ⟩∎
+      map [_] x                                    ∎
