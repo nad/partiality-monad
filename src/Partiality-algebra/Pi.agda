@@ -58,10 +58,8 @@ now                (Π-with A P) = λ f x → now (P x) (f x)
 ⨆                  (Π-with A P) = λ s x → ⨆ (P x) (at-with P s x)
 antisymmetry       (Π-with A P) = λ p q → ⟨ext⟩ λ x →
                                     antisymmetry (P x) (p x) (q x)
-Type-UIP-unused    (Π-with A P) = _⇔_.to set⇔UIP
-                                    (Π-closure ext 2 λ x →
-                                     _⇔_.from set⇔UIP
-                                       (Type-UIP-unused (P x)))
+Type-is-set-unused (Π-with A P) = Π-closure ext 2 λ x →
+                                    Type-is-set-unused (P x)
 ⊑-refl             (Π-with A P) = λ f x → ⊑-refl (P x) (f x)
 ⊑-trans            (Π-with A P) = λ f g x → ⊑-trans (P x) (f x) (g x)
 never⊑             (Π-with A P) = λ f x → never⊑ (P x) (f x)
@@ -71,10 +69,8 @@ least-upper-bound  (Π-with A P) = λ s ub is-ub x →
                                     least-upper-bound
                                       (P x) (at-with P s x) (ub x)
                                       (λ n → is-ub n x)
-⊑-proof-irrelevant (Π-with A P) = _⇔_.to propositional⇔irrelevant
-                                    (Π-closure ext 1 λ x →
-                                     _⇔_.from propositional⇔irrelevant
-                                       (⊑-proof-irrelevant (P x)))
+⊑-propositional    (Π-with A P) = Π-closure ext 1 λ x →
+                                    ⊑-propositional (P x)
 
 -- A kind of dependent function space from types to partiality algebra
 -- families.

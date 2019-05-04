@@ -52,7 +52,7 @@ LE x y = Quotient.rec
                      })
 
     right-lemma-∥∥ : ∀ {x y z} → ∥ x ≈ y ∥ → LE′ z x ≡ LE′ z y
-    right-lemma-∥∥ = Trunc.rec (is-set _ _) right-lemma
+    right-lemma-∥∥ = Trunc.rec is-set right-lemma
 
   LE″ : Delay A ∞ → A ⊥ → Proposition a
   LE″ x y = Quotient.rec (LE′ x) right-lemma-∥∥ is-set y
@@ -71,12 +71,12 @@ LE x y = Quotient.rec
     left-lemma″ {x} {y} z x≈y = Quotient.elim-Prop
       (λ z → LE″ x z ≡ LE″ y z)
       (λ _ → left-lemma x≈y)
-      (λ _ → Is-set-∃-Is-proposition ext prop-ext _ _)
+      (λ _ → Is-set-∃-Is-proposition ext prop-ext)
       z
 
     left-lemma″-∥∥ : ∀ {x y} z → ∥ x ≈ y ∥ → LE″ x z ≡ LE″ y z
     left-lemma″-∥∥ z = Trunc.rec
-     (is-set _ _)
+     is-set
      (left-lemma″ z)
 
 infix 4 _⊑_
@@ -111,11 +111,11 @@ antisymmetric = Quotient.elim-Prop
           ∥x⊑y∥)
      (λ _ → Π-closure ext 1 λ _ →
             Π-closure ext 1 λ _ →
-            ⊥-is-set _ _))
+            ⊥-is-set))
   (λ _ → Π-closure ext 1 λ _ →
          Π-closure ext 1 λ _ →
          Π-closure ext 1 λ _ →
-         ⊥-is-set _ _)
+         ⊥-is-set)
 
 -- _⊑_ is transitive.
 

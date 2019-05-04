@@ -260,11 +260,11 @@ now⊑→⇓ {x} {y} = ⊥-rec-⊥ (record
   ; po = λ x →
            now y ⊑ now x  ↔⟨ now⊑now≃∥≡∥ ⟩
            ∥ y ≡ x ∥      ↝⟨ ∥∥-map sym ⟩
-           ∥ x ≡ y ∥      ↝⟨ Trunc.rec (⊥-is-set _ _) (cong now) ⟩□
+           ∥ x ≡ y ∥      ↝⟨ Trunc.rec ⊥-is-set (cong now) ⟩□
            now x ≡ now y  □
   ; pl = λ s hyp →
            now y ⊑ ⨆ s                                  ↝⟨ (λ p → p , _≃_.to now⊑⨆≃∥∃now⊑∥ p) ⟩
-           now y ⊑ ⨆ s × ∥ (∃ λ n → now y ⊑ s [ n ]) ∥  ↝⟨ uncurry (λ p → Trunc.rec (⊥-is-set _ _) (uncurry λ n →
+           now y ⊑ ⨆ s × ∥ (∃ λ n → now y ⊑ s [ n ]) ∥  ↝⟨ uncurry (λ p → Trunc.rec ⊥-is-set (uncurry λ n →
 
                now y ⊑ s [ n ]                               ↝⟨ (λ now⊑ _ n≤m → ⊑-trans now⊑ (later-larger s n≤m)) ⟩
                (∀ m → n ≤ m → now y ⊑ s [ m ])               ↝⟨ (∀-cong _ λ _ → ∀-cong _ λ _ → hyp _) ⟩
@@ -276,7 +276,7 @@ now⊑→⇓ {x} {y} = ⊥-rec-⊥ (record
 
            ⨆ s ≡ now y                                  □
   ; pp = λ _ → Π-closure ext 1 λ _ →
-               ⊥-is-set _ _
+               ⊥-is-set
   })
   x
 
@@ -347,7 +347,7 @@ terminating-element-is-⨆ s {n} {x} =
 
 ⇓≃now⊑ : ∀ {x} {y : A} → (x ⇓ y) ≃ (now y ⊑ x)
 ⇓≃now⊑ {x} {y} =
-  _↔_.to (Eq.⇔↔≃ ext (⊥-is-set _ _) ⊑-propositional) (record
+  _↔_.to (Eq.⇔↔≃ ext ⊥-is-set ⊑-propositional) (record
     { to   = x ≡ now y              ↔⟨ inverse equality-characterisation-⊥ ⟩
              x ⊑ now y × x ⊒ now y  ↝⟨ proj₂ ⟩□
              now y ⊑ x              □
@@ -401,7 +401,7 @@ never⇓≃⊥ {x = x} =
               constˢ never ≡ s                       ↝⟨ flip (subst (λ s → ⨆ s ⇑)) ⨆-const ⟩□
               ⨆ s ⇑                                  □
      ; pp = λ _ → Π-closure ext 1 λ _ →
-                  ⊥-is-set _ _
+                  ⊥-is-set
      })
   x
 

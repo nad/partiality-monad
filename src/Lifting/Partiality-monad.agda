@@ -59,7 +59,7 @@ private
              subst (const _) (L.antisymmetry x⊑y y⊑x) p-x  ≡⟨ subst-const (L.antisymmetry x⊑y y⊑x) ⟩
              p-x                                           ≡⟨ I.antisymmetry p-x⊑p-y p-y⊑p-x ⟩∎
              p-y                                           ∎
-    ; pp = _⇔_.to set⇔UIP I.⊥-is-set
+    ; pp = I.⊥-is-set
     ; qr = λ _ → I.⊑-refl
     ; qt = λ _ _ _ _ _ → I.⊑-trans
     ; qe = λ _ → I.never⊑
@@ -69,7 +69,7 @@ private
     ; q⨆ = λ s →
              I.now (proj₁ s 0)                    I.⊑⟨ I.upper-bound _ 0 ⟩■
              I.⨆ ((λ n → I.now (proj₁ s n)) , _)  ■
-    ; qp = λ _ _ _ → I.⊑-proof-irrelevant
+    ; qp = λ _ _ _ → I.⊑-propositional
     }
 
   argsI : ∀ {A} → IE.Arguments-nd a a (Type A)
@@ -109,7 +109,7 @@ private
                  L.⊥-rec argsL (L.⨆ (IE.inc-rec-nd argsI s))    ≡⟨ L.⊥-rec-⨆ _ _ ⟩
                  I.⨆ (L.inc-rec argsL (IE.inc-rec-nd argsI s))  ≡⟨ cong I.⨆ $ _↔_.to I.equality-characterisation-increasing ih ⟩∎
                  I.⨆ s                                          ∎
-        ; pp = λ _ → I.⊥-is-set _ _
+        ; pp = λ _ → I.⊥-is-set
         })
     }
   ; left-inverse-of = L.⊥-rec {Q = λ _ _ _ → ⊤} (record
@@ -125,9 +125,8 @@ private
                  IE.⊥-rec-nd argsI (I.⨆ (L.inc-rec argsL s))    ≡⟨ IE.⊥-rec-nd-⨆ argsI _ ⟩
                  L.⨆ (IE.inc-rec-nd argsI (L.inc-rec argsL s))  ≡⟨ cong L.⨆ $ _↔_.to L.equality-characterisation-increasing (proj₁ ih) ⟩∎
                  L.⨆ s                                          ∎
-      ; pa = λ _ _ _ _ _ _ →
-               _⇔_.to set⇔UIP L.Carrier-is-set _ _
-      ; pp = _⇔_.to set⇔UIP (mono₁ 1 (L.Carrier-is-set _ _))
+      ; pa = λ _ _ _ _ _ _ → L.Carrier-is-set _ _
+      ; pp = mono₁ 1 L.Carrier-is-set
       ; qp = λ _ _ _ _ _ → refl
       })
   }

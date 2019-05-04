@@ -55,11 +55,10 @@ abstract
        ∀ s → P₁.⨆ s ≡ P₂.⨆ (Σ-map id (≡⇒→ (⊑≡⊑ _ _) ∘_) s))              ↝⟨ ∃-cong (λ ⊑≡⊑ → ∃-cong λ _ → ∃-cong λ _ → ∀-cong ext λ s →
                                                                               ≡⇒↝ _ $ cong (λ (p : {f : ℕ → Type} → _) →
                                                                                               P₁.⨆ s ≡ P₂.⨆ (Σ-map id p s)) $
-                                                                                _⇔_.to propositional⇔irrelevant
-                                                                                  (implicit-Π-closure ext 1 λ _ →
-                                                                                   Π-closure          ext 1 λ _ →
-                                                                                   Π-closure          ext 1 λ _ →
-                                                                                   P₂.⊑-propositional)
+                                                                                (implicit-Π-closure ext 1 λ _ →
+                                                                                 Π-closure          ext 1 λ _ →
+                                                                                 Π-closure          ext 1 λ _ →
+                                                                                 P₂.⊑-propositional)
                                                                                   (≡⇒→ (⊑≡⊑ _ _) ∘_)
                                                                                   (λ {f} → ≡⇒→ (cong (λ _⊑_ → ∀ n → f n ⊑ f (suc n))
                                                                                                      (⟨ext⟩ (⟨ext⟩ ∘ ⊑≡⊑))))) ⟩
@@ -247,8 +246,8 @@ abstract
                                                                                             implicit-Π-closure ext 1 λ _ →
                                                                                             Π-closure ext 1 λ _ →
                                                                                             Π-closure ext 1 λ _ →
-                                                                                            P₂.Type-is-set _ _) $
-                                                                               ×-closure 1 (UIP-propositional ext) $
+                                                                                            P₂.Type-is-set) $
+                                                                               ×-closure 1 (H-level-propositional ext 2) $
                                                                                ×-closure 1 (Π-closure ext 1 λ _ →
                                                                                             P₂.⊑-propositional) $
                                                                                ×-closure 1 (implicit-Π-closure ext 1 λ _ →
@@ -268,7 +267,7 @@ abstract
                                                                                             P₂.⊑-propositional)
                                                                                            (implicit-Π-closure ext 1 λ _ →
                                                                                             implicit-Π-closure ext 1 λ _ →
-                                                                                            Proof-irrelevant-propositional ext)) ⟩
+                                                                                            Is-proposition-propositional ext)) ⟩
     _↔_.to rearrange P₁ ≡ _↔_.to rearrange P₂                            ↔⟨ Eq.≃-≡ (Eq.↔⇒≃ rearrange) ⟩□
 
     P₁ ≡ P₂                                                              □
@@ -294,7 +293,7 @@ abstract
         in
         (∀ {x y} → x ⊑ y → y ⊑ x → x ≡ y)
           ×
-        Uniqueness-of-identity-proofs Type
+        Is-set Type
           ×
         (∀ x → x ⊑ x)
           ×
@@ -306,7 +305,7 @@ abstract
           ×
         (∀ s ub → (∀ n → proj₁ s n ⊑ ub) → ⨆ s ⊑ ub)
           ×
-        (∀ {x y} → Proof-irrelevant (x ⊑ y))
+        (∀ {x y} → Is-proposition (x ⊑ y))
     rearrange = record
       { surjection = record
         { logical-equivalence = record
@@ -317,13 +316,13 @@ abstract
                     , ⨆
                     )
                   , antisymmetry
-                  , Type-UIP-unused
+                  , Type-is-set-unused
                   , ⊑-refl
                   , ⊑-trans
                   , never⊑
                   , upper-bound
                   , least-upper-bound
-                  , ⊑-proof-irrelevant
+                  , ⊑-propositional
           ; from = λ where
               ((LE , ne , n , l) , a , u , r , t , le , ub , lub , p) →
                 record
@@ -332,13 +331,13 @@ abstract
                   ; now                = n
                   ; ⨆                  = l
                   ; antisymmetry       = a
-                  ; Type-UIP-unused    = u
+                  ; Type-is-set-unused = u
                   ; ⊑-refl             = r
                   ; ⊑-trans            = t
                   ; never⊑             = le
                   ; upper-bound        = ub
                   ; least-upper-bound  = lub
-                  ; ⊑-proof-irrelevant = p
+                  ; ⊑-propositional    = p
                   }
           }
         ; right-inverse-of = λ _ → refl

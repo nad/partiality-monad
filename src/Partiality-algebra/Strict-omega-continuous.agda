@@ -77,8 +77,7 @@ equality-characterisation-strict :
   (∀ x → function f x ≡ function g x) ↔ f ≡ g
 equality-characterisation-strict {P₁ = P₁} {P₂ = P₂} {f} {g} =
   (∀ x → function f x ≡ function g x)                ↝⟨ equality-characterisation-continuous ⟩
-  ω-continuous-function f ≡ ω-continuous-function g  ↝⟨ ignore-propositional-component
-                                                          (P₂.Type-is-set _ _) ⟩
+  ω-continuous-function f ≡ ω-continuous-function g  ↝⟨ ignore-propositional-component P₂.Type-is-set ⟩
   _↔_.to rearrange f ≡ _↔_.to rearrange g            ↔⟨ Eq.≃-≡ (Eq.↔⇒≃ rearrange) ⟩□
   f ≡ g                                              □
   where

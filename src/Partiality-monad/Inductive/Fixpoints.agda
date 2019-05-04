@@ -441,7 +441,7 @@ equality-characterisation-Partial {f = f} {g} =
                                                       Π-closure          ext 1 λ _ →
                                                       ⊑-propositional) λ _ →
                                                      Π-closure ext 1 λ _ →
-                                                     ⊥-is-set _ _) ⟩
+                                                     ⊥-is-set) ⟩
   (function f , _) ≡ (function g , _)        ↔⟨ Eq.≃-≡ (Eq.↔⇒≃ lemma) ⟩□
   f ≡ g                                      □
   where

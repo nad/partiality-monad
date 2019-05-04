@@ -52,7 +52,7 @@ mutual
       -- field is in turn also mostly unused, see its documentation
       -- for details), and it is mentioned in the implementation of
       -- eliminators (also below).
-      UIP-unused : P.Uniqueness-of-identity-proofs (A ⊥)
+      ⊥-is-set-unused : P.Is-set (A ⊥)
 
   -- Increasing sequences.
 
@@ -82,12 +82,12 @@ mutual
     -- An ordering relation.
 
     data _⊑_ {A : Set a} : A ⊥ → A ⊥ → Set a where
-      ⊑-refl             : ∀ x → x ⊑ x
-      ⊑-trans            : x ⊑ y → y ⊑ z → x ⊑ z
-      never⊑             : ∀ x → never ⊑ x
-      upper-bound        : ∀ s → Is-upper-bound s (⨆ s)
-      least-upper-bound  : ∀ s ub → Is-upper-bound s ub → ⨆ s ⊑ ub
-      ⊑-proof-irrelevant : P.Proof-irrelevant (x ⊑ y)
+      ⊑-refl            : ∀ x → x ⊑ x
+      ⊑-trans           : x ⊑ y → y ⊑ z → x ⊑ z
+      never⊑            : ∀ x → never ⊑ x
+      upper-bound       : ∀ s → Is-upper-bound s (⨆ s)
+      least-upper-bound : ∀ s ub → Is-upper-bound s ub → ⨆ s ⊑ ub
+      ⊑-propositional   : P.Is-proposition (x ⊑ y)
 
 -- A partiality algebra for the partiality monad.
 
@@ -100,13 +100,13 @@ partiality-algebra A = record
     ; now                = now′
     ; ⨆                  = ⨆′
     ; antisymmetry       = antisymmetry′
-    ; Type-UIP-unused    = Type-UIP-unused′
+    ; Type-is-set-unused = Type-is-set-unused′
     ; ⊑-refl             = ⊑-refl′
     ; ⊑-trans            = ⊑-trans′
     ; never⊑             = never⊑′
     ; upper-bound        = upper-bound′
     ; least-upper-bound  = least-upper-bound′
-    ; ⊑-proof-irrelevant = ⊑-proof-irrelevant′
+    ; ⊑-propositional    = ⊑-propositional′
     }
   }
   where
@@ -125,11 +125,11 @@ partiality-algebra A = record
     antisymmetry′ : x ⊑ y → y ⊑ x → x ≡ y
     antisymmetry′ = λ p q → _↔_.from ≡↔≡ (antisymmetry p q)
 
-    Type-UIP-unused′ : Uniqueness-of-identity-proofs (A ⊥)
-    Type-UIP-unused′ =                       $⟨ (λ {x y} → UIP-unused {x = x} {y = y}) ⟩
-      P.Uniqueness-of-identity-proofs (A ⊥)  ↔⟨ inverse set↔UIP ⟩
-      Is-set (A ⊥)                           ↝⟨ _⇔_.to set⇔UIP ⟩
-      Uniqueness-of-identity-proofs (A ⊥)    □
+    Type-is-set-unused′ : Is-set (A ⊥)
+    Type-is-set-unused′ =
+                      $⟨ (λ {x y} → ⊥-is-set-unused {x = x} {y = y}) ⟩
+      P.Is-set (A ⊥)  ↝⟨ _↔_.from (H-level↔H-level 2) ⟩□
+      Is-set (A ⊥)    □
 
     ⊑-refl′ : ∀ x → x ⊑ x
     ⊑-refl′ = ⊑-refl
@@ -146,12 +146,11 @@ partiality-algebra A = record
     least-upper-bound′ : ∀ s ub → Is-upper-bound s ub → ⨆′ s ⊑ ub
     least-upper-bound′ = least-upper-bound
 
-    ⊑-proof-irrelevant′ : Proof-irrelevant (x ⊑ y)
-    ⊑-proof-irrelevant′ {x = x} {y = y} =
-                                  $⟨ ⊑-proof-irrelevant ⟩
-      P.Proof-irrelevant (x ⊑ y)  ↔⟨ inverse propositional↔irrelevant ⟩
-      Is-proposition (x ⊑ y)      ↝⟨ _⇔_.to propositional⇔irrelevant ⟩□
-      Proof-irrelevant (x ⊑ y)    □
+    ⊑-propositional′ : Is-proposition (x ⊑ y)
+    ⊑-propositional′ {x = x} {y = y} =
+                                $⟨ ⊑-propositional ⟩
+      P.Is-proposition (x ⊑ y)  ↝⟨ _↔_.from (H-level↔H-level 1) ⟩□
+      Is-proposition (x ⊑ y)    □
 
 abstract
 
@@ -175,45 +174,43 @@ abstract
                         , (λ n → ⊑-rec (inc n))
 
       ⊥-rec : (x : A ⊥) → A.P x
-      ⊥-rec never                                = A.pe
-      ⊥-rec (now x)                              = A.po x
-      ⊥-rec (⨆ s)                                = A.pl s (inc-rec s)
-      ⊥-rec (antisymmetry {x = x} {y = y} p q i) = subst≡→[]≡
-                                                     (A.pa p q
-                                                        (⊥-rec x) (⊥-rec y)
-                                                        (⊑-rec p) (⊑-rec q))
-                                                     i
-      ⊥-rec (UIP-unused {x = x} {y = y} p q i j) = lemma i j
+      ⊥-rec never                                     = A.pe
+      ⊥-rec (now x)                                   = A.po x
+      ⊥-rec (⨆ s)                                     = A.pl s (inc-rec s)
+      ⊥-rec (antisymmetry {x = x} {y = y} p q i)      = subst≡→[]≡
+                                                          (A.pa p q
+                                                             (⊥-rec x) (⊥-rec y)
+                                                             (⊑-rec p) (⊑-rec q))
+                                                          i
+      ⊥-rec (⊥-is-set-unused {x = x} {y = y} p q i j) = lemma i j
         where
         lemma :
-          P.[ (λ i → P.[ (λ j → A.P (UIP-unused p q i j)) ]
+          P.[ (λ i → P.[ (λ j → A.P (⊥-is-set-unused p q i j)) ]
                        ⊥-rec x ≡ ⊥-rec y) ]
             (λ i → ⊥-rec (p i)) ≡ (λ i → ⊥-rec (q i))
         lemma = P.heterogeneous-UIP
-                  (λ x → _↔_.to (H-level↔H-level _)
-                           (_⇔_.from set⇔UIP (A.pp {x = x})))
-                  (UIP-unused p q)
+                  (λ x → _↔_.to (H-level↔H-level 2) (A.pp {x = x}))
+                  (⊥-is-set-unused p q)
 
       ⊑-rec : (x⊑y : x ⊑ y) → A.Q (⊥-rec x) (⊥-rec y) x⊑y
-      ⊑-rec (⊑-refl x)                                 = A.qr x (⊥-rec x)
-      ⊑-rec (⊑-trans {x = x} {y = y} {z = z} p q)      = A.qt p q
-                                                           (⊥-rec x) (⊥-rec y) (⊥-rec z)
-                                                           (⊑-rec p) (⊑-rec q)
-      ⊑-rec (never⊑ x)                                 = A.qe x (⊥-rec x)
-      ⊑-rec (upper-bound s n)                          = A.qu s (inc-rec s) n
-      ⊑-rec (least-upper-bound s ub is-ub)             = A.ql s ub is-ub
-                                                           (inc-rec s) (⊥-rec ub)
-                                                           (λ n → ⊑-rec (is-ub n))
-      ⊑-rec (⊑-proof-irrelevant {x = x} {y = y} p q i) = lemma i
+      ⊑-rec (⊑-refl x)                              = A.qr x (⊥-rec x)
+      ⊑-rec (⊑-trans {x = x} {y = y} {z = z} p q)   = A.qt p q
+                                                        (⊥-rec x) (⊥-rec y) (⊥-rec z)
+                                                        (⊑-rec p) (⊑-rec q)
+      ⊑-rec (never⊑ x)                              = A.qe x (⊥-rec x)
+      ⊑-rec (upper-bound s n)                       = A.qu s (inc-rec s) n
+      ⊑-rec (least-upper-bound s ub is-ub)          = A.ql s ub is-ub
+                                                        (inc-rec s) (⊥-rec ub)
+                                                        (λ n → ⊑-rec (is-ub n))
+      ⊑-rec (⊑-propositional {x = x} {y = y} p q i) = lemma i
         where
         lemma : P.[ (λ i → A.Q (⊥-rec x) (⊥-rec y)
-                             (⊑-proof-irrelevant p q i)) ]
+                             (⊑-propositional p q i)) ]
                   ⊑-rec p ≡ ⊑-rec q
         lemma =
           P.heterogeneous-irrelevance
-            (λ p → _↔_.to (H-level↔H-level _)
-                     (_⇔_.from propositional⇔irrelevant
-                        (A.qp (⊥-rec x) (⊥-rec y) p)))
+            (λ p → _↔_.to (H-level↔H-level 1)
+                     (A.qp (⊥-rec x) (⊥-rec y) p))
 
 module _ {A : Set a} where
 

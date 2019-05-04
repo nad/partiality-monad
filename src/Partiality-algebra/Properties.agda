@@ -197,7 +197,7 @@ x ≼ y = ∀ z → x ⇓ z → y ⇓ z
 ≼-propositional =
   Π-closure ext 1 λ _ →
   Π-closure ext 1 λ _ →
-  Type-is-set _ _
+  Type-is-set
 
 -- _≼_ is transitive.
 

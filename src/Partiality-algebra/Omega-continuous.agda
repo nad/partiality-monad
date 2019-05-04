@@ -77,7 +77,7 @@ equality-characterisation-continuous {P₁ = P₁} {P₂ = P₂} {f} {g} =
   (∀ x → function f x ≡ function g x)        ↝⟨ equality-characterisation-monotone ⟩
   monotone-function f ≡ monotone-function g  ↝⟨ ignore-propositional-component
                                                   (Π-closure ext 1 λ _ →
-                                                   P₂.Type-is-set _ _) ⟩
+                                                   P₂.Type-is-set) ⟩
   _↔_.to rearrange f ≡ _↔_.to rearrange g    ↔⟨ Eq.≃-≡ (Eq.↔⇒≃ rearrange) ⟩□
   f ≡ g                                      □
   where

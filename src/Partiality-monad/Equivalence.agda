@@ -134,7 +134,7 @@ Delay→⊥-≈→≡ A-set x y =
     where
     y′≡y =            $⟨ f⇓y ⟩
       now y′ ≡ now y  ↔⟨ now≡now≃∥≡∥ ⟩
-      ∥ y′ ≡ y ∥      ↝⟨ ∥∥↔ (A-set _ _) ⟩□
+      ∥ y′ ≡ y ∥      ↝⟨ ∥∥↔ A-set ⟩□
       y′ ≡ y          □
 
 ------------------------------------------------------------------------
@@ -176,10 +176,10 @@ Delay→⊥-injective A-set x y x≡y =
        (λ y → []-respects-relation ∘
               Delay→⊥-injective A-set x y)
        (λ _ → Π-closure ext 1 λ _ →
-              /-is-set _ _)
+              /-is-set)
        y)
     (λ _ → Π-closure ext 1 λ _ →
-           /-is-set _ _)
+           /-is-set)
     x
 
 ------------------------------------------------------------------------
@@ -241,7 +241,7 @@ Delay→⊥-surjective A-set cc =
     termination-value-unique-f₂ {m} {n} {y} {m′} {n′} {y′} =
       f₂ m n ↓ y × f₂ m′ n′ ↓ y′  ↝⟨ f₂↓→⨆s⇓ ×-cong f₂↓→⨆s⇓ ⟩
       ⨆ s I.⇓ y × ⨆ s I.⇓ y′      ↝⟨ uncurry termination-value-merely-unique ⟩
-      ∥ y ≡ y′ ∥                  ↔⟨ ∥∥↔ (A-set _ _) ⟩□
+      ∥ y ≡ y′ ∥                  ↔⟨ ∥∥↔ A-set ⟩□
       y ≡ y′                      □
       where
       f₂↓→⨆s⇓ : ∀ {y m n} → f₂ m n ↓ y → ⨆ s I.⇓ y
@@ -411,5 +411,5 @@ Delay→⊥′-≈→≡ A-set {x} {y} =
 ⊥→⊥′ : Is-set A → A C.⊥ → A I.⊥
 ⊥→⊥′ A-set = Quotient.rec
   Delay→⊥′
-  (Trunc.rec (I.⊥-is-set _ _) (Delay→⊥′-≈→≡ A-set))
+  (Trunc.rec I.⊥-is-set (Delay→⊥′-≈→≡ A-set))
   I.⊥-is-set

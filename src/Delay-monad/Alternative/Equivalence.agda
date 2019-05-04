@@ -225,11 +225,9 @@ Delay↠Delay = record
       ↓-lemma g g-inc n y g0↓y _ refl
 
     proj₂∘from∘to g g-inc zero nothing g0↑ =
-      _⇔_.to propositional⇔irrelevant
-        (                                   $⟨ mono₁ 0 LE-nothing-contractible ⟩
-         Is-proposition (LE nothing (g 1))  ↝⟨ subst (λ x → Is-proposition (LE x (g 1))) (sym g0↑) ⟩□
-         Is-proposition (LE (g 0) (g 1))    □)
-        _ _
+      (                                   $⟨ mono₁ 0 LE-nothing-contractible ⟩
+       Is-proposition (LE nothing (g 1))  ↝⟨ subst (λ x → Is-proposition (LE x (g 1))) (sym g0↑) ⟩□
+       Is-proposition (LE (g 0) (g 1))    □) _ _
 
     proj₂∘from∘to g g-inc (suc n) nothing g0↑ =
 

@@ -54,17 +54,14 @@ _⇓′_ : Delay A → A → Set _
 
 ⇓′-propositional :
   Is-set A → ∀ x {y : A} → Is-proposition (x ⇓′ y)
-⇓′-propositional A-set x@(f , _) {y} =
-  _⇔_.from propositional⇔irrelevant λ p q →
-
-                       $⟨ number-unique p q ⟩
-    proj₁ p ≡ proj₁ q  ↝⟨ ignore-propositional-component
-                            (×-closure 1 (Maybe-closure 0 A-set _ _)
-                                         (Π-closure ext 1 λ _ →
-                                          Π-closure ext 1 λ _ →
-                                          ≤-propositional)) ⟩□
-    p ≡ q              □
-
+⇓′-propositional A-set x@(f , _) {y} p q =
+                     $⟨ number-unique p q ⟩
+  proj₁ p ≡ proj₁ q  ↝⟨ ignore-propositional-component
+                          (×-closure 1 (Maybe-closure 0 A-set)
+                                       (Π-closure ext 1 λ _ →
+                                        Π-closure ext 1 λ _ →
+                                        ≤-propositional)) ⟩□
+  p ≡ q              □
   where
   number-unique : (p q : x ⇓′ y) → proj₁ p ≡ proj₁ q
   number-unique (pm , f-pm↓y , pm≤) (qm , f-qm↓y , qm≤) =

@@ -377,8 +377,7 @@ module _
                                                                                  (lemma₁ g)
                                                                                  p ⟩
       subst P (lemma₁ g) (subst P r″ p)                               ≡⟨ cong (λ eq → subst P (lemma₁ g) (subst P eq p)) $
-                                                                           _⇔_.to propositional⇔irrelevant
-                                                                             (Delay-closure 0 /-is-set _ _)
+                                                                           Delay-closure 0 /-is-set
                                                                              r″
                                                                              (map-[]-cong (_↠_.to →↠Delay-function f)
                                                                                           (_↠_.to →↠Delay-function g)

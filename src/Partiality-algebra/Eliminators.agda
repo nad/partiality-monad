@@ -59,7 +59,7 @@ record Arguments {a p′ q′} {A : Set a} p q
          (p-x : P x) (p-y : P y)
          (q-x⊑y : Q p-x p-y x⊑y) (q-x⊒y : Q p-y p-x x⊒y) →
          subst P (antisymmetry x⊑y x⊒y) p-x ≡ p-y
-    pp : ∀ {x} → Uniqueness-of-identity-proofs (P x)
+    pp : ∀ {x} → Is-set (P x)
     qr : ∀ x (p : P x) → Q p p (⊑-refl x)
     qt : ∀ {x y z} (x⊑y : x ⊑ y) (y⊑z : y ⊑ z) →
          (px : P x) (py : P y) (pz : P z) →
@@ -71,7 +71,7 @@ record Arguments {a p′ q′} {A : Set a} p q
          (qu : ∀ n → Q (proj₁ pq n) pu (is-ub n)) →
          Q (pl s pq) pu (least-upper-bound s ub is-ub)
     qp : ∀ {x y} (p-x : P x) (p-y : P y) (x⊑y : x ⊑ y) →
-         Proof-irrelevant (Q p-x p-y x⊑y)
+         Is-proposition (Q p-x p-y x⊑y)
 
 -- A specification of a given partiality algebra's eliminators.
 
@@ -142,9 +142,7 @@ lower-initiality {p₁ = p₁} {q₁} p₂ q₂ {A} P initial P′ =
       ; antisymmetry       = λ x⊑y y⊑x →
                                cong lift (antisymmetry (lower x⊑y)
                                                        (lower y⊑x))
-      ; Type-UIP-unused    = λ _ _ →
-                               _⇔_.to set⇔UIP
-                                 (↑-closure 2 Type-is-set) _ _
+      ; Type-is-set-unused = λ _ _ → ↑-closure 2 Type-is-set _ _
       ; ⊑-refl             = lift ∘ ⊑-refl ∘ lower
       ; ⊑-trans            = λ x⊑y y⊑z →
                                lift (⊑-trans (lower x⊑y)
@@ -155,8 +153,7 @@ lower-initiality {p₁ = p₁} {q₁} p₂ q₂ {A} P initial P′ =
                                lift ∘
                                least-upper-bound _ _ ∘
                                (lower ∘_)
-      ; ⊑-proof-irrelevant = _⇔_.to propositional⇔irrelevant
-                               (↑-closure 1 ⊑-propositional)
+      ; ⊑-propositional    = ↑-closure 1 ⊑-propositional
       }
     }
 
@@ -219,17 +216,13 @@ eliminators→initiality {p = p} {q} P elims P′ = morphism , unique
              subst (const P′.Type) eq u  ≡⟨ subst-const eq ⟩
              u                           ≡⟨ P′.antisymmetry u⊑v v⊑u ⟩∎
              v                           ∎
-    ; pp = _⇔_.to set⇔UIP P′.Type-is-set
+    ; pp = P′.Type-is-set
     ; qr = λ _ → P′.⊑-refl
     ; qt = λ _ _ _ _ _ → P′.⊑-trans
     ; qe = λ _ → P′.never⊑
     ; qu = λ _ → P′.upper-bound
     ; ql = λ _ _ _ → P′.least-upper-bound
-    ; qp = λ _ _ _ → _⇔_.to propositional⇔irrelevant P′.⊑-propositional
-           -- If the expression above is replaced by
-           -- P′.⊑-proof-irrelevant, then
-           -- Partiality-monad.Inductive.Monad.Adjunction.join-correct
-           -- no longer type-checks.
+    ; qp = λ _ _ _ → P′.⊑-propositional
     }
 
   module E = Eliminators (elims args)
@@ -261,8 +254,8 @@ eliminators→initiality {p = p} {q} P elims P′ = morphism , unique
              P′.⨆ (sequence-function f s)  ≡⟨ cong P′.⨆ $ _↔_.to P′.equality-characterisation-increasing (proj₁ hyp) ⟩
              P′.⨆ (E.inc-rec s)            ≡⟨ sym $ E.⊥-rec-⨆ s ⟩
              E.⊥-rec (P.⨆ s)               ∎
-    ; pa = λ _ _ _ _ _ _ → _⇔_.to set⇔UIP P′.Type-is-set _ _
-    ; pp = λ _ _ → _⇔_.to set⇔UIP (mono₁ 1 (P′.Type-is-set _ _)) _ _
+    ; pa = λ _ _ _ _ _ _ → P′.Type-is-set _ _
+    ; pp = λ _ _ → mono₁ 1 P′.Type-is-set _ _
     ; qp = λ _ _ _ _ _ → refl
     }))
 
@@ -311,11 +304,7 @@ initiality→eliminators {p = p} {q} {p′} {q′} {A} {PA} initial args =
                                      (antisymmetry x⊑y y⊑x)
                                      (pa x⊑y y⊑x p q Qx⊑y Qy⊑x)
                                  }
-        ; Type-UIP-unused    = _⇔_.to propositional⇔irrelevant
-                                 (Σ-closure 2
-                                    Type-is-set
-                                    (λ _ → _⇔_.from set⇔UIP pp)
-                                    _ _)
+        ; Type-is-set-unused = Σ-closure 2 Type-is-set (λ _ → pp)
         ; ⊑-refl             = λ _ → _ , qr _ _
         ; ⊑-trans            = Σ-zip ⊑-trans (qt _ _ _ _ _)
         ; never⊑             = λ _ → _ , qe _ _
@@ -323,10 +312,7 @@ initiality→eliminators {p = p} {q} {p′} {q′} {A} {PA} initial args =
         ; least-upper-bound  = λ _ _ ⊑qs →
                                    least-upper-bound _ _ (proj₁ ∘ ⊑qs)
                                  , ql _ _ _ _ _ (proj₂ ∘ ⊑qs)
-        ; ⊑-proof-irrelevant = _⇔_.to propositional⇔irrelevant
-                                 (Σ-closure 1 ⊑-propositional λ _ →
-                                    _⇔_.from propositional⇔irrelevant
-                                      (qp _ _ _))
+        ; ⊑-propositional    = Σ-closure 1 ⊑-propositional λ _ → qp _ _ _
         }
       }
 
@@ -438,9 +424,7 @@ initiality→eliminators {p = p} {q} {p′} {q′} {A} {PA} initial args =
                                                                                      (cong₂ _,_
                                                                                         (subst-∘ P proj₂ (cong₂ _,_ (lemma x) (lemma y))
                                                                                                  {p = proj₂ (function y)})
-                                                                                        (_⇔_.to propositional⇔irrelevant
-                                                                                           ⊑-propositional
-                                                                                           _ _)) ⟩
+                                                                                        (⊑-propositional _ _)) ⟩
         ( subst P (lemma x) (proj₂ (function x))
         , subst P (cong proj₂ $ cong₂ _,_ (lemma x) (lemma y))
                 (proj₂ (function y))
@@ -474,10 +458,8 @@ initiality→eliminators {p = p} {q} {p′} {q′} {A} {PA} initial args =
       elim (λ {x y} _ → (p : proj₁ x ≡ proj₁ y) →
                         subst B p (proj₂ x) ≡ proj₂ y)
            (λ { (_ , x₂) p →
-                subst B p x₂     ≡⟨ cong (λ p → subst B p _) $
-                                      _⇔_.to set⇔UIP A-set p refl ⟩
+                subst B p x₂     ≡⟨ cong (λ p → subst B p _) $ A-set p refl ⟩
                 subst B refl x₂  ≡⟨⟩
-
                 x₂               ∎
               })
 

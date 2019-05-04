@@ -66,13 +66,13 @@ convert P f = record
     ; now                = f
     ; ⨆                  = ⨆
     ; antisymmetry       = antisymmetry
-    ; Type-UIP-unused    = Type-UIP-unused
+    ; Type-is-set-unused = Type-is-set-unused
     ; ⊑-refl             = ⊑-refl
     ; ⊑-trans            = ⊑-trans
     ; never⊑             = never⊑
     ; upper-bound        = upper-bound
     ; least-upper-bound  = least-upper-bound
-    ; ⊑-proof-irrelevant = ⊑-proof-irrelevant
+    ; ⊑-propositional    = ⊑-propositional
     }
   }
   where
@@ -230,7 +230,7 @@ Partial⊣Forget {ℓ} =
                   fun P (PI.⨆ _)                               ≡⟨ ω-continuous (m P) _ ⟩
                   PI.⨆ _                                       ≡⟨ cong PI.⨆ $ _↔_.to PI.equality-characterisation-increasing hyp ⟩∎
                   PI.⨆ s                                       ∎
-         ; pp = λ _ → PI.⊥-is-set _ _
+         ; pp = λ _ → PI.⊥-is-set
          })
   , (λ {X} → ⟨ext⟩ λ x →
        fun X (PI.now x)  ≡⟨ fun-now X ⟩∎
@@ -290,7 +290,7 @@ Partial⊣Forget {ℓ} =
                     ⨆ Y _                         ≡⟨ sym $ ω-continuous (m Y) _ ⟩
                     fun Y (PI.⨆ _)                ≡⟨ cong (fun Y) $ sym $ ω-continuous m′ _ ⟩∎
                     fun Y (function m′ (PI.⨆ s))  ∎
-           ; pp = λ _ → Type-is-set Y _ _
+           ; pp = λ _ → Type-is-set Y
            })
 
 -- Thus we get that the partiality monad is a monad.

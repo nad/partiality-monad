@@ -72,25 +72,19 @@ record Partiality-algebra-with
     -- development (except when partiality algebras are modified, see
     -- for instance equality-characterisation-Partiality-algebra-with₁
     -- or Partiality-algebra.Pi.Π-with).
-    Type-UIP-unused : Uniqueness-of-identity-proofs Type
+    Type-is-set-unused : Is-set Type
 
     -- _⊑_ "constructors".
 
-    ⊑-refl             : ∀ x → x ⊑ x
-    ⊑-trans            : ∀ {x y z} → x ⊑ y → y ⊑ z → x ⊑ z
-    never⊑             : ∀ x → never ⊑ x
-    upper-bound        : ∀ s → Is-upper-bound s (⨆ s)
-    least-upper-bound  : ∀ s ub → Is-upper-bound s ub → ⨆ s ⊑ ub
-    ⊑-proof-irrelevant : ∀ {x y} → Proof-irrelevant (x ⊑ y)
+    ⊑-refl            : ∀ x → x ⊑ x
+    ⊑-trans           : ∀ {x y z} → x ⊑ y → y ⊑ z → x ⊑ z
+    never⊑            : ∀ x → never ⊑ x
+    upper-bound       : ∀ s → Is-upper-bound s (⨆ s)
+    least-upper-bound : ∀ s ub → Is-upper-bound s ub → ⨆ s ⊑ ub
+    ⊑-propositional   : ∀ {x y} → Is-proposition (x ⊑ y)
 
   ----------------------------------------------------------------------
   -- Some simple consequences
-
-  -- _⊑_ is propositional.
-
-  ⊑-propositional : ∀ {x y} → Is-proposition (x ⊑ y)
-  ⊑-propositional =
-    _⇔_.from propositional⇔irrelevant ⊑-proof-irrelevant
 
   private
 
@@ -298,11 +292,11 @@ abstract
                  implicit-Π-closure ext 1 λ _ →
                  Π-closure ext 1 λ _ →
                  P₂.⊑-propositional) λ _ →
-    ×-closure 1 (P₂.Type-is-set _ _) $
+    ×-closure 1 P₂.Type-is-set $
     ×-closure 1 (Π-closure ext 1 λ _ →
-                 P₂.Type-is-set _ _) $
+                 P₂.Type-is-set) $
     Π-closure ext 1 λ _ →
-    P₂.Type-is-set _ _
+    P₂.Type-is-set
     where
     module P₂ = Partiality-algebra-with P₂
 
@@ -348,10 +342,10 @@ abstract
        {P₁ : Partiality-algebra p₁ q₁ A}
        {P₂ : Partiality-algebra p₂ q₂ A} →
     Is-set (Morphism P₁ P₂)
-  Morphism-set {P₂ = P₂} _ _ =
+  Morphism-set {P₂ = P₂} =
     H-level.respects-surjection
       (_↔_.surjection equality-characterisation-Morphism)
       1
-      ((Π-closure ext 2 λ _ → Type-is-set P₂) _ _)
+      (Π-closure ext 2 λ _ → Type-is-set P₂)
     where
     open Partiality-algebra

@@ -88,7 +88,7 @@ equality-characterisation-strict =
 
               ⨆ [ f⊑ $ s ]-inc          ≡⟨ sym $ ω-continuous fs s ⟩∎
               f (⨆ s)                   ∎
-     ; pp = λ _ → ⊥-is-set _ _
+     ; pp = λ _ → ⊥-is-set
      })
   where
   f⊑ = monotone-function fs

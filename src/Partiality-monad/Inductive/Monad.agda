@@ -156,7 +156,7 @@ module Monad-laws where
                   s [ n ]                ∎) ⟩∎
 
                 ⨆ s                 ∎
-       ; pp = λ _ → ⊥-is-set _ _
+       ; pp = λ _ → ⊥-is-set
        })
 
   associativity : ∀ {a b c} {A : Set a} {B : Set b} {C : Set c} →
@@ -182,7 +182,7 @@ module Monad-laws where
                 ⨆ (g ∗-inc (f ∗-inc s))            ≡⟨ sym ⨆->>= ⟩
                 ⨆ (f ∗-inc s) >>=′ g               ≡⟨ cong (_>>=′ g) (sym ⨆->>=) ⟩∎
                 ⨆ s >>=′ f >>=′ g                  ∎
-       ; pp = λ _ → ⊥-is-set _ _
+       ; pp = λ _ → ⊥-is-set
        })
     x
 
@@ -252,7 +252,7 @@ map-∘ f g =
             ∥ ∃ (λ z → never ⇓ z × f z ⇓ y) ∥  □
      ; po = λ x →
               now x >>=′ f ⇓ y                                   ↝⟨ ≡⇒↝ _ (cong (_⇓ y) now->>=) ⟩
-              f x ⇓ y                                            ↔⟨ inverse (∥∥↔ (⊥-is-set _ _)) ⟩
+              f x ⇓ y                                            ↔⟨ inverse (∥∥↔ ⊥-is-set) ⟩
               ∥ f x ⇓ y ∥                                        ↔⟨ ∥∥-cong (inverse $ drop-⊤-left-Σ $
                                                                       _⇔_.to contractible⇔↔⊤ (other-singleton-contractible _)) ⟩
               ∥ ∃ (λ (p : ∃ (λ z → x ≡ z)) → f (proj₁ p) ⇓ y) ∥  ↔⟨ ∥∥-cong (inverse Σ-assoc) ⟩

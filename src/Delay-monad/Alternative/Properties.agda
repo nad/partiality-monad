@@ -35,7 +35,7 @@ module _ {a} {A : Set a} where
 
   ↑-propositional : (x : Maybe A) → Is-proposition (x ↑)
   ↑-propositional nothing =
-                                        $⟨ mono (N.zero≤ 2) ⊤-contractible _ _ ⟩
+                                        $⟨ mono (N.zero≤ 2) ⊤-contractible ⟩
     Is-proposition (tt ≡ tt)            ↝⟨ H-level.respects-surjection (_↔_.surjection Bijection.≡↔inj₁≡inj₁) 1 ⟩□
     Is-proposition (nothing ≡ nothing)  □
 
@@ -51,40 +51,37 @@ module _ {a} {A : Set a} where
     {x : Maybe A} → Contractible (LE nothing x)
   LE-nothing-contractible {x = x} =
     propositional⇒inhabited⇒contractible
-      (_⇔_.from propositional⇔irrelevant λ
-         { (inj₁ x↑)        (inj₂ (_ , ¬x↑)) → ⊥-elim (¬x↑ (sym x↑))
-         ; (inj₂ (_ , ¬x↑)) (inj₁ x↑)        → ⊥-elim (¬x↑ (sym x↑))
+      (λ where
+         (inj₁ x↑)        (inj₂ (_ , ¬x↑)) → ⊥-elim (¬x↑ (sym x↑))
+         (inj₂ (_ , ¬x↑)) (inj₁ x↑)        → ⊥-elim (¬x↑ (sym x↑))
 
-         ; (inj₁ p)         (inj₁ q)         →
+         (inj₁ p)         (inj₁ q)         →
                                  $⟨ ↑-propositional _ ⟩
-           Is-proposition (x ↑)  ↝⟨ (λ hyp → _⇔_.to propositional⇔irrelevant hyp _ _) ⦂ (_ → _) ⟩
+           Is-proposition (x ↑)  ↝⟨ (λ hyp → hyp _ _) ⦂ (_ → _) ⟩
            sym p ≡ sym q         ↔⟨ Eq.≃-≡ $ from-bijection $ Groupoid.⁻¹-bijection (EG.groupoid _) ⟩
            p ≡ q                 ↔⟨ Bijection.≡↔inj₁≡inj₁ ⟩□
            inj₁ p ≡ inj₁ q       □
 
-         ; (inj₂ p) (inj₂ q) →
+         (inj₂ p) (inj₂ q) →
                                                $⟨ ×-closure 1 (↑-propositional _) (¬-propositional ext) ⟩
-           Is-proposition (nothing ↑ × ¬ x ↑)  ↝⟨ (λ hyp → _⇔_.to propositional⇔irrelevant hyp _ _) ⦂ (_ → _) ⟩
+           Is-proposition (nothing ↑ × ¬ x ↑)  ↝⟨ (λ hyp → hyp _ _) ⦂ (_ → _) ⟩
            p ≡ q                               ↔⟨ Bijection.≡↔inj₂≡inj₂ ⟩□
-           inj₂ p ≡ inj₂ q                     □
-         })
-      (case x return LE nothing of λ
-         { nothing  → inj₁ refl
-         ; (just x) → inj₂ (refl , ⊎.inj₁≢inj₂ ∘ sym)
-         })
+           inj₂ p ≡ inj₂ q                     □)
+      (case x return LE nothing of λ where
+         nothing  → inj₁ refl
+         (just x) → inj₂ (refl , ⊎.inj₁≢inj₂ ∘ sym))
 
   -- If A is a set, then LE is a family of propositions.
 
   LE-propositional :
     Is-set A → {x y : Maybe A} → Is-proposition (LE x y)
-  LE-propositional A-set = _⇔_.from propositional⇔irrelevant (irr _ _)
+  LE-propositional A-set = irr _ _
     where
-    irr : ∀ x y → Proof-irrelevant (LE x y)
-    irr nothing _ = _⇔_.to propositional⇔irrelevant $
-                      mono₁ 0 LE-nothing-contractible
+    irr : ∀ x y → Is-proposition (LE x y)
+    irr nothing _ = mono₁ 0 LE-nothing-contractible
 
-    irr (just x) (just y) (inj₁ p) (inj₁ q) = cong inj₁ $
-      _⇔_.to set⇔UIP (Maybe-closure 0 A-set) p q
+    irr (just x) (just y) (inj₁ p) (inj₁ q) =
+      cong inj₁ $ Maybe-closure 0 A-set p q
 
     irr (just _) (just _) (inj₂ (() , _))
     irr (just _) (just _) _ (inj₂ (() , _))
@@ -113,7 +110,7 @@ module _ {a} {A : Set a} where
     ∀ {x y} n → H-level (2 + n) A → H-level (2 + n) (LE x y)
   LE-closure n h =
     ⊎-closure n
-      (mono₁ (1 + n) (Maybe-closure n h _ _))
+      (mono₁ (1 + n) (Maybe-closure n h))
       (mono (N.suc≤suc (N.zero≤ (1 + n)))
          (×-closure 1 (↑-propositional _)
                       (¬-propositional ext)))
@@ -272,15 +269,11 @@ private
       cong g′ (g-injective p)  ≡⟨ _≃_.right-inverse-of (Embedding.equivalence g) _ ⟩∎
       p                        ∎)
     to∘from (inj₂ _) = cong inj₂ $
-      _⇔_.to propositional⇔irrelevant
-        (×-closure 1 (↑-propositional _) (¬-propositional ext))
-        _ _
+      ×-closure 1 (↑-propositional _) (¬-propositional ext) _ _
 
     from∘to : ∀ {n} (x : Increasing-at n f) → from (to x) ≡ x
     from∘to (inj₁ p) = cong inj₁ (
       g-injective (cong g′ p)  ≡⟨ _≃_.left-inverse-of (Embedding.equivalence g) _ ⟩∎
       p                        ∎)
     from∘to (inj₂ _) = cong inj₂ $
-       _⇔_.to propositional⇔irrelevant
-         (×-closure 1 (↑-propositional _) (¬-propositional ext))
-         _ _
+      ×-closure 1 (↑-propositional _) (¬-propositional ext) _ _

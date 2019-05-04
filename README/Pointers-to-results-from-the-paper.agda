@@ -20,7 +20,6 @@ import Delay-monad.Partial-order
 import Delay-monad.Termination
 import Equality.Propositional as Equality
 import Interval
-import H-level
 import H-level.Truncation.Propositional as Truncation
 import Quotient.HIT
 import Univalence-axiom
@@ -64,17 +63,13 @@ ext            = Interval.ext
 
 Delay-ext = Delay-monad.Bisimilarity.Extensionality
 
--- Uniqueness of identity proofs.
-
-UIP = Equality.Uniqueness-of-identity-proofs
-
 -- The property of being a set.
 
-Is-set = H-level.Is-set
+Is-set = Equality.Is-set
 
 -- The property of being a proposition.
 
-Is-proposition = H-level.Is-proposition
+Is-proposition = Equality.Is-proposition
 
 -- Propositional extensionality.
 

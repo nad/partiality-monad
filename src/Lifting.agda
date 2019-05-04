@@ -83,21 +83,21 @@ abstract
     -- We have chosen to explicitly make the type set-truncated.
     -- However, this constructor is only used in the definition of the
     -- eliminator below.
-    ≡-proof-irrelevant′ : P.Uniqueness-of-identity-proofs Carrier
+    ≡-propositional′ : P.Is-set Carrier
 
   -- _⊑_ "constructors".
 
   data _⊑_ where
-    ⊑-refl′             : ∀ x → x ⊑ x
-    ⊑-trans′            : ∀ x y z → x ⊑ y → y ⊑ z → x ⊑ z
-    never⊑′             : ∀ x → never′ ⊑ x
-    upper-bound′        : ∀ s → Is-upper-bound s (⨆′ s)
-    least-upper-bound′  : ∀ s ub → Is-upper-bound s ub → ⨆′ s ⊑ ub
-    now-mono′           : ∀ {x y} → x CPO.⊑ y → now′ x ⊑ now′ y
-    now-⨆″              : ∀ s →
-                          now′ (CPO.⨆ s) ⊑
-                          ⨆′ (Σ-map (now′ ∘_) (now-mono′ ∘_) s)
-    ⊑-proof-irrelevant′ : ∀ {x y} → P.Proof-irrelevant (x ⊑ y)
+    ⊑-refl′            : ∀ x → x ⊑ x
+    ⊑-trans′           : ∀ x y z → x ⊑ y → y ⊑ z → x ⊑ z
+    never⊑′            : ∀ x → never′ ⊑ x
+    upper-bound′       : ∀ s → Is-upper-bound s (⨆′ s)
+    least-upper-bound′ : ∀ s ub → Is-upper-bound s ub → ⨆′ s ⊑ ub
+    now-mono′          : ∀ {x y} → x CPO.⊑ y → now′ x ⊑ now′ y
+    now-⨆″             : ∀ s →
+                         now′ (CPO.⨆ s) ⊑
+                         ⨆′ (Σ-map (now′ ∘_) (now-mono′ ∘_) s)
+    ⊑-propositional′   : ∀ {x y} → P.Is-proposition (x ⊑ y)
 
   never : Carrier
   never = never′
@@ -132,27 +132,26 @@ abstract
   now-⨆′ : ∀ s → now (CPO.⨆ s) ⊑ ⨆ (Σ-map (now ∘_) (now-mono ∘_) s)
   now-⨆′ = now-⨆″
 
-  ⊑-proof-irrelevant : ∀ {x y} → Proof-irrelevant (x ⊑ y)
-  ⊑-proof-irrelevant {x = x} {y = y} =
-                                $⟨ ⊑-proof-irrelevant′ ⟩
-    P.Proof-irrelevant (x ⊑ y)  ↔⟨ inverse propositional↔irrelevant ⟩
-    Is-proposition (x ⊑ y)      ↝⟨ _⇔_.to propositional⇔irrelevant ⟩□
-    Proof-irrelevant (x ⊑ y)    □
+  ⊑-propositional : ∀ {x y} → Is-proposition (x ⊑ y)
+  ⊑-propositional {x = x} {y = y} =
+                              $⟨ ⊑-propositional′ ⟩
+    P.Is-proposition (x ⊑ y)  ↝⟨ _↔_.from (H-level↔H-level 1) ⟩□
+    Is-proposition (x ⊑ y)    □
 
 -- The construction above is an ω-cppo.
 
 cppo : ω-cppo ℓ ℓ
 cppo = record
   { cpo = record
-    { Carrier            = Carrier
-    ; _⊑_                = _⊑_
-    ; reflexivity        = ⊑-refl _
-    ; antisymmetry       = antisymmetry
-    ; transitivity       = ⊑-trans _ _ _
-    ; ⊑-proof-irrelevant = ⊑-proof-irrelevant
-    ; ⨆                  = ⨆
-    ; upper-bound        = upper-bound
-    ; least-upper-bound  = least-upper-bound _ _
+    { Carrier           = Carrier
+    ; _⊑_               = _⊑_
+    ; reflexivity       = ⊑-refl _
+    ; antisymmetry      = antisymmetry
+    ; transitivity      = ⊑-trans _ _ _
+    ; ⊑-propositional   = ⊑-propositional
+    ; ⨆                 = ⨆
+    ; upper-bound       = upper-bound
+    ; least-upper-bound = least-upper-bound _ _
     }
   ; least  = never
   ; least⊑ = never⊑ _
@@ -186,7 +185,7 @@ record Rec-args
          (p-x : P x) (p-y : P y)
          (q-x⊑y : Q p-x p-y x⊑y) (q-x⊒y : Q p-y p-x x⊒y) →
          subst P (antisymmetry x⊑y x⊒y) p-x ≡ p-y
-    pp : ∀ {x} {p₁ p₂ : P x} → Proof-irrelevant (p₁ ≡ p₂)
+    pp : ∀ {x} {p₁ p₂ : P x} → Is-proposition (p₁ ≡ p₂)
     qr : ∀ x (p : P x) → Q p p (⊑-refl x)
     qt : ∀ {x y z}
          (x⊑y : x ⊑ y) (y⊑z : y ⊑ z)
@@ -209,7 +208,7 @@ record Rec-args
                ))
            (now-⨆′ s)
     qp : ∀ {x y} (p-x : P x) (p-y : P y) (x⊑y : x ⊑ y) →
-         Proof-irrelevant (Q p-x p-y x⊑y)
+         Is-proposition (Q p-x p-y x⊑y)
 
 -- The eliminators.
 
@@ -238,16 +237,15 @@ module _ {p q}
       ⊥-rec (antisymmetry′ {x = x} {y = y} p q i) =
         subst≡→[]≡ (pa p q (⊥-rec x) (⊥-rec y) (⊑-rec p) (⊑-rec q)) i
 
-      ⊥-rec (≡-proof-irrelevant′ {x = x} {y = y} p q i j) = lemma i j
+      ⊥-rec (≡-propositional′ {x = x} {y = y} p q i j) = lemma i j
         where
         lemma :
-          P.[ (λ i → P.[ (λ j → P (≡-proof-irrelevant′ p q i j)) ]
+          P.[ (λ i → P.[ (λ j → P (≡-propositional′ p q i j)) ]
                        ⊥-rec x ≡ ⊥-rec y) ]
             (λ i → ⊥-rec (p i)) ≡ (λ i → ⊥-rec (q i))
         lemma = P.heterogeneous-UIP
-                  (λ x → _↔_.to (H-level↔H-level _)
-                           (_⇔_.from set⇔UIP (pp {x = x})))
-                  (≡-proof-irrelevant′ p q)
+                  (λ x → _↔_.to (H-level↔H-level 2) (pp {x = x}))
+                  (≡-propositional′ p q)
 
       ⊑-rec : (x⊑y : x ⊑ y) → Q (⊥-rec x) (⊥-rec y) x⊑y
       ⊑-rec (⊑-refl′ x) = qr x (⊥-rec x)
@@ -266,16 +264,15 @@ module _ {p q}
 
       ⊑-rec (now-⨆″ s) = q⨆ s
 
-      ⊑-rec (⊑-proof-irrelevant′ {x = x} {y = y} p q i) = lemma i
+      ⊑-rec (⊑-propositional′ {x = x} {y = y} p q i) = lemma i
         where
         lemma : P.[ (λ i → Q (⊥-rec x) (⊥-rec y)
-                             (⊑-proof-irrelevant′ p q i)) ]
+                             (⊑-propositional′ p q i)) ]
                   ⊑-rec p ≡ ⊑-rec q
         lemma =
           P.heterogeneous-irrelevance
-            (λ p → _↔_.to (H-level↔H-level _)
-                     (_⇔_.from propositional⇔irrelevant
-                        (qp (⊥-rec x) (⊥-rec y) p)))
+            (λ p → _↔_.to (H-level↔H-level 1)
+                     (qp (⊥-rec x) (⊥-rec y) p))
 
       -- Some computation rules.
 
@@ -299,11 +296,6 @@ now-⨆ s =
   antisymmetry
     (now-⨆′ s)
     (least-upper-bound _ _ λ n → now-mono (CPO.upper-bound s n))
-
--- The information ordering is propositional.
-
-⊑-propositional : ∀ {x y} → Is-proposition (x ⊑ y)
-⊑-propositional = _⇔_.from propositional⇔irrelevant ⊑-proof-irrelevant
 
 private
 

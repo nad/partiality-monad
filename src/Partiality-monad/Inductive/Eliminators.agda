@@ -61,13 +61,13 @@ module _ {a p q} {A : Set a} (args : Arguments-nd p q A) where
                subst (const P) (antisymmetry x⊑y x⊒y) p₁  ≡⟨ subst-const (antisymmetry x⊑y x⊒y) ⟩
                p₁                                         ≡⟨ pa p₁ p₂ q₁ q₂ ⟩∎
                p₂                                         ∎
-      ; pp = _⇔_.to set⇔UIP ps
+      ; pp = ps
       ; qr = qr
       ; qt = qt
       ; qe = qe
       ; qu = qu
       ; ql = ql
-      ; qp = λ p-x p-y _ → _⇔_.to propositional⇔irrelevant (qp p-x p-y)
+      ; qp = λ p-x p-y _ → qp p-x p-y
       }
 
   ⊥-rec-nd : A ⊥ → P
@@ -109,9 +109,8 @@ module _ {a p} {A : Set a} (args : Arguments-⊥ p A) where
     ; pe = pe
     ; po = po
     ; pl = λ s pq → pl s (proj₁ pq)
-    ; pa = λ _ _ _ _ _ _ →
-             _⇔_.to propositional⇔irrelevant (pp _) _ _
-    ; pp = _⇔_.to propositional⇔irrelevant (mono₁ 1 (pp _) _ _)
+    ; pa = λ _ _ _ _ _ _ → pp _ _ _
+    ; pp = mono₁ 1 (pp _)
     ; qp = λ _ _ _ _ _ → refl
     })
 
@@ -154,14 +153,13 @@ module _ {a q} {A : Set a} (args : Arguments-⊑ q A) where
     { P  = λ _ → ⊤
     ; Q  = λ _ _ → Q
     ; pa = λ _ _ _ _ _ _ → refl
-    ; pp = _⇔_.to propositional⇔irrelevant
-             (mono (Nat.zero≤ 2) ⊤-contractible _ _)
+    ; pp = mono (Nat.zero≤ 2) ⊤-contractible
     ; qr = λ x _ → qr x
     ; qt = λ x⊑y y⊑z _ _ _ → qt x⊑y y⊑z
     ; qe = λ x _ → qe x
     ; qu = λ s pq → qu s (proj₂ pq)
     ; ql = λ s ub is-ub pq _ → ql s ub is-ub (proj₂ pq)
-    ; qp = λ _ _ → _⇔_.to propositional⇔irrelevant ∘ qp
+    ; qp = λ _ _ → qp
     })
 
   inc-rec-⊑ : (s : Increasing-sequence A) → ∀ n → Q (increasing s n)
