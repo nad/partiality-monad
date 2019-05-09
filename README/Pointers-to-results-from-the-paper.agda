@@ -21,7 +21,7 @@ import Delay-monad.Termination
 import Equality.Propositional as Equality
 import Interval
 import H-level.Truncation.Propositional as Truncation
-import Quotient.HIT
+import Quotient
 import Univalence-axiom
 
 -- Code from this development.
@@ -82,7 +82,7 @@ Univalence = Univalence-axiom.Univalence
 
 -- Quotient types.
 
-module Quotient = Quotient.HIT
+import Quotient
 
 -- Countable choice.
 

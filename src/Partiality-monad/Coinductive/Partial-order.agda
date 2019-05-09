@@ -9,7 +9,7 @@ module Partiality-monad.Coinductive.Partial-order {a} {A : Set a} where
 open import Equality.Propositional
 open import Logical-equivalence using (_⇔_)
 open import Prelude hiding (⊥; module W)
-open import Size
+open import Prelude.Size
 
 open import Bijection equality-with-J using (_↔_)
 open import Equality.Path.Isomorphisms equality-with-J
@@ -17,7 +17,7 @@ open import Equality.Path.Isomorphisms equality-with-J
 open import H-level equality-with-J
 open import H-level.Closure equality-with-J
 open import H-level.Truncation.Propositional equality-with-J as Trunc
-open import Quotient.HIT equality-with-J as Quotient
+open import Quotient equality-with-J as Quotient
 open import Univalence-axiom equality-with-J
 
 open import Delay-monad

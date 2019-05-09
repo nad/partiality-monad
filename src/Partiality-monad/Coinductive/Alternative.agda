@@ -16,7 +16,7 @@ open import Equality.Path.Isomorphisms equality-with-J
 open import Function-universe equality-with-J hiding (⊥↔⊥)
 open import H-level equality-with-J
 open import H-level.Truncation.Propositional equality-with-J
-open import Quotient.HIT equality-with-J
+open import Quotient equality-with-J
 
 import Delay-monad.Alternative as A
 import Delay-monad.Alternative.Equivalence as A

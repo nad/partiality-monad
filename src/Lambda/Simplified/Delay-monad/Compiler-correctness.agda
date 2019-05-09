@@ -8,7 +8,7 @@ module Lambda.Simplified.Delay-monad.Compiler-correctness where
 
 import Equality.Propositional as E
 open import Prelude
-open import Size
+open import Prelude.Size
 
 open import Monad E.equality-with-J
 open import Vec.Function E.equality-with-J

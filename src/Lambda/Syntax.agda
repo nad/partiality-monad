@@ -9,7 +9,7 @@ module Lambda.Syntax where
 
 open import Equality.Propositional
 open import Prelude
-open import Size
+open import Prelude.Size
 
 open import Maybe equality-with-J
 open import Vec.Function equality-with-J

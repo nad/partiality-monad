@@ -21,7 +21,7 @@ import Equivalence equality-with-J as Eq
 open import Function-universe equality-with-J hiding (id; _∘_)
 open import H-level equality-with-J
 open import H-level.Truncation.Propositional equality-with-J
-open import Quotient.HIT equality-with-J
+open import Quotient equality-with-J
 open import Surjection equality-with-J using (_↠_)
 open import Univalence-axiom equality-with-J
 

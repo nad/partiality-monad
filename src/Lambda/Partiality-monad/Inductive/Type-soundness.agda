@@ -8,7 +8,7 @@ module Lambda.Partiality-monad.Inductive.Type-soundness where
 
 open import Equality.Propositional
 open import Prelude hiding (⊥)
-open import Size
+open import Prelude.Size
 
 open import Bijection equality-with-J using (_↔_)
 open import Equality.Decision-procedures equality-with-J

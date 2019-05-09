@@ -10,7 +10,7 @@ module Delay-monad.Alternative.Equivalence {a} {A : Set a} where
 open import Equality.Propositional
 open import Logical-equivalence using (_⇔_)
 open import Prelude hiding (↑)
-open import Size
+open import Prelude.Size
 
 open import Bijection equality-with-J using (_↔_)
 open import Equality.Decision-procedures equality-with-J
