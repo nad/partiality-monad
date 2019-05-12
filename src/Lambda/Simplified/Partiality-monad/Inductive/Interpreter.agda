@@ -199,8 +199,8 @@ interpreters-equal = λ t ρ →
     f (_ , var fzero · var fzero , cons ω-nil nil)
   reduce-twice f =
     function eval f (_ , Ω , nil)                   ≡⟨⟩
-    function (⟦ Ω ⟧′ nil) f                         ≡⟨ cong (_$ f) {x = function (⟦ Ω ⟧′ nil)}              (⟨ext⟩ λ _ → now->>=) ⟩
-    function (⟦ ω ⟧′ nil >>= λ v₂ → ω-nil ∙ v₂) f   ≡⟨ cong (_$ f) {x = function (⟦ ω ⟧′ nil >>= ω-nil ∙_)} (⟨ext⟩ λ _ → now->>=) ⟩
+    function (⟦ Ω ⟧′ nil) f                         ≡⟨ cong {x = function (⟦ Ω ⟧′ nil)}              (_$ f) (⟨ext⟩ λ _ → now->>=) ⟩
+    function (⟦ ω ⟧′ nil >>= λ v₂ → ω-nil ∙ v₂) f   ≡⟨ cong {x = function (⟦ ω ⟧′ nil >>= ω-nil ∙_)} (_$ f) (⟨ext⟩ λ _ → now->>=) ⟩
     function (ω-nil ∙ ω-nil) f                      ≡⟨⟩
     f (_ , var fzero · var fzero , cons ω-nil nil)  ∎
 

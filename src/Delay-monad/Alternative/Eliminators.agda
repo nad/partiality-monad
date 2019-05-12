@@ -408,7 +408,7 @@ module _
   Delay/-elim₂-[] x =
     Delay/-elim₁ cc R-equiv R-prop P
       (λ f → subst P (lemma₁ f) (p-[] (_↠_.to →↠Delay-function f)))
-      lemma₂ P-set (map [_] x)                                           ≡⟨ sym $ dependent-cong
+      lemma₂ P-set (map [_] x)                                           ≡⟨ sym $ dcong
                                                                                     (Delay/-elim₁ cc R-equiv R-prop P
                                                                                                   (λ f → subst P (lemma₁ f)
                                                                                                            (p-[] (_↠_.to →↠Delay-function f)))
@@ -432,7 +432,7 @@ module _
       (p-[] (_↠_.to →↠Delay-function (proj₁ x)))                         ≡⟨ sym $ subst-∘ P (map [_]) (_↠_.right-inverse-of →↠Delay-function x) ⟩
 
     subst (P ∘ map [_]) (_↠_.right-inverse-of →↠Delay-function x)
-      (p-[] (_↠_.to →↠Delay-function (proj₁ x)))                         ≡⟨ dependent-cong p-[] (_↠_.right-inverse-of →↠Delay-function x) ⟩∎
+      (p-[] (_↠_.to →↠Delay-function (proj₁ x)))                         ≡⟨ dcong p-[] (_↠_.right-inverse-of →↠Delay-function x) ⟩∎
 
     p-[] x                                                               ∎
     where
