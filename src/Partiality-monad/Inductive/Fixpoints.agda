@@ -447,9 +447,11 @@ equality-characterisation-Partial {f = f} {g} =
   where
   open Partial
 
-  lemma : Partial _ _ _
-            ↔
-          ∃ λ _ → ∃ λ (_ : ∀ {rec₁ rec₂} → _ → _) → _
+  lemma :
+    Partial _ _ _
+      ↔
+    ∃ λ f →
+    ∃ λ (_ : ∀ {rec₁ rec₂} → (∀ x → rec₁ x ⊑ _) → f rec₁ ⊑ _) → _
   lemma = record
     { surjection = record
       { logical-equivalence = record
