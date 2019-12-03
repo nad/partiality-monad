@@ -177,7 +177,7 @@ abstract
        ∀ s → P₁.⨆ s ≡
              P₂.⨆ (subst (λ _⊑_ → ∃ λ f → ∀ n → f n ⊑ f (suc n))
                          (sym (sym ⊑≡⊑)) s))                             ↝⟨ ∃-cong (λ ⊑≡⊑ → ∃-cong λ _ → ∃-cong λ _ → ∀-cong ext λ _ →
-                                                                              ≡⇒↝ _ $ cong (λ f → _ ≡ f _) $ sym $
+                                                                              ≡⇒↝ _ $ cong (_ ≡_) $ sym $
                                                                                 subst-→-domain _ (sym ⊑≡⊑)) ⟩
     (∃ λ (⊑≡⊑ : P₁._⊑_ ≡ P₂._⊑_) →
        P₁.never ≡ P₂.never

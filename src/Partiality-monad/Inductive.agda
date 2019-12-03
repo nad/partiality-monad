@@ -191,6 +191,7 @@ abstract
         lemma = P.heterogeneous-UIP
                   (λ x → _↔_.to (H-level↔H-level 2) (A.pp {x = x}))
                   (⊥-is-set-unused p q)
+                  _ _
 
       ⊑-rec : (x⊑y : x ⊑ y) → A.Q (⊥-rec x) (⊥-rec y) x⊑y
       ⊑-rec (⊑-refl x)                              = A.qr x (⊥-rec x)

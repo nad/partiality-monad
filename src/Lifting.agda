@@ -246,6 +246,7 @@ module _ {p q}
         lemma = P.heterogeneous-UIP
                   (λ x → _↔_.to (H-level↔H-level 2) (pp {x = x}))
                   (≡-propositional′ p q)
+                  _ _
 
       ⊑-rec : (x⊑y : x ⊑ y) → Q (⊥-rec x) (⊥-rec y) x⊑y
       ⊑-rec (⊑-refl′ x) = qr x (⊥-rec x)
