@@ -17,7 +17,7 @@ import Equivalence equality-with-J as Eq
 open import Function-universe equality-with-J hiding (id; _∘_)
 open import H-level equality-with-J
 open import H-level.Closure equality-with-J
-open import Monad equality-with-J
+open import Monad equality-with-J hiding (sequence)
 open import Univalence-axiom equality-with-J
 
 open import Partiality-algebra using (Partiality-algebra)
