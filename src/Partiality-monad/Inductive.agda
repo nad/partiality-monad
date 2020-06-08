@@ -201,7 +201,8 @@ abstract
       ⊑-rec (upper-bound s n)                       = A.qu s (inc-rec s) n
       ⊑-rec (least-upper-bound s ub is-ub)          = A.ql s ub is-ub
                                                         (inc-rec s) (⊥-rec ub)
-                                                        (λ n → ⊑-rec (is-ub n))
+                                                        (λ n → ⊑-rec {x = proj₁ s n}
+                                                                     (is-ub n))
       ⊑-rec (⊑-propositional {x = x} {y = y} p q i) = lemma i
         where
         lemma : P.[ (λ i → A.Q (⊥-rec x) (⊥-rec y)
