@@ -6,13 +6,11 @@
 
 module Partiality-algebra.Eliminators where
 
-open import Equality.Propositional
+open import Equality.Propositional.Cubical
 open import Logical-equivalence using (_⇔_)
 open import Prelude
 
 open import Bijection equality-with-J using (_↔_)
-open import Equality.Path.Isomorphisms equality-with-J
-  using (⟨ext⟩; cong-ext)
 import Equivalence equality-with-J as Eq
 open import Function-universe equality-with-J hiding (id; _∘_)
 open import H-level equality-with-J hiding (Type)

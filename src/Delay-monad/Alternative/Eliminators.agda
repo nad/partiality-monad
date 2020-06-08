@@ -10,18 +10,17 @@
 
 module Delay-monad.Alternative.Eliminators where
 
-open import Equality.Propositional
+open import Equality.Propositional.Cubical
 open import Logical-equivalence using (_⇔_)
 open import Prelude hiding (↑)
 
 open import Bijection equality-with-J using (_↔_)
-open import Equality.Path.Isomorphisms equality-with-J
-  using (ext; ⟨ext⟩)
 import Equivalence equality-with-J as Eq
+open import Equivalence-relation equality-with-J
 open import Function-universe equality-with-J hiding (id; _∘_)
 open import H-level equality-with-J
-open import H-level.Truncation.Propositional equality-with-J
-open import Quotient equality-with-J
+open import H-level.Truncation.Propositional equality-with-paths
+open import Quotient equality-with-paths
 open import Surjection equality-with-J using (_↠_)
 open import Univalence-axiom equality-with-J
 

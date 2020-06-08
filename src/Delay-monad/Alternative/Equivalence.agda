@@ -7,15 +7,13 @@
 
 module Delay-monad.Alternative.Equivalence {a} {A : Set a} where
 
-open import Equality.Propositional
+open import Equality.Propositional.Cubical
 open import Logical-equivalence using (_⇔_)
 open import Prelude hiding (↑)
 open import Prelude.Size
 
 open import Bijection equality-with-J using (_↔_)
 open import Equality.Decision-procedures equality-with-J
-open import Equality.Path.Isomorphisms equality-with-J
-  using (⟨ext⟩; cong-ext; cong-pre-∘-ext)
 open import Function-universe equality-with-J hiding (_∘_)
 open import H-level equality-with-J
 open import Surjection equality-with-J using (_↠_)

@@ -6,18 +6,17 @@
 
 module Partiality-monad.Coinductive.Partial-order {a} {A : Set a} where
 
-open import Equality.Propositional
+open import Equality.Propositional.Cubical
 open import Logical-equivalence using (_⇔_)
 open import Prelude hiding (⊥; module W)
 open import Prelude.Size
 
 open import Bijection equality-with-J using (_↔_)
-open import Equality.Path.Isomorphisms equality-with-J
-  using (ext; prop-ext)
 open import H-level equality-with-J
 open import H-level.Closure equality-with-J
-open import H-level.Truncation.Propositional equality-with-J as Trunc
-open import Quotient equality-with-J as Quotient
+open import H-level.Truncation.Propositional equality-with-paths
+  as Trunc
+open import Quotient equality-with-paths as Quotient
 open import Univalence-axiom equality-with-J
 
 open import Delay-monad
@@ -30,9 +29,10 @@ open import Partiality-monad.Coinductive
 
 LE : A ⊥ → A ⊥ → Proposition a
 LE x y = Quotient.rec
-  (λ x → LE″ x y)
-  (left-lemma″-∥∥ y)
-  is-set
+  (λ where
+     .[]ʳ x                 → LE″ x y
+     .[]-respects-relationʳ → left-lemma″-∥∥ y
+     .is-setʳ               → is-set)
   x
   where
   LE′ : Delay A ∞ → Delay A ∞ → Proposition a
@@ -55,7 +55,12 @@ LE x y = Quotient.rec
     right-lemma-∥∥ = Trunc.rec is-set right-lemma
 
   LE″ : Delay A ∞ → A ⊥ → Proposition a
-  LE″ x y = Quotient.rec (LE′ x) right-lemma-∥∥ is-set y
+  LE″ x y = Quotient.rec
+    (λ where
+       .[]ʳ                   → LE′ x
+       .[]-respects-relationʳ → right-lemma-∥∥
+       .is-setʳ               → is-set)
+    y
 
   abstract
 
@@ -68,10 +73,12 @@ LE x y = Quotient.rec
                      })
 
     left-lemma″ : ∀ {x y} z → x ≈ y → LE″ x z ≡ LE″ y z
-    left-lemma″ {x} {y} z x≈y = Quotient.elim-Prop
-      (λ z → LE″ x z ≡ LE″ y z)
-      (λ _ → left-lemma x≈y)
-      (λ _ → Is-set-∃-Is-proposition ext prop-ext)
+    left-lemma″ {x} {y} z x≈y = Quotient.elim-prop
+      {P = λ z → LE″ x z ≡ LE″ y z}
+      (λ where
+         .[]ʳ _             → left-lemma x≈y
+         .is-propositionʳ _ →
+           Is-set-∃-Is-proposition ext prop-ext)
       z
 
     left-lemma″-∥∥ : ∀ {x y} z → ∥ x ≈ y ∥ → LE″ x z ≡ LE″ y z
@@ -92,52 +99,51 @@ x ⊑ y = proj₁ (LE x y)
 -- _⊑_ is reflexive.
 
 reflexive : ∀ x → x ⊑ x
-reflexive = Quotient.elim-Prop
-  _
-  (λ x → ∣ PO.reflexive x ∣)
-  (λ x → ⊑-propositional [ x ] [ x ])
+reflexive = Quotient.elim-prop λ where
+  .[]ʳ x             → ∣ PO.reflexive x ∣
+  .is-propositionʳ x → ⊑-propositional [ x ] [ x ]
 
 -- _⊑_ is antisymmetric.
 
 antisymmetric : ∀ x y → x ⊑ y → y ⊑ x → x ≡ y
-antisymmetric = Quotient.elim-Prop
-  (λ x → ∀ y → x ⊑ y → y ⊑ x → x ≡ y)
-  (λ x → Quotient.elim-Prop
-     (λ y → [ x ] ⊑ y → y ⊑ [ x ] → [ x ] ≡ y)
-     (λ y ∥x⊑y∥ ∥y⊑x∥ →
-        []-respects-relation $
-        Trunc.rec truncation-is-proposition
-          (λ x⊑y → ∥∥-map (PO.antisymmetric x⊑y) ∥y⊑x∥)
-          ∥x⊑y∥)
-     (λ _ → Π-closure ext 1 λ _ →
-            Π-closure ext 1 λ _ →
-            ⊥-is-set))
-  (λ _ → Π-closure ext 1 λ _ →
-         Π-closure ext 1 λ _ →
-         Π-closure ext 1 λ _ →
-         ⊥-is-set)
+antisymmetric = Quotient.elim-prop λ where
+  .[]ʳ x → Quotient.elim-prop (λ where
+    .[]ʳ y ∥x⊑y∥ ∥y⊑x∥ →
+      []-respects-relation $
+      Trunc.rec truncation-is-proposition
+        (λ x⊑y → ∥∥-map (PO.antisymmetric x⊑y) ∥y⊑x∥)
+        ∥x⊑y∥
+    .is-propositionʳ _ →
+      Π-closure ext 1 λ _ →
+      Π-closure ext 1 λ _ →
+      ⊥-is-set)
+  .is-propositionʳ _ →
+    Π-closure ext 1 λ _ →
+    Π-closure ext 1 λ _ →
+    Π-closure ext 1 λ _ →
+    ⊥-is-set
 
 -- _⊑_ is transitive.
 
 transitive : ∀ x y z → x ⊑ y → y ⊑ z → x ⊑ z
-transitive = Quotient.elim-Prop
-  (λ x → ∀ y z → x ⊑ y → y ⊑ z → x ⊑ z)
-  (λ x → Quotient.elim-Prop
-    (λ y → ∀ z → [ x ] ⊑ y → y ⊑ z → [ x ] ⊑ z)
-    (λ y → Quotient.elim-Prop
-       (λ z → ∥ x PO.⊑ y ∥ → [ y ] ⊑ z → [ x ] ⊑ z)
-       (λ z ∥x⊑y∥ →
-          Trunc.rec truncation-is-proposition
-            (λ y⊑z → ∥∥-map (λ x⊑y → PO.transitive x⊑y y⊑z) ∥x⊑y∥))
-       (λ _ → Π-closure ext 1 λ _ →
-              Π-closure ext 1 λ _ →
-              ⊑-propositional [ _ ] [ _ ]))
-    (λ _ → Π-closure ext 1 λ z →
-           Π-closure ext 1 λ _ →
-           Π-closure ext 1 λ _ →
-           ⊑-propositional [ _ ] z))
-  (λ _ → Π-closure ext 1 λ _ →
-         Π-closure ext 1 λ z →
-         Π-closure ext 1 λ _ →
-         Π-closure ext 1 λ _ →
-         ⊑-propositional [ _ ] z)
+transitive = Quotient.elim-prop λ where
+  .[]ʳ x → Quotient.elim-prop λ where
+    .[]ʳ y → Quotient.elim-prop λ where
+      .[]ʳ z ∥x⊑y∥ →
+        Trunc.rec truncation-is-proposition
+          (λ y⊑z → ∥∥-map (λ x⊑y → PO.transitive x⊑y y⊑z) ∥x⊑y∥)
+      .is-propositionʳ _ →
+        Π-closure ext 1 λ _ →
+        Π-closure ext 1 λ _ →
+        ⊑-propositional [ _ ] [ _ ]
+    .is-propositionʳ _ →
+      Π-closure ext 1 λ z →
+      Π-closure ext 1 λ _ →
+      Π-closure ext 1 λ _ →
+      ⊑-propositional [ _ ] z
+  .is-propositionʳ _ →
+    Π-closure ext 1 λ _ →
+    Π-closure ext 1 λ z →
+    Π-closure ext 1 λ _ →
+    Π-closure ext 1 λ _ →
+    ⊑-propositional [ _ ] z

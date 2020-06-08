@@ -8,19 +8,18 @@
 module Partiality-monad.Inductive.Alternative-order
          {a} {A : Set a} where
 
-open import Equality.Propositional
+open import Equality.Propositional.Cubical
 open import Logical-equivalence using (_⇔_)
 open import Prelude hiding (⊥)
 
 open import Bijection equality-with-J using (_↔_)
 open import Double-negation equality-with-J as DN
-open import Equality.Path.Isomorphisms equality-with-J
-  using (ext; ⟨ext⟩; prop-ext)
 open import Equivalence equality-with-J as Eq using (_≃_)
 open import Function-universe equality-with-J as F hiding (id; _∘_)
 open import H-level equality-with-J
 open import H-level.Closure equality-with-J
-open import H-level.Truncation.Propositional equality-with-J as Trunc
+open import H-level.Truncation.Propositional equality-with-paths
+  as Trunc
 open import Monad equality-with-J
 open import Nat equality-with-J
 open import Univalence-axiom equality-with-J

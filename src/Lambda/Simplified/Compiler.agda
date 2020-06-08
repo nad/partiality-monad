@@ -6,10 +6,9 @@
 
 module Lambda.Simplified.Compiler where
 
-open import Equality.Propositional
+open import Equality.Propositional.Cubical
 open import Prelude
 
-open import Equality.Path.Isomorphisms equality-with-J using (ext)
 open import Vec.Function equality-with-J
 
 open import Lambda.Simplified.Syntax

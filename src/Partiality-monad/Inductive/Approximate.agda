@@ -6,10 +6,10 @@
 
 module Partiality-monad.Inductive.Approximate {a} {A : Set a} where
 
-open import Equality.Propositional
+open import Equality.Propositional.Cubical
 open import Prelude hiding (⊥)
 
-open import H-level.Truncation.Propositional equality-with-J
+open import H-level.Truncation.Propositional equality-with-paths
 
 open import Partiality-monad.Inductive
 open import Partiality-monad.Inductive.Eliminators

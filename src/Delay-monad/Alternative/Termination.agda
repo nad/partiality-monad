@@ -6,16 +6,16 @@
 
 module Delay-monad.Alternative.Termination {a} {A : Set a} where
 
-open import Equality.Propositional
+open import Equality.Propositional.Cubical
 open import Logical-equivalence using (_⇔_)
 open import Prelude hiding (↑; module W)
 
 open import Equality.Decision-procedures equality-with-J
-open import Equality.Path.Isomorphisms equality-with-J using (ext)
 open import Function-universe equality-with-J hiding (id; _∘_)
 open import H-level equality-with-J
 open import H-level.Closure equality-with-J
-open import H-level.Truncation.Propositional equality-with-J as Trunc
+open import H-level.Truncation.Propositional equality-with-paths
+  as Trunc
 import Nat equality-with-J as N
 
 open import Delay-monad hiding (Delay)

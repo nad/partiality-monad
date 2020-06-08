@@ -7,10 +7,9 @@
 module Lambda.Simplified.Partiality-monad.Inductive.Compiler-correctness
   where
 
-open import Equality.Propositional
+open import Equality.Propositional.Cubical
 open import Prelude hiding (⊥)
 
-open import Equality.Path.Isomorphisms equality-with-J using (⟨ext⟩)
 open import Monad equality-with-J
 open import Vec.Function equality-with-J
 

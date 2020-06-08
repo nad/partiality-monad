@@ -10,10 +10,10 @@ open import Equality.Propositional
 open import Logical-equivalence using (_⇔_)
 open import Prelude hiding (module W)
 
+open import Equivalence-relation equality-with-J
 open import Function-universe equality-with-J
 open import H-level equality-with-J
 open import H-level.Closure equality-with-J
-import Quotient equality-with-J as Quotient′
 
 open import Delay-monad.Alternative
 open import Delay-monad.Alternative.Equivalence
@@ -36,7 +36,7 @@ x ≈ y = x ∥⊑∥ y × y ∥⊑∥ x
 
 -- Weak bisimilarity is an equivalence relation.
 
-≈-is-equivalence-relation : Quotient′.Is-equivalence-relation _≈_
+≈-is-equivalence-relation : Is-equivalence-relation _≈_
 ≈-is-equivalence-relation = record
   { reflexive  = λ {x} → ∥⊑∥-reflexive x , ∥⊑∥-reflexive x
   ; symmetric  = λ { (p , q) → q , p }

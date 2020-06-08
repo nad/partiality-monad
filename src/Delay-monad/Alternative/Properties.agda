@@ -6,7 +6,7 @@
 
 module Delay-monad.Alternative.Properties where
 
-open import Equality.Propositional
+open import Equality.Propositional.Cubical
 open import Logical-equivalence using (_⇔_)
 open import Prelude hiding (↑)
 
@@ -14,8 +14,6 @@ open import Bijection equality-with-J as Bijection using (_↔_)
 open import Embedding equality-with-J as Embedding using (Embedding)
 open import Equality.Decision-procedures equality-with-J
 import Equality.Groupoid equality-with-J as EG
-open import Equality.Path.Isomorphisms equality-with-J
-  using (ext; ⟨ext⟩)
 open import Equivalence equality-with-J as Eq using (_≃_)
 open import Function-universe equality-with-J hiding (id; _∘_)
 open import Groupoid equality-with-J

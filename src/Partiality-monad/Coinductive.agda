@@ -6,14 +6,14 @@
 
 module Partiality-monad.Coinductive where
 
-open import Equality.Propositional
+open import Equality.Propositional.Cubical
 open import Prelude hiding (⊥)
 open import Prelude.Size
 
 open import Bijection equality-with-J using (_↔_)
 open import H-level equality-with-J
-open import H-level.Truncation.Propositional equality-with-J
-open import Quotient equality-with-J
+open import H-level.Truncation.Propositional equality-with-paths
+open import Quotient equality-with-paths
 
 open import Delay-monad
 open import Delay-monad.Bisimilarity

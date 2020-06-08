@@ -6,12 +6,10 @@
 
 module Partiality-algebra.Pi where
 
-open import Equality.Propositional
+open import Equality.Propositional.Cubical
 open import Logical-equivalence using (_⇔_)
 open import Prelude
 
-open import Equality.Path.Isomorphisms equality-with-J
-  using (ext; ⟨ext⟩)
 open import H-level equality-with-J hiding (Type)
 open import H-level.Closure equality-with-J
 

@@ -7,12 +7,11 @@
 module Partiality-monad.Inductive where
 
 import Equality.Path as P
-open import Equality.Propositional
+open import Equality.Propositional.Cubical
 open import Logical-equivalence using (_⇔_)
 open import Prelude hiding (⊥)
 
 open import Bijection equality-with-J using (_↔_)
-open import Equality.Path.Isomorphisms equality-with-J
 open import Equivalence equality-with-J as Eq using (_≃_)
 open import Function-universe equality-with-J hiding (id; _∘_)
 open import H-level equality-with-J hiding (Type)

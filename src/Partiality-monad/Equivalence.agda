@@ -8,7 +8,7 @@
 
 module Partiality-monad.Equivalence {a} {A : Set a} where
 
-open import Equality.Propositional
+open import Equality.Propositional.Cubical
 open import Logical-equivalence using (_⇔_)
 open import Prelude hiding (⊥; ↑)
 open import Prelude.Size
@@ -16,15 +16,15 @@ open import Prelude.Size
 open import Bijection equality-with-J using (_↔_)
 open import Embedding equality-with-J
   using (Is-embedding; Injective≃Is-embedding)
-open import Equality.Path.Isomorphisms equality-with-J using (ext)
 open import Equivalence equality-with-J as Eq
   using (_≃_; Is-equivalence)
 open import Function-universe equality-with-J as F hiding (id; _∘_)
 open import H-level equality-with-J
 open import H-level.Closure equality-with-J
-open import H-level.Truncation.Propositional equality-with-J as Trunc
+open import H-level.Truncation.Propositional equality-with-paths
+  as Trunc
 open import Injection equality-with-J using (Injective)
-open import Quotient equality-with-J as Quotient hiding ([_])
+open import Quotient equality-with-paths as Quotient hiding ([_])
 open import Univalence-axiom equality-with-J
 
 import Delay-monad as D
@@ -106,8 +106,10 @@ Delay→⊥-≈→≡ A-set x y =
 -- inductive partiality monad.
 
 ⊥→⊥ : Is-set A → A CA.⊥ → A I.⊥
-⊥→⊥ A-set =
-  Quotient.rec Delay→⊥ (λ {x y} → Delay→⊥-≈→≡ A-set x y) ⊥-is-set
+⊥→⊥ A-set = Quotient.rec λ where
+  .[]ʳ                                   → Delay→⊥
+  .[]-respects-relationʳ {x = x} {y = y} → Delay→⊥-≈→≡ A-set x y
+  .is-setʳ                               → ⊥-is-set
 
 ------------------------------------------------------------------------
 -- A lemma
@@ -168,19 +170,22 @@ Delay→⊥-injective A-set x y x≡y =
 ⊥→⊥-injective :
   (A-set : Is-set A) →
   Injective (⊥→⊥ A-set)
-⊥→⊥-injective A-set {x} {y} =
-  Quotient.elim-Prop
-    (λ x → ⊥→⊥ A-set x ≡ ⊥→⊥ A-set y → x ≡ y)
-    (λ x → Quotient.elim-Prop
-       (λ y → Delay→⊥ x ≡ ⊥→⊥ A-set y → Quotient.[ x ] ≡ y)
-       (λ y → []-respects-relation ∘
-              Delay→⊥-injective A-set x y)
-       (λ _ → Π-closure ext 1 λ _ →
-              /-is-set)
-       y)
-    (λ _ → Π-closure ext 1 λ _ →
-           /-is-set)
-    x
+⊥→⊥-injective A-set {x} {y} = Quotient.elim-prop
+  {P = λ x → ⊥→⊥ A-set x ≡ ⊥→⊥ A-set y → x ≡ y}
+  (λ where
+     .[]ʳ x → Quotient.elim-prop
+       {P = λ y → Delay→⊥ x ≡ ⊥→⊥ A-set y → Quotient.[ x ] ≡ y}
+       (λ where
+          .[]ʳ y → []-respects-relation ∘
+                   Delay→⊥-injective A-set x y
+          .is-propositionʳ _ →
+            Π-closure ext 1 λ _ →
+            /-is-set)
+       y
+     .is-propositionʳ _ →
+       Π-closure ext 1 λ _ →
+       /-is-set)
+  x
 
 ------------------------------------------------------------------------
 -- ⊥→⊥ is surjective
@@ -409,7 +414,7 @@ Delay→⊥′-≈→≡ A-set {x} {y} =
 -- partiality monad, as long as the underlying type is a set.
 
 ⊥→⊥′ : Is-set A → A C.⊥ → A I.⊥
-⊥→⊥′ A-set = Quotient.rec
-  Delay→⊥′
-  (Trunc.rec I.⊥-is-set (Delay→⊥′-≈→≡ A-set))
-  I.⊥-is-set
+⊥→⊥′ A-set = Quotient.rec λ where
+  .[]ʳ                   → Delay→⊥′
+  .[]-respects-relationʳ → Trunc.rec I.⊥-is-set (Delay→⊥′-≈→≡ A-set)
+  .is-setʳ               → I.⊥-is-set
