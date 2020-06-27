@@ -591,7 +591,7 @@ now≲⨆ : ∀ {x s} → (now x ≲ ⨆ s) ≡ ∥ (∃ λ n → now x ≲ s [ 
 now≲⨆ {x} {s} =
   now x ≲ ⨆ s                      ≡⟨ now≲ ⟩
   now[ x ]≲ ⨆ s                    ≡⟨ now[]≲⨆ ⟩
-  ∥ (∃ λ n → now[ x ]≲ s [ n ]) ∥  ≡⟨ cong (∥_∥ ∘ ∃) (⟨ext⟩ λ _ → sym now≲) ⟩∎
+  ∥ (∃ λ n → now[ x ]≲ s [ n ]) ∥  ≡⟨ cong (λ P → ∥ ∃ P ∥) (⟨ext⟩ λ _ → sym now≲) ⟩∎
   ∥ (∃ λ n → now x ≲ s [ n ]) ∥    ∎
 
 -- _≲_ is reflexive.
