@@ -130,7 +130,7 @@ partiality-algebra A = record
       P.Is-set (A ⊥)  ↝⟨ _↔_.from (H-level↔H-level 2) ⟩□
       Is-set (A ⊥)    □
 
-    ⊑-refl′ : ∀ x → x ⊑ x
+    ⊑-refl′ : (x : A ⊥) → x ⊑ x
     ⊑-refl′ = ⊑-refl
 
     ⊑-trans′ : x ⊑ y → y ⊑ z → x ⊑ z
@@ -183,8 +183,11 @@ abstract
                                                           i
       ⊥-rec (⊥-is-set-unused {x = x} {y = y} p q i j) = lemma i j
         where
+        ⊥-is-set-unused′ : P.Is-set (A ⊥)
+        ⊥-is-set-unused′ = ⊥-is-set-unused
+
         lemma :
-          P.[ (λ i → P.[ (λ j → A.P (⊥-is-set-unused p q i j)) ]
+          P.[ (λ i → P.[ (λ j → A.P (⊥-is-set-unused′ p q i j)) ]
                        ⊥-rec x ≡ ⊥-rec y) ]
             (λ i → ⊥-rec (p i)) ≡ (λ i → ⊥-rec (q i))
         lemma = P.heterogeneous-UIP
@@ -205,8 +208,11 @@ abstract
                                                                      (is-ub n))
       ⊑-rec (⊑-propositional {x = x} {y = y} p q i) = lemma i
         where
+        ⊑-propositional′ : P.Is-proposition (x ⊑ y)
+        ⊑-propositional′ = ⊑-propositional
+
         lemma : P.[ (λ i → A.Q (⊥-rec x) (⊥-rec y)
-                             (⊑-propositional p q i)) ]
+                             (⊑-propositional′ p q i)) ]
                   ⊑-rec p ≡ ⊑-rec q
         lemma =
           P.heterogeneous-irrelevance

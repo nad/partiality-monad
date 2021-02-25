@@ -238,8 +238,11 @@ module _ {p q}
 
       ⊥-rec (≡-propositional′ {x = x} {y = y} p q i j) = lemma i j
         where
+        ≡-propositional : P.Is-set Carrier
+        ≡-propositional = ≡-propositional′
+
         lemma :
-          P.[ (λ i → P.[ (λ j → P (≡-propositional′ p q i j)) ]
+          P.[ (λ i → P.[ (λ j → P (≡-propositional p q i j)) ]
                        ⊥-rec x ≡ ⊥-rec y) ]
             (λ i → ⊥-rec (p i)) ≡ (λ i → ⊥-rec (q i))
         lemma = P.heterogeneous-UIP
@@ -267,8 +270,11 @@ module _ {p q}
 
       ⊑-rec (⊑-propositional′ {x = x} {y = y} p q i) = lemma i
         where
+        ⊑-propositional″ : ∀ {x y} → P.Is-proposition (x ⊑ y)
+        ⊑-propositional″ = ⊑-propositional′
+
         lemma : P.[ (λ i → Q (⊥-rec x) (⊥-rec y)
-                             (⊑-propositional′ p q i)) ]
+                             (⊑-propositional″ p q i)) ]
                   ⊑-rec p ≡ ⊑-rec q
         lemma =
           P.heterogeneous-irrelevance

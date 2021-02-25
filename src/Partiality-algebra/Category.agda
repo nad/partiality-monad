@@ -276,19 +276,11 @@ abstract
     rearrange :
       Partiality-algebra-with T q A
         ↔
-      ∃ λ R →
-        let _⊑_ : T → T → Type q
-            _⊑_ = proj₁ R
-
-            never : T
-            never = proj₁ (proj₂ R)
-
-            now : A → T
-            now = proj₁ (proj₂ (proj₂ R))
-
-            ⨆ : (∃ λ (f : ℕ → T) → ∀ n → f n ⊑ f (suc n)) → T
-            ⨆ = proj₂ (proj₂ (proj₂ R))
-        in
+      ∃ λ ((_⊑_ , never , _ , ⨆) :
+           ∃ λ (_⊑_ : T → T → Type q) →
+             T ×
+             (A → T) ×
+             ((∃ λ (f : ℕ → T) → ∀ n → f n ⊑ f (suc n)) → T)) →
         (∀ {x y} → x ⊑ y → y ⊑ x → x ≡ y)
           ×
         Is-set T

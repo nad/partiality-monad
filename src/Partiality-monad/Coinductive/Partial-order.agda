@@ -41,7 +41,7 @@ LE x y = Quotient.rec
 
   abstract
 
-    is-set : Is-set (∃ Is-proposition)
+    is-set : Is-set (∃ λ (A : Type a) → Is-proposition A)
     is-set = Is-set-∃-Is-proposition ext prop-ext
 
     right-lemma : ∀ {x y z} → x ≈ y → LE′ z x ≡ LE′ z y
