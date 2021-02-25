@@ -76,7 +76,7 @@ module Interpreter₂ where
 
   -- This interpreter is defined using a fixpoint combinator.
 
-  M : Set → Set₁
+  M : Type → Type₁
   M = Partial (∃ λ n → Tm n × Env n) (λ _ → Value)
 
   infix 10 _∙_

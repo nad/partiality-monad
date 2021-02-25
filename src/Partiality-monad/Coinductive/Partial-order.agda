@@ -4,11 +4,12 @@
 
 {-# OPTIONS --cubical --safe --sized-types #-}
 
-module Partiality-monad.Coinductive.Partial-order {a} {A : Set a} where
+open import Prelude hiding (⊥; module W)
+
+module Partiality-monad.Coinductive.Partial-order {a} {A : Type a} where
 
 open import Equality.Propositional.Cubical
 open import Logical-equivalence using (_⇔_)
-open import Prelude hiding (⊥; module W)
 open import Prelude.Size
 
 open import Bijection equality-with-J using (_↔_)
@@ -88,7 +89,7 @@ LE x y = Quotient.rec
 
 infix 4 _⊑_
 
-_⊑_ : A ⊥ → A ⊥ → Set a
+_⊑_ : A ⊥ → A ⊥ → Type a
 x ⊑ y = proj₁ (LE x y)
 
 -- _⊑_ is propositional.

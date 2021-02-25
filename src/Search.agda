@@ -22,7 +22,7 @@ open import Partiality-monad.Inductive.Monad
 
 infixr 5 _∷_
 
-record Stream {a} (A : Set a) : Set a where
+record Stream {a} (A : Type a) : Type a where
   coinductive
   constructor _∷_
   field
@@ -33,7 +33,7 @@ open Stream
 
 -- A direct implementation of the function.
 
-module Direct {a} {A : Set a} (q : A → Bool) where
+module Direct {a} {A : Type a} (q : A → Bool) where
 
   Φ : Trans (Stream A) (λ _ → A)
   Φ f xs = if q (head xs) then return (head xs) else f (tail xs)
@@ -78,7 +78,7 @@ module Direct {a} {A : Set a} (q : A → Bool) where
 
 -- An arguably more convenient implementation.
 
-module Indirect {a} {A : Set a} (q : A → Bool) where
+module Indirect {a} {A : Type a} (q : A → Bool) where
 
   ΦP : Stream A → Partial (Stream A) (λ _ → A) A
   ΦP xs =

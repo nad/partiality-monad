@@ -8,10 +8,10 @@ module Omega-cpo where
 
 open import Equality.Propositional.Cubical
 open import Logical-equivalence using (_⇔_)
-open import Prelude
+open import Prelude hiding (T)
 
 open import Equivalence equality-with-J as Eq using (_≃_)
-open import H-level equality-with-J hiding (Type)
+open import H-level equality-with-J
 open import H-level.Closure equality-with-J
 
 open import Partiality-algebra as PA hiding (_∘_)
@@ -20,15 +20,15 @@ import Partiality-monad.Inductive.Monad.Adjunction as PA
 -- Possibly non-pointed ω-cpos (with propositional ordering
 -- relations).
 
-record ω-cpo p q : Set (lsuc (p ⊔ q)) where
+record ω-cpo p q : Type (lsuc (p ⊔ q)) where
 
   infix 4 _⊑_
 
   -- Partial order axioms.
 
   field
-    Carrier         : Set p
-    _⊑_             : Carrier → Carrier → Set q
+    Carrier         : Type p
+    _⊑_             : Carrier → Carrier → Type q
     reflexivity     : ∀ {x} → x ⊑ x
     antisymmetry    : ∀ {x y} → x ⊑ y → y ⊑ x → x ≡ y
     transitivity    : ∀ {x y z} → x ⊑ y → y ⊑ z → x ⊑ z
@@ -36,7 +36,7 @@ record ω-cpo p q : Set (lsuc (p ⊔ q)) where
 
   -- Increasing sequences.
 
-  Increasing-sequence : Set (p ⊔ q)
+  Increasing-sequence : Type (p ⊔ q)
   Increasing-sequence = ∃ λ (f : ℕ → Carrier) → ∀ n → f n ⊑ f (suc n)
 
   -- Projection functions for Increasing-sequence.
@@ -52,7 +52,7 @@ record ω-cpo p q : Set (lsuc (p ⊔ q)) where
 
   -- Upper bounds.
 
-  Is-upper-bound : Increasing-sequence → Carrier → Set q
+  Is-upper-bound : Increasing-sequence → Carrier → Type q
   Is-upper-bound s x = ∀ n → (s [ n ]) ⊑ x
 
   -- Upper bound axioms.
@@ -75,7 +75,7 @@ record ω-cpo p q : Set (lsuc (p ⊔ q)) where
 
 -- Every set can be turned into an ω-cpo.
 
-Set→ω-cpo : ∀ {ℓ} → SET ℓ → ω-cpo ℓ ℓ
+Set→ω-cpo : ∀ {ℓ} → Set ℓ → ω-cpo ℓ ℓ
 Set→ω-cpo (A , A-set) = record
   { Carrier           = A
   ; _⊑_               = _≡_
@@ -98,7 +98,7 @@ Set→ω-cpo (A , A-set) = record
 
 -- Pointed ω-cpos.
 
-record ω-cppo p q : Set (lsuc (p ⊔ q)) where
+record ω-cppo p q : Type (lsuc (p ⊔ q)) where
   field
     cpo : ω-cpo p q
 
@@ -116,25 +116,25 @@ record ω-cppo p q : Set (lsuc (p ⊔ q)) where
   { surjection = record
     { logical-equivalence = record
       { to   = λ X → let open ω-cppo X in record
-                 { Type                    = Carrier
+                 { T                       = Carrier
                  ; partiality-algebra-with = record
-                   { _⊑_                = _⊑_
-                   ; never              = least
-                   ; now                = λ ()
-                   ; ⨆                  = ⨆
-                   ; antisymmetry       = antisymmetry
-                   ; Type-is-set-unused = Carrier-is-set
-                   ; ⊑-refl             = λ _ → reflexivity
-                   ; ⊑-trans            = transitivity
-                   ; never⊑             = λ _ → least⊑
-                   ; upper-bound        = upper-bound
-                   ; least-upper-bound  = λ _ _ → least-upper-bound
-                   ; ⊑-propositional    = ⊑-propositional
+                   { _⊑_               = _⊑_
+                   ; never             = least
+                   ; now               = λ ()
+                   ; ⨆                 = ⨆
+                   ; antisymmetry      = antisymmetry
+                   ; T-is-set-unused   = Carrier-is-set
+                   ; ⊑-refl            = λ _ → reflexivity
+                   ; ⊑-trans           = transitivity
+                   ; never⊑            = λ _ → least⊑
+                   ; upper-bound       = upper-bound
+                   ; least-upper-bound = λ _ _ → least-upper-bound
+                   ; ⊑-propositional   = ⊑-propositional
                    }
                  }
       ; from = λ P → let open Partiality-algebra P in record
                  { cpo = record
-                   { Carrier           = Type
+                   { Carrier           = T
                    ; _⊑_               = _⊑_
                    ; reflexivity       = ⊑-refl _
                    ; antisymmetry      = antisymmetry
@@ -150,21 +150,21 @@ record ω-cppo p q : Set (lsuc (p ⊔ q)) where
       }
     ; right-inverse-of = λ P →
         let open Partiality-algebra P in
-        cong₂ (λ now (Type-is-set : Is-set Type) → record
-                 { Type                    = Type
+        cong₂ (λ now (T-is-set : Is-set T) → record
+                 { T                       = T
                  ; partiality-algebra-with = record
-                   { _⊑_                = _⊑_
-                   ; never              = never
-                   ; now                = now
-                   ; ⨆                  = ⨆
-                   ; antisymmetry       = antisymmetry
-                   ; Type-is-set-unused = Type-is-set
-                   ; ⊑-refl             = ⊑-refl
-                   ; ⊑-trans            = ⊑-trans
-                   ; never⊑             = never⊑
-                   ; upper-bound        = upper-bound
-                   ; least-upper-bound  = least-upper-bound
-                   ; ⊑-propositional    = ⊑-propositional
+                   { _⊑_               = _⊑_
+                   ; never             = never
+                   ; now               = now
+                   ; ⨆                 = ⨆
+                   ; antisymmetry      = antisymmetry
+                   ; T-is-set-unused   = T-is-set
+                   ; ⊑-refl            = ⊑-refl
+                   ; ⊑-trans           = ⊑-trans
+                   ; never⊑            = never⊑
+                   ; upper-bound       = upper-bound
+                   ; least-upper-bound = least-upper-bound
+                   ; ⊑-propositional   = ⊑-propositional
                    }
                  })
               (⟨ext⟩ λ ())

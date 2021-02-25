@@ -4,16 +4,17 @@
 
 {-# OPTIONS --cubical --safe #-}
 
+open import Prelude hiding (T)
+
 open import Partiality-algebra as PA hiding (id; _∘_)
 
 module Partiality-algebra.Properties
-  {a p q} {A : Set a} (P : Partiality-algebra p q A) where
+  {a p q} {A : Type a} (P : Partiality-algebra p q A) where
 
 open import Equality.Propositional.Cubical
-open import Prelude
 
 open import Function-universe equality-with-J hiding (id; _∘_)
-open import H-level equality-with-J hiding (Type)
+open import H-level equality-with-J
 open import H-level.Closure equality-with-J
 open import H-level.Truncation.Propositional equality-with-paths
 open import Nat equality-with-J as Nat
@@ -28,12 +29,12 @@ open Partiality-algebra P
 
 infix 4 _⇓_ _⇑
 
-_⇓_ : Type → A → Set p
+_⇓_ : T → A → Type p
 x ⇓ y = x ≡ now y
 
 -- A non-termination predicate.
 
-_⇑ : Type → Set p
+_⇑ : T → Type p
 x ⇑ = x ≡ never
 
 ------------------------------------------------------------------------
@@ -43,20 +44,20 @@ infix  -1 finally-⊑
 infix  -1 _■
 infixr -2 _⊑⟨_⟩_ _⊑⟨⟩_ _≡⟨_⟩⊑_
 
-_⊑⟨_⟩_ : (x {y z} : Type) → x ⊑ y → y ⊑ z → x ⊑ z
+_⊑⟨_⟩_ : (x {y z} : T) → x ⊑ y → y ⊑ z → x ⊑ z
 _ ⊑⟨ x⊑y ⟩ y⊑z = ⊑-trans x⊑y y⊑z
 
-_⊑⟨⟩_ : (x {y} : Type) → x ⊑ y → x ⊑ y
+_⊑⟨⟩_ : (x {y} : T) → x ⊑ y → x ⊑ y
 _ ⊑⟨⟩ x⊑y = x⊑y
 
-_≡⟨_⟩⊑_ : (x {y z} : Type) → x ≡ y →
+_≡⟨_⟩⊑_ : (x {y z} : T) → x ≡ y →
           y ⊑ z → x ⊑ z
 _ ≡⟨ refl ⟩⊑ y⊑z = y⊑z
 
-_■ : (x : Type) → x ⊑ x
+_■ : (x : T) → x ⊑ x
 x ■ = ⊑-refl x
 
-finally-⊑ : (x y : Type) → x ⊑ y → x ⊑ y
+finally-⊑ : (x y : T) → x ⊑ y → x ⊑ y
 finally-⊑ _ _ x⊑y = x⊑y
 
 syntax finally-⊑ x y x⊑y = x ⊑⟨ x⊑y ⟩■ y ■
@@ -114,7 +115,7 @@ upper-bound-≤→upper-bound s {m} {x} is-ub n with Nat.total m n
 
 -- Only never is smaller than or equal to never.
 
-only-never-⊑-never : {x : Type} → x ⊑ never → x ≡ never
+only-never-⊑-never : {x : T} → x ⊑ never → x ≡ never
 only-never-⊑-never x⊑never = antisymmetry x⊑never (never⊑ _)
 
 ------------------------------------------------------------------------
@@ -139,13 +140,13 @@ tailˢ = Σ-map (_∘ suc) (_∘ suc)
 
 -- One way to form a constant sequence.
 
-constˢ : Type → Increasing-sequence
+constˢ : T → Increasing-sequence
 constˢ x = const x , const (⊑-refl x)
 
 -- The least upper bound of a constant sequence is equal to the
 -- value in the sequence.
 
-⨆-const : ∀ {x : Type} {inc} → ⨆ (const x , inc) ≡ x
+⨆-const : ∀ {x : T} {inc} → ⨆ (const x , inc) ≡ x
 ⨆-const {x} =
   antisymmetry (least-upper-bound _ _ (λ _ → ⊑-refl x))
                (upper-bound _ 0)
@@ -155,17 +156,17 @@ constˢ x = const x , const (⊑-refl x)
 
 -- Box.
 
-□ : ∀ {ℓ} → (A → Set ℓ) → Type → Set (a ⊔ p ⊔ ℓ)
+□ : ∀ {ℓ} → (A → Type ℓ) → T → Type (a ⊔ p ⊔ ℓ)
 □ P x = ∀ y → x ⇓ y → P y
 
 -- Diamond.
 
-◇ : ∀ {ℓ} → (A → Set ℓ) → Type → Set (a ⊔ p ⊔ ℓ)
+◇ : ∀ {ℓ} → (A → Type ℓ) → T → Type (a ⊔ p ⊔ ℓ)
 ◇ P x = ∥ (∃ λ y → x ⇓ y × P y) ∥
 
 -- All h-levels are closed under box.
 
-□-closure : ∀ {ℓ} {P : A → Set ℓ} {x} n →
+□-closure : ∀ {ℓ} {P : A → Type ℓ} {x} n →
             (∀ x → H-level n (P x)) → H-level n (□ P x)
 □-closure n h =
   Π-closure ext n λ y →
@@ -176,7 +177,7 @@ constˢ x = const x , const (⊑-refl x)
 -- Partiality-monad.Inductive.Alternative-order.
 
 ◇-now :
-  ∀ {ℓ} {P : A → Set ℓ} →
+  ∀ {ℓ} {P : A → Type ℓ} →
   ∀ {x} → P x → ◇ P (now x)
 ◇-now p = ∣ _ , refl , p ∣
 
@@ -187,7 +188,7 @@ constˢ x = const x , const (⊑-refl x)
 -- equivalent to _⊑_. See
 -- Partiality-monad.Inductive.Alternative-order.≼≃⊑ for the proof.
 
-_≼_ : Type → Type → Set (a ⊔ p)
+_≼_ : T → T → Type (a ⊔ p)
 x ≼ y = ∀ z → x ⇓ z → y ⇓ z
 
 -- _≼_ is propositional.
@@ -196,7 +197,7 @@ x ≼ y = ∀ z → x ⇓ z → y ⇓ z
 ≼-propositional =
   Π-closure ext 1 λ _ →
   Π-closure ext 1 λ _ →
-  Type-is-set
+  T-is-set
 
 -- _≼_ is transitive.
 
@@ -217,7 +218,7 @@ x ≼ y = ∀ z → x ⇓ z → y ⇓ z
 
 infix 4 _≳[_]_
 
-record _≳[_]_ (s₁ : ℕ → Type) (n : ℕ) (s₂ : ℕ → Type) : Set p where
+record _≳[_]_ (s₁ : ℕ → T) (n : ℕ) (s₂ : ℕ → T) : Type p where
   constructor wrap
   field
     run : ∃ λ k → s₁ (k + n) ≡ s₂ n

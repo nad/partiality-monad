@@ -32,7 +32,7 @@ open import Partiality-monad.Inductive.Omega-continuous
 -- The fixpoint combinator machinery instantiated with the partiality
 -- monad
 
-module _ {a} {A : Set a} where
+module _ {a} {A : Type a} where
 
   open PAF.Fix {P = partiality-algebra A} public
   open [_⊥→_⊥]
@@ -77,7 +77,7 @@ module _ {a} {A : Set a} where
 
   fix′-induction₁ :
     ∀ {p}
-    (P : A ⊥ → Set p)
+    (P : A ⊥ → Type p)
     (P⊥ : P never)
     (P⨆ : ∀ s → (∀ n → P (s [ n ])) → P (⨆ s))
     (f : A → A ⊥) →
@@ -89,8 +89,8 @@ module _ {a} {A : Set a} where
 -- N-ary Scott induction.
 
 module _ {a p} n
-  (As : Fin n → Set a)
-  (P : (∀ i → As i ⊥) → Set p)
+  (As : Fin n → Type a)
+  (P : (∀ i → As i ⊥) → Type p)
   (P⊥ : P (λ _ → never))
   (P⨆ : ∀ ss → (∀ n → P (λ i → ss i [ n ])) → P (⨆ ∘ ss))
   where
@@ -108,11 +108,11 @@ module _ {a p} n
 -- The fixpoint combinator machinery instantiated with dependent
 -- functions to the partiality monad
 
-module _ {a b} (A : Set a) (B : A → Set b) where
+module _ {a b} (A : Type a) (B : A → Type b) where
 
   -- Partial function transformers.
 
-  Trans : Set (a ⊔ b)
+  Trans : Type (a ⊔ b)
   Trans = ((x : A) → B x ⊥) → ((x : A) → B x ⊥)
 
   -- A partiality algebra.
@@ -122,7 +122,7 @@ module _ {a b} (A : Set a) (B : A → Set b) where
 
   -- Monotone partial function transformers.
 
-  Trans-⊑ : Set (a ⊔ b)
+  Trans-⊑ : Type (a ⊔ b)
   Trans-⊑ = [ Pi ⟶ Pi ]⊑
 
   private
@@ -132,10 +132,10 @@ module _ {a b} (A : Set a) (B : A → Set b) where
 
   -- Partial function transformers that are ω-continuous.
 
-  Trans-ω : Set (a ⊔ b)
+  Trans-ω : Type (a ⊔ b)
   Trans-ω = [ Pi ⟶ Pi ]
 
-module _ {a b} {A : Set a} {B : A → Set b} where
+module _ {a b} {A : Type a} {B : A → Type b} where
 
   module Trans-⊑ = [_⟶_]⊑ {P₁ = Pi A B} {P₂ = Pi A B}
   module Trans-ω = [_⟶_]  {P₁ = Pi A B} {P₂ = Pi A B}
@@ -197,9 +197,9 @@ module _ {a b} {A : Set a} {B : A → Set b} where
 
 module _
   {a b p} n
-  (As : Fin n → Set a)
-  (Bs : (i : Fin n) → As i → Set b)
-  (P : (∀ i → (x : As i) → Bs i x ⊥) → Set p)
+  (As : Fin n → Type a)
+  (Bs : (i : Fin n) → As i → Type b)
+  (P : (∀ i → (x : As i) → Bs i x ⊥) → Type p)
   (P⊥ : P (λ _ _ → never))
   (P⨆ : (ss : ∀ i (x : As i) → Increasing-sequence (Bs i x)) →
         (∀ n → P (λ i xs → ss i xs [ n ])) →
@@ -234,8 +234,8 @@ module _
 -- Unary Scott induction.
 
 fix→-induction₁ :
-  ∀ {a b p} {A : Set a} {B : A → Set b}
-  (P : ((x : A) → B x ⊥) → Set p) →
+  ∀ {a b p} {A : Type a} {B : A → Type b}
+  (P : ((x : A) → B x ⊥) → Type p) →
   P (λ _ → never) →
   ((s : (x : A) → Increasing-sequence (B x)) →
    (∀ n → P (λ x → s x [ n ])) →
@@ -253,8 +253,8 @@ fix→-induction₁ P P⊥ P⨆ = PAF.fix-induction₁ P P⊥ (λ _ → P⨆ _)
 
 record Partial
          {a b c}
-         (A : Set a) (B : A → Set b) (C : Set c) :
-         Set (a ⊔ b ⊔ lsuc c) where
+         (A : Type a) (B : A → Type b) (C : Type c) :
+         Type (a ⊔ b ⊔ lsuc c) where
   field
     -- A function that is allowed to make "recursive calls" of type
     -- (x : A) → B x ⊥.
@@ -284,7 +284,7 @@ record Partial
 -- The first two arguments of Partial specify the domain and codomain
 -- of "recursive calls".
 
-rec : ∀ {a b} {A : Set a} {B : A → Set b} →
+rec : ∀ {a b} {A : Type a} {B : A → Type b} →
       (x : A) → Partial A B (B x)
 rec x = record
   { function     = _$ x
@@ -295,7 +295,7 @@ rec x = record
 -- Turns certain Partial-valued functions into monotone partial
 -- function transformers.
 
-transformer : ∀ {a b} {A : Set a} {B : A → Set b} →
+transformer : ∀ {a b} {A : Type a} {B : A → Type b} →
               ((x : A) → Partial A B (B x)) → Trans-⊑ A B
 transformer f = record
   { function = λ g     x → function (f x) g
@@ -307,7 +307,7 @@ transformer f = record
 -- Turns certain Partial-valued functions into ω-continuous partial
 -- function transformers.
 
-transformer-ω : ∀ {a b} {A : Set a} {B : A → Set b} →
+transformer-ω : ∀ {a b} {A : Type a} {B : A → Type b} →
                 ((x : A) → Partial A B (B x)) → Trans-ω A B
 transformer-ω f = record
   { monotone-function = transformer f
@@ -318,7 +318,7 @@ transformer-ω f = record
 
 -- A fixpoint combinator.
 
-fixP : ∀ {a b} {A : Set a} {B : A → Set b} →
+fixP : ∀ {a b} {A : Type a} {B : A → Type b} →
        ((x : A) → Partial A B (B x)) → ((x : A) → B x ⊥)
 fixP {A = A} {B} =
   ((x : A) → Partial A B (B x))  ↝⟨ transformer ⟩
@@ -328,7 +328,7 @@ fixP {A = A} {B} =
 -- The fixpoint combinator produces fixpoints.
 
 fixP-is-fixpoint-combinator :
-  ∀ {a b} {A : Set a} {B : A → Set b} →
+  ∀ {a b} {A : Type a} {B : A → Type b} →
   (f : (x : A) → Partial A B (B x)) →
   fixP f ≡ flip (Partial.function ∘ f) (fixP f)
 fixP-is-fixpoint-combinator =
@@ -338,7 +338,7 @@ fixP-is-fixpoint-combinator =
 -- or equal to every "pointwise post-fixpoint".
 
 fixP-is-least :
-  ∀ {a b} {A : Set a} {B : A → Set b}
+  ∀ {a b} {A : Type a} {B : A → Type b}
   (f : (x : A) → Partial A B (B x)) →
   ∀ g → (∀ x → Partial.function (f x) g ⊑ g x) →
     ∀ x → fixP f x ⊑ g x
@@ -349,7 +349,7 @@ fixP-is-least = fix→-is-least ∘ transformer
 infixr 40 _∘P_
 
 _∘P_ :
-  ∀ {a b} {A : Set a} {B : A → Set b} →
+  ∀ {a b} {A : Type a} {B : A → Type b} →
   ((x : A) → Partial A B (B x)) →
   ((x : A) → Partial A B (B x)) →
   ((x : A) → Partial A B (B x))
@@ -369,7 +369,7 @@ Partial.ω-continuous ((f ∘P g) x) = λ recs →
 -- Taking steps that are "twice as large" does not affect the end
 -- result.
 
-fixP-∘ : ∀ {a b} {A : Set a} {B : A → Set b}
+fixP-∘ : ∀ {a b} {A : Type a} {B : A → Type b}
          (f : (x : A) → Partial A B (B x)) →
          fixP (f ∘P f) ≡ fixP f
 fixP-∘ f =
@@ -381,9 +381,9 @@ fixP-∘ f =
 
 module _
   {a b p} n
-  (As : Fin n → Set a)
-  (Bs : (i : Fin n) → As i → Set b)
-  (P : (∀ i (x : As i) → Bs i x ⊥) → Set p)
+  (As : Fin n → Type a)
+  (Bs : (i : Fin n) → As i → Type b)
+  (P : (∀ i (x : As i) → Bs i x ⊥) → Type p)
   (P⊥ : P (λ _ _ → never))
   (P⨆ : (ss : ∀ i (x : As i) → Increasing-sequence (Bs i x)) →
         (∀ n → P (λ i xs → ss i xs [ n ])) →
@@ -411,8 +411,8 @@ module _
 -- Unary Scott induction.
 
 fixP-induction₁ :
-  ∀ {a b p} {A : Set a} {B : A → Set b}
-  (P : ((x : A) → B x ⊥) → Set p) →
+  ∀ {a b p} {A : Type a} {B : A → Type b}
+  (P : ((x : A) → B x ⊥) → Type p) →
   P (λ _ → never) →
   ((s : (x : A) → Increasing-sequence (B x)) →
    (∀ n → P (λ x → s x [ n ])) →
@@ -426,7 +426,7 @@ fixP-induction₁ P P⊥ P⨆ f =
 -- Equality characterisation lemma for Partial.
 
 equality-characterisation-Partial :
-  ∀ {a b c} {A : Set a} {B : A → Set b} {C : Set c}
+  ∀ {a b c} {A : Type a} {B : A → Type b} {C : Type c}
     {f g : Partial A B C} →
   (∀ rec → Partial.function f rec ≡ Partial.function g rec) ↔
   f ≡ g
@@ -469,7 +469,7 @@ equality-characterisation-Partial {f = f} {g} =
 -- recursive ones.
 
 non-recursive :
-  ∀ {a b c} {A : Set a} {B : A → Set b} {C : Set c} →
+  ∀ {a b c} {A : Type a} {B : A → Type b} {C : Type c} →
   C ⊥ → Partial A B C
 non-recursive x = record
   { function     = const x
@@ -483,7 +483,7 @@ instance
 
   -- Partial A B is a monad.
 
-  partial-raw-monad : ∀ {a b c} {A : Set a} {B : A → Set b} →
+  partial-raw-monad : ∀ {a b c} {A : Type a} {B : A → Type b} →
                       Raw-monad (Partial {c = c} A B)
   Raw-monad.return partial-raw-monad x   = non-recursive (return x)
   Raw-monad._>>=_  partial-raw-monad x f = record
@@ -512,7 +512,7 @@ instance
     where
     open Partial
 
-  partial-monad : ∀ {a b c} {A : Set a} {B : A → Set b} →
+  partial-monad : ∀ {a b c} {A : Type a} {B : A → Type b} →
                   Monad (Partial {c = c} A B)
   Monad.raw-monad partial-monad = partial-raw-monad
 

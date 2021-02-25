@@ -4,11 +4,12 @@
 
 {-# OPTIONS --cubical --safe --sized-types #-}
 
-module Delay-monad.Alternative.Partial-order {a} {A : Set a} where
+open import Prelude hiding (module W)
+
+module Delay-monad.Alternative.Partial-order {a} {A : Type a} where
 
 open import Equality.Propositional.Cubical
 open import Logical-equivalence using (_⇔_)
-open import Prelude hiding (module W)
 
 open import Bijection equality-with-J using (_↔_)
 open import Function-universe equality-with-J as F hiding (id; _∘_)
@@ -26,10 +27,10 @@ infix 4 _⊑_
 
 -- Information orderings.
 
-_⊑_ : Delay A → Delay A → Set a
+_⊑_ : Delay A → Delay A → Type a
 x ⊑ y = ∀ z → x ⇓ z → y ⇓ z
 
-_∥⊑∥_ : Delay A → Delay A → Set a
+_∥⊑∥_ : Delay A → Delay A → Type a
 x ∥⊑∥ y = ∀ z → x ∥⇓∥ z → y ∥⇓∥ z
 
 -- The two ordering relations are logically equivalent (if A is a

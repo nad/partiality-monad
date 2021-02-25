@@ -8,7 +8,7 @@
 
 {-# OPTIONS --cubical --safe #-}
 
-open import Prelude hiding (⊥)
+open import Prelude hiding (T; ⊥)
 
 module Lifting.Partiality-monad {a : Level} where
 
@@ -26,11 +26,11 @@ import Partiality-monad.Inductive as I
 import Partiality-monad.Inductive.Eliminators as IE
 
 private
-  module L {A : SET a} = Lifting (Set→ω-cpo A)
+  module L {A : Set a} = Lifting (Set→ω-cpo A)
 
 -- The partiality monad as an ω-cppo.
 
-partiality-monad : SET a → ω-cppo a a
+partiality-monad : Set a → ω-cppo a a
 partiality-monad A = L.cppo {A = A}
 
 -- The partiality monad.
@@ -38,10 +38,10 @@ partiality-monad A = L.cppo {A = A}
 infix 10 _⊥
 infix  4 _⊑_
 
-_⊥ : SET a → Set a
+_⊥ : Set a → Type a
 A ⊥ = ω-cppo.Carrier (partiality-monad A)
 
-_⊑_ : ∀ {A} → A ⊥ → A ⊥ → Set a
+_⊑_ : ∀ {A} → A ⊥ → A ⊥ → Type a
 _⊑_ {A = A} = ω-cppo._⊑_ (partiality-monad A)
 
 -- This definition of the partiality monad is isomorphic to the
@@ -49,7 +49,9 @@ _⊑_ {A = A} = ω-cppo._⊑_ (partiality-monad A)
 
 private
 
-  argsL : ∀ {A} → L.Rec-args (λ (_ : A ⊥) → Type A I.⊥) (λ x y _ → x I.⊑ y)
+  argsL :
+    ∀ {A} →
+    L.Rec-args (λ (_ : A ⊥) → ⌞ A ⌟ I.⊥) (λ x y _ → x I.⊑ y)
   argsL = record
     { pe = I.never
     ; po = I.now
@@ -71,7 +73,7 @@ private
     ; qp = λ _ _ _ → I.⊑-propositional
     }
 
-  argsI : ∀ {A} → IE.Arguments-nd a a (Type A)
+  argsI : ∀ {A} → IE.Arguments-nd a a ⌞ A ⌟
   argsI {A} = record
     { P  = A ⊥
     ; Q  = _⊑_
@@ -88,7 +90,7 @@ private
     ; qp = λ _ _ → L.⊑-propositional
     }
 
-⊥↔⊥ : ∀ {A} → A ⊥ ↔ Type A I.⊥
+⊥↔⊥ : ∀ {A} → A ⊥ ↔ ⌞ A ⌟ I.⊥
 ⊥↔⊥ = record
   { surjection = record
     { logical-equivalence = record

@@ -138,7 +138,7 @@ induction-principle = Partiality-monad.eliminators
 -- A proof that shows that A ⊥ is a set without making use of the
 -- set-truncation "constructor".
 
-Type-is-set = Partiality-algebra.Partiality-algebra-with.Type-is-set
+T-is-set = Partiality-algebra.Partiality-algebra-with.T-is-set
 
 -- Lemma 3.
 

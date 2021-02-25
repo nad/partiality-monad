@@ -5,11 +5,12 @@
 
 {-# OPTIONS --cubical --safe --sized-types #-}
 
-module Delay-monad.Alternative.Equivalence {a} {A : Set a} where
+open import Prelude hiding (↑)
+
+module Delay-monad.Alternative.Equivalence {a} {A : Type a} where
 
 open import Equality.Propositional.Cubical
 open import Logical-equivalence using (_⇔_)
-open import Prelude hiding (↑)
 open import Prelude.Size
 
 open import Bijection equality-with-J using (_↔_)

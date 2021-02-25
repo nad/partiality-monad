@@ -34,10 +34,10 @@ private
 
 infix 4 _⊑_ _⊒_
 
-data Carrier : Set ℓ
-data _⊑_     : Carrier → Carrier → Set ℓ
+data Carrier : Type ℓ
+data _⊑_     : Carrier → Carrier → Type ℓ
 
-_⊒_ : Carrier → Carrier → Set ℓ
+_⊒_ : Carrier → Carrier → Type ℓ
 x ⊒ y = y ⊑ x
 
 private
@@ -46,7 +46,7 @@ private
 
 -- Increasing sequences.
 
-Increasing-sequence : Set ℓ
+Increasing-sequence : Type ℓ
 Increasing-sequence = ∃ λ (f : ℕ → Carrier) → ∀ n → f n ⊑ f (suc n)
 
 -- Projection functions for Increasing-sequence.
@@ -62,7 +62,7 @@ increasing = proj₂
 
 -- Upper bounds.
 
-Is-upper-bound : Increasing-sequence → Carrier → Set ℓ
+Is-upper-bound : Increasing-sequence → Carrier → Type ℓ
 Is-upper-bound s x = ∀ n → s [ n ] ⊑ x
 
 -- Originally these types were postulated. After the release of
@@ -162,9 +162,9 @@ cppo = record
 -- Predicate transformer related to increasing sequences.
 
 Inc : ∀ {p q}
-      (P : Carrier → Set p)
-      (Q : ∀ {x y} → P x → P y → x ⊑ y → Set q) →
-      Increasing-sequence → Set (p ⊔ q)
+      (P : Carrier → Type p)
+      (Q : ∀ {x y} → P x → P y → x ⊑ y → Type q) →
+      Increasing-sequence → Type (p ⊔ q)
 Inc P Q s =
   ∃ λ (p : ∀ n → P (s [ n ])) →
     ∀ n → Q (p n) (p (suc n)) (increasing s n)
@@ -173,9 +173,9 @@ Inc P Q s =
 
 record Rec-args
          {p q}
-         (P : Carrier → Set p)
-         (Q : ∀ {x y} → P x → P y → x ⊑ y → Set q) :
-         Set (ℓ ⊔ p ⊔ q) where
+         (P : Carrier → Type p)
+         (Q : ∀ {x y} → P x → P y → x ⊑ y → Type q) :
+         Type (ℓ ⊔ p ⊔ q) where
   field
     pe : P never
     po : ∀ x → P (now x)
@@ -212,8 +212,8 @@ record Rec-args
 -- The eliminators.
 
 module _ {p q}
-         {P : Carrier → Set p}
-         {Q : ∀ {x y} → P x → P y → x ⊑ y → Set q}
+         {P : Carrier → Type p}
+         {Q : ∀ {x y} → P x → P y → x ⊑ y → Type q}
          (args : Rec-args P Q) where
 
   open Rec-args args

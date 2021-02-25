@@ -8,14 +8,14 @@ module Partiality-monad.Inductive.Monad.Adjunction where
 
 open import Equality.Propositional.Cubical
 open import Logical-equivalence using (_⇔_)
-open import Prelude hiding (⊥)
+open import Prelude hiding (T; ⊥)
 
 open import Adjunction equality-with-J
 open import Bijection equality-with-J using (_↔_)
 open import Category equality-with-J
 open import Function-universe equality-with-J hiding (id; _∘_)
 open import Functor equality-with-J
-open import H-level equality-with-J hiding (Type)
+open import H-level equality-with-J
 open import H-level.Closure equality-with-J
 
 open import Partiality-algebra as PA hiding (id; _∘_)
@@ -29,10 +29,10 @@ import Partiality-monad.Inductive.Omega-continuous as PO
 
 -- A forgetful functor from partiality algebras to sets.
 
-Forget : ∀ {a p q} {A : Set a} →
+Forget : ∀ {a p q} {A : Type a} →
          PAC.precategory p q A ⇨ precategory-Set p ext
 functor Forget =
-    (λ P → Type P , Type-is-set P)
+    (λ P → T P , T-is-set P)
   , Morphism.function
   , refl
   , refl
@@ -46,31 +46,31 @@ functor Forget =
 
 -- Pointed ω-cpos.
 
-ω-cppo : ∀ p q → Set (lsuc (p ⊔ q))
+ω-cppo : ∀ p q → Type (lsuc (p ⊔ q))
 ω-cppo p q = Partiality-algebra p q ⊥₀
 
 -- If there is a function from B to the carrier of P, then P
 -- can be converted to a partiality algebra over B.
 
-convert : ∀ {a b p q} {A : Set a} {B : Set b} →
+convert : ∀ {a b p q} {A : Type a} {B : Type b} →
           (P : Partiality-algebra p q A) →
-          (B → Partiality-algebra.Type P) →
+          (B → Partiality-algebra.T P) →
           Partiality-algebra p q B
 convert P f = record
-  { Type                    = Type
+  { T                       = T
   ; partiality-algebra-with = record
-    { _⊑_                = _⊑_
-    ; never              = never
-    ; now                = f
-    ; ⨆                  = ⨆
-    ; antisymmetry       = antisymmetry
-    ; Type-is-set-unused = Type-is-set-unused
-    ; ⊑-refl             = ⊑-refl
-    ; ⊑-trans            = ⊑-trans
-    ; never⊑             = never⊑
-    ; upper-bound        = upper-bound
-    ; least-upper-bound  = least-upper-bound
-    ; ⊑-propositional    = ⊑-propositional
+    { _⊑_               = _⊑_
+    ; never             = never
+    ; now               = f
+    ; ⨆                 = ⨆
+    ; antisymmetry      = antisymmetry
+    ; T-is-set-unused   = T-is-set-unused
+    ; ⊑-refl            = ⊑-refl
+    ; ⊑-trans           = ⊑-trans
+    ; never⊑            = never⊑
+    ; upper-bound       = upper-bound
+    ; least-upper-bound = least-upper-bound
+    ; ⊑-propositional   = ⊑-propositional
     }
   }
   where
@@ -79,7 +79,7 @@ convert P f = record
 -- A lemma that removes convert from certain types.
 
 drop-convert :
-  ∀ {a p q p′ q′} {A : Set a} {X : ω-cppo p q} {Y : ω-cppo p′ q′}
+  ∀ {a p q p′ q′} {A : Type a} {X : ω-cppo p q} {Y : ω-cppo p′ q′}
     {f : A → _} {g : A → _} →
   Morphism (convert X f) (convert Y g) → Morphism X Y
 drop-convert m = record
@@ -94,7 +94,7 @@ drop-convert m = record
 
 -- Converts partiality algebras to ω-cppos.
 
-drop-now : ∀ {a p q} {A : Set a} →
+drop-now : ∀ {a p q} {A : Type a} →
            Partiality-algebra p q A → ω-cppo p q
 drop-now P = convert P ⊥-elim
 
@@ -110,7 +110,7 @@ drop-now-constant =
 
 -- Converts types to ω-cppos.
 
-Partial⊚ : ∀ {ℓ} → Set ℓ → ω-cppo ℓ ℓ
+Partial⊚ : ∀ {ℓ} → Type ℓ → ω-cppo ℓ ℓ
 Partial⊚ = drop-now ∘ partiality-algebra
 
 private
@@ -120,9 +120,9 @@ private
   Partial⊙′ :
     let open Partiality-algebra; open Morphism in
 
-    ∀ {a b p q} {A : Set a} {B : Set b}
+    ∀ {a b p q} {A : Type a} {B : Type b}
     (P : Partiality-algebra p q B) →
-    (f : A → Type P) →
+    (f : A → T P) →
     ∃ λ (m : Morphism (Partial⊚ A) (drop-now P)) →
       (∀ x → function m (PI.now x) ≡ now (convert P f) x)
         ×
@@ -164,7 +164,7 @@ private
 -- corresponding ω-cppos.
 
 Partial⊙ :
-  ∀ {a b} {A : Set a} {B : Set b} →
+  ∀ {a b} {A : Type a} {B : Type b} →
   (A → B) → Morphism (Partial⊚ A) (Partial⊚ B)
 Partial⊙ f = proj₁ (Partial⊙′ (partiality-algebra _) (PI.now ∘ f))
 
@@ -172,12 +172,12 @@ Partial⊙ f = proj₁ (Partial⊙′ (partiality-algebra _) (PI.now ∘ f))
 -- PI.now x to PI.now (f x) (for all x).
 
 Partial⊙-now :
-  ∀ {a b} {A : Set a} {B : Set b} {f : A → B} {x} →
+  ∀ {a b} {A : Type a} {B : Type b} {f : A → B} {x} →
   Morphism.function (Partial⊙ f) (PI.now x) ≡ PI.now (f x)
 Partial⊙-now = proj₁ (proj₂ (Partial⊙′ (partiality-algebra _) _)) _
 
 Partial⊙-unique :
-  ∀ {a b} {A : Set a} {B : Set b} {f : A → B} {m} →
+  ∀ {a b} {A : Type a} {B : Type b} {f : A → B} {m} →
     (∀ x → Morphism.function m (PI.now x) ≡ PI.now (f x)) →
   Partial⊙ f ≡ m
 Partial⊙-unique = proj₂ (proj₂ (Partial⊙′ (partiality-algebra _) _)) _
@@ -196,10 +196,10 @@ _⇨_.functor (Partial {ℓ}) =
   module L where
    abstract
 
-    lemma₁ : {A : Set ℓ} → Partial⊙ (id {A = A}) ≡ PA.id
+    lemma₁ : {A : Type ℓ} → Partial⊙ (id {A = A}) ≡ PA.id
     lemma₁ = Partial⊙-unique λ _ → refl
 
-    lemma₂ : {A B C : Set ℓ} {f : A → B} {g : B → C} →
+    lemma₂ : {A B C : Type ℓ} {f : A → B} {g : B → C} →
              Partial⊙ (g ∘ f) ≡ Partial⊙ g PA.∘ Partial⊙ f
     lemma₂ {f = f} {g} = Partial⊙-unique λ x →
       function (Partial⊙ g PA.∘ Partial⊙ f) (PI.now x)  ≡⟨ cong (function (Partial⊙ g)) Partial⊙-now ⟩
@@ -245,20 +245,20 @@ Partial⊣Forget {ℓ} =
          function (Partial⊙ f) (PI.now x)  ≡⟨ Partial⊙-now ⟩∎
          PI.now (f x)                      ∎)
 
-  m : (X : ω-cppo ℓ ℓ) → Morphism (Partial⊚ (Type X)) X
-  m X =                                        $⟨ id ⟩
-    (Type X → Type X)                          ↝⟨ proj₁ ∘ Partial⊙′ X ⟩
-    Morphism (Partial⊚ (Type X)) (drop-now X)  ↝⟨ drop-convert ⟩□
-    Morphism (Partial⊚ (Type X)) X             □
+  m : (X : ω-cppo ℓ ℓ) → Morphism (Partial⊚ (T X)) X
+  m X =                                     $⟨ id ⟩
+    (T X → T X)                             ↝⟨ proj₁ ∘ Partial⊙′ X ⟩
+    Morphism (Partial⊚ (T X)) (drop-now X)  ↝⟨ drop-convert ⟩□
+    Morphism (Partial⊚ (T X)) X             □
 
-  fun : (X : ω-cppo ℓ ℓ) → Type X ⊥ → Type X
+  fun : (X : ω-cppo ℓ ℓ) → T X ⊥ → T X
   fun X = function (m X)
 
   fun-now : ∀ (X : ω-cppo ℓ ℓ) {x} → fun X (PI.now x) ≡ x
   fun-now X = proj₁ (proj₂ (Partial⊙′ X _)) _
 
   fun-unique :
-    (X : ω-cppo ℓ ℓ) (m′ : Morphism (Partial⊚ (Type X)) X) →
+    (X : ω-cppo ℓ ℓ) (m′ : Morphism (Partial⊚ (T X)) X) →
     (∀ x → function m′ (PI.now x) ≡ x) →
     fun X ≡ function m′
   fun-unique X m′ hyp =
@@ -288,7 +288,7 @@ Partial⊣Forget {ℓ} =
                     ⨆ Y _                         ≡⟨ sym $ ω-continuous (m Y) _ ⟩
                     fun Y (PI.⨆ _)                ≡⟨ cong (fun Y) $ sym $ ω-continuous m′ _ ⟩∎
                     fun Y (function m′ (PI.⨆ s))  ∎
-           ; pp = λ _ → Type-is-set Y
+           ; pp = λ _ → T-is-set Y
            })
 
 -- Thus we get that the partiality monad is a monad.
@@ -302,7 +302,7 @@ private
   -- the partiality monad.
 
   object-part-of-functor-correct :
-    ∀ {a} {A : SET a} →
+    ∀ {a} {A : Set a} →
     proj₁ (proj₁ Partiality-monad ⊚ A) ≡ proj₁ A ⊥
   object-part-of-functor-correct = refl
 
@@ -310,7 +310,7 @@ private
   -- definition in Partiality-monad.Inductive.Monad.
 
   map-correct :
-    ∀ {ℓ} {A B : SET ℓ} {f : proj₁ A → proj₁ B} →
+    ∀ {ℓ} {A B : Set ℓ} {f : proj₁ A → proj₁ B} →
     _⊙_ (proj₁ Partiality-monad) {X = A} {Y = B} f ≡
     PO.[_⊥→_⊥].function (PM.map f)
   map-correct = refl
@@ -318,7 +318,7 @@ private
   -- The definition of "return" is the expected one.
 
   return-correct :
-    ∀ {a} {A : SET a} →
+    ∀ {a} {A : Set a} →
     _⇾_.transformation (proj₁ (proj₂ Partiality-monad)) {X = A} ≡ PI.now
   return-correct = refl
 
@@ -326,7 +326,7 @@ private
   -- definition in Partiality-monad.Inductive.Monad.
 
   join-correct :
-    ∀ {a} {A : SET a} →
+    ∀ {a} {A : Set a} →
     _⇾_.transformation
       (proj₁ (proj₂ (proj₂ Partiality-monad))) {X = A} ≡
     PM.join

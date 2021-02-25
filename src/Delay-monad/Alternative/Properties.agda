@@ -27,7 +27,7 @@ open import Delay-monad.Alternative
 ------------------------------------------------------------------------
 -- Lemmas related to h-levels
 
-module _ {a} {A : Set a} where
+module _ {a} {A : Type a} where
 
   -- _↑ is a family of propositions.
 
@@ -136,7 +136,7 @@ module _ {a} {A : Set a} where
 -- Various properties relating _↓_, _↑ and the usual ordering of the
 -- natural numbers
 
-module _ {a} {A : Set a} where
+module _ {a} {A : Type a} where
 
   -- If f is increasing and f n has a value, then f (suc n) has the
   -- same value.
@@ -219,7 +219,7 @@ private
   -- Increasing (g ∘ f).
 
   Increasing-∘ :
-    ∀ {a b} {A : Set a} {B : Set b} {f : ℕ → Maybe A} →
+    ∀ {a b} {A : Type a} {B : Type b} {f : ℕ → Maybe A} →
     (g : Embedding (Maybe A) (Maybe B)) →
     Embedding.to g nothing ≡ nothing →
     (∀ {x} → Embedding.to g (just x) ≢ nothing) →

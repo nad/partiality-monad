@@ -14,7 +14,7 @@ open import Prelude hiding (⊥)
 open import Bijection equality-with-J using (_↔_)
 open import Equivalence equality-with-J as Eq using (_≃_)
 open import Function-universe equality-with-J hiding (id; _∘_)
-open import H-level equality-with-J hiding (Type)
+open import H-level equality-with-J
 open import H-level.Closure equality-with-J
 
 open import Partiality-algebra as PA hiding (_∘_)
@@ -24,7 +24,7 @@ import Partiality-algebra.Properties
 private
   variable
     a ℓ p q : Level
-    A       : Set a
+    A       : Type a
 
 mutual
 
@@ -39,7 +39,7 @@ mutual
 
     -- The partiality monad.
 
-    data _⊥ (A : Set a) : Set a where
+    data _⊥ (A : Type a) : Type a where
       never        : A ⊥
       now          : A → A ⊥
       ⨆            : Increasing-sequence A → A ⊥
@@ -55,14 +55,14 @@ mutual
 
   -- Increasing sequences.
 
-  Increasing-sequence : Set ℓ → Set ℓ
+  Increasing-sequence : Type ℓ → Type ℓ
   Increasing-sequence A =
     Σ (ℕ → A ⊥) λ f → ∀ n → f n ⊑ f (suc n)
 
   -- Upper bounds.
 
   Is-upper-bound :
-    {A : Set a} → Increasing-sequence A → A ⊥ → Set a
+    {A : Type a} → Increasing-sequence A → A ⊥ → Type a
   Is-upper-bound s x = ∀ n → (s [ n ]) ⊑ x
 
   -- A projection function for Increasing-sequence.
@@ -80,7 +80,7 @@ mutual
 
     -- An ordering relation.
 
-    data _⊑_ {A : Set a} : A ⊥ → A ⊥ → Set a where
+    data _⊑_ {A : Type a} : A ⊥ → A ⊥ → Type a where
       ⊑-refl            : ∀ x → x ⊑ x
       ⊑-trans           : x ⊑ y → y ⊑ z → x ⊑ z
       never⊑            : ∀ x → never ⊑ x
@@ -90,22 +90,22 @@ mutual
 
 -- A partiality algebra for the partiality monad.
 
-partiality-algebra : ∀ {a} (A : Set a) → Partiality-algebra a a A
+partiality-algebra : ∀ {a} (A : Type a) → Partiality-algebra a a A
 partiality-algebra A = record
-  { Type                    = A ⊥
+  { T                       = A ⊥
   ; partiality-algebra-with = record
-    { _⊑_                = _⊑_
-    ; never              = never′
-    ; now                = now′
-    ; ⨆                  = ⨆′
-    ; antisymmetry       = antisymmetry′
-    ; Type-is-set-unused = Type-is-set-unused′
-    ; ⊑-refl             = ⊑-refl′
-    ; ⊑-trans            = ⊑-trans′
-    ; never⊑             = never⊑′
-    ; upper-bound        = upper-bound′
-    ; least-upper-bound  = least-upper-bound′
-    ; ⊑-propositional    = ⊑-propositional′
+    { _⊑_               = _⊑_
+    ; never             = never′
+    ; now               = now′
+    ; ⨆                 = ⨆′
+    ; antisymmetry      = antisymmetry′
+    ; T-is-set-unused   = T-is-set-unused′
+    ; ⊑-refl            = ⊑-refl′
+    ; ⊑-trans           = ⊑-trans′
+    ; never⊑            = never⊑′
+    ; upper-bound       = upper-bound′
+    ; least-upper-bound = least-upper-bound′
+    ; ⊑-propositional   = ⊑-propositional′
     }
   }
   where
@@ -124,8 +124,8 @@ partiality-algebra A = record
     antisymmetry′ : x ⊑ y → y ⊑ x → x ≡ y
     antisymmetry′ = λ p q → _↔_.from ≡↔≡ (antisymmetry p q)
 
-    Type-is-set-unused′ : Is-set (A ⊥)
-    Type-is-set-unused′ =
+    T-is-set-unused′ : Is-set (A ⊥)
+    T-is-set-unused′ =
                       $⟨ (λ {x y} → ⊥-is-set-unused {x = x} {y = y}) ⟩
       P.Is-set (A ⊥)  ↝⟨ _↔_.from (H-level↔H-level 2) ⟩□
       Is-set (A ⊥)    □
@@ -213,12 +213,12 @@ abstract
             (λ p → _↔_.to (H-level↔H-level 1)
                      (A.qp (⊥-rec x) (⊥-rec y) p))
 
-module _ {A : Set a} where
+module _ {A : Type a} where
 
   open Partiality-algebra (partiality-algebra A) public
-    hiding (Type; _⊑_; _[_]; Increasing-sequence; Is-upper-bound)
-    renaming ( Type-is-set to ⊥-is-set
-             ; equality-characterisation-Type to
+    hiding (T; _⊑_; _[_]; Increasing-sequence; Is-upper-bound)
+    renaming ( T-is-set to ⊥-is-set
+             ; equality-characterisation-T to
                equality-characterisation-⊥
              )
 
@@ -226,7 +226,7 @@ module _ {A : Set a} where
 
 -- The eliminators' arguments.
 
-Arguments : ∀ {a} p q (A : Set a) → Set (a ⊔ lsuc (p ⊔ q))
+Arguments : ∀ {a} p q (A : Type a) → Type (a ⊔ lsuc (p ⊔ q))
 Arguments p q A = PAE.Arguments p q (partiality-algebra A)
 
 module _ (args : Arguments p q A) where

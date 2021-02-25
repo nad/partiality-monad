@@ -18,7 +18,7 @@ open import Vec.Function equality-with-J
 
 infixl 9 _·_
 
-data Tm (n : ℕ) : Set where
+data Tm (n : ℕ) : Type where
   var : (x : Fin n) → Tm n
   ƛ   : Tm (suc n) → Tm n
   _·_ : Tm n → Tm n → Tm n
@@ -29,19 +29,19 @@ data Tm (n : ℕ) : Set where
 -- Environments and values. Defined in a module parametrised by the
 -- type of terms.
 
-module Closure (Tm : ℕ → Set) where
+module Closure (Tm : ℕ → Type) where
 
   mutual
 
     -- Environments.
 
-    Env : ℕ → Set
+    Env : ℕ → Type
     Env n = Vec Value n
 
     -- Values. Lambdas are represented using closures, so values do
     -- not contain any free variables.
 
-    data Value : Set where
+    data Value : Type where
       ƛ : ∀ {n} (t : Tm (suc n)) (ρ : Env n) → Value
 
 ------------------------------------------------------------------------

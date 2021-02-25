@@ -21,10 +21,10 @@ open import Delay-monad.Bisimilarity
 -- The partiality monad, defined as the delay monad quotiented by
 -- (propositionally truncated) weak bisimilarity.
 
-_⊥ : ∀ {a} → Set a → Set a
+_⊥ : ∀ {a} → Type a → Type a
 A ⊥ = Delay A ∞ / λ x y → ∥ x ≈ y ∥
 
 -- The partiality monad is a set.
 
-⊥-is-set : ∀ {a} {A : Set a} → Is-set (A ⊥)
+⊥-is-set : ∀ {a} {A : Type a} → Is-set (A ⊥)
 ⊥-is-set = /-is-set

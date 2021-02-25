@@ -20,7 +20,7 @@ mutual
 
   -- Instructions.
 
-  data Instr (n : ℕ) : Set where
+  data Instr (n : ℕ) : Type where
     var : (x : Fin n) → Instr n
     clo : (c : Code (suc n)) → Instr n
     app : Instr n
@@ -28,7 +28,7 @@ mutual
 
   -- Code.
 
-  Code : ℕ → Set
+  Code : ℕ → Type
   Code n = List (Instr n)
 
 -- Environments and values.
@@ -40,16 +40,16 @@ open Closure Code
 
 -- Stacks.
 
-data StackElement : Set where
+data StackElement : Type where
   val : (v : Value) → StackElement
   ret : ∀ {n} (c : Code n) (ρ : Env n) → StackElement
 
-Stack : Set
+Stack : Type
 Stack = List StackElement
 
 -- States.
 
-data State : Set where
+data State : Type where
   ⟨_,_,_⟩ : ∀ {n} (c : Code n) (s : Stack) (ρ : Env n) → State
 
 pattern ⟨_∣_,_,_⟩ n c s ρ = ⟨_,_,_⟩ {n} c s ρ
@@ -59,7 +59,7 @@ pattern ⟨_∣_,_,_⟩ n c s ρ = ⟨_,_,_⟩ {n} c s ρ
 
 -- The result of running the VM one step.
 
-data Result : Set where
+data Result : Type where
   continue : (s : State) → Result
   done     : (v : Value) → Result
   crash    : Result

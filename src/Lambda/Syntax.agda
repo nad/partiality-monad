@@ -21,7 +21,7 @@ open import Vec.Function equality-with-J
 
 infixl 9 _·_
 
-data Tm (n : ℕ) : Set where
+data Tm (n : ℕ) : Type where
   con : (i : ℕ) → Tm n
   var : (x : Fin n) → Tm n
   ƛ   : Tm (suc n) → Tm n
@@ -33,19 +33,19 @@ data Tm (n : ℕ) : Set where
 -- Environments and values. Defined in a module parametrised by the
 -- type of terms.
 
-module Closure (Tm : ℕ → Set) where
+module Closure (Tm : ℕ → Type) where
 
   mutual
 
     -- Environments.
 
-    Env : ℕ → Set
+    Env : ℕ → Type
     Env n = Vec Value n
 
     -- Values. Lambdas are represented using closures, so values do
     -- not contain any free variables.
 
-    data Value : Set where
+    data Value : Type where
       con : (i : ℕ) → Value
       ƛ   : ∀ {n} (t : Tm (suc n)) (ρ : Env n) → Value
 
@@ -58,11 +58,11 @@ infixr 8 _⇾_
 
 mutual
 
-  data Ty (i : Size) : Set where
+  data Ty (i : Size) : Type where
     nat : Ty i
     _⇾_ : (σ τ : ∞Ty i) → Ty i
 
-  record ∞Ty (i : Size) : Set where
+  record ∞Ty (i : Size) : Type where
     coinductive
     field
       force : {j : Size< i} → Ty j
@@ -76,14 +76,14 @@ open ∞Ty public
 
 -- Contexts.
 
-Ctxt : ℕ → Set
+Ctxt : ℕ → Type
 Ctxt n = Vec (Ty ∞) n
 
 -- Type system.
 
 infix 4 _⊢_∈_
 
-data _⊢_∈_ {n} (Γ : Ctxt n) : Tm n → Ty ∞ → Set where
+data _⊢_∈_ {n} (Γ : Ctxt n) : Tm n → Ty ∞ → Type where
   con : ∀ {i} → Γ ⊢ con i ∈ nat
   var : ∀ {x} → Γ ⊢ var x ∈ Γ x
   ƛ   : ∀ {t σ τ} →
@@ -103,17 +103,17 @@ open Closure Tm
 
 mutual
 
-  data WF-Value : Ty ∞ → Value → Set where
+  data WF-Value : Ty ∞ → Value → Type where
     con : ∀ {i} → WF-Value nat (con i)
     ƛ   : ∀ {n Γ σ τ} {t : Tm (1 + n)} {ρ} →
           cons (force σ) Γ ⊢ t ∈ force τ →
           WF-Env Γ ρ →
           WF-Value (σ ⇾ τ) (ƛ t ρ)
 
-  WF-Env : ∀ {n} → Ctxt n → Env n → Set
+  WF-Env : ∀ {n} → Ctxt n → Env n → Type
   WF-Env Γ ρ = ∀ x → WF-Value (Γ x) (ρ x)
 
-WF-MV : Ty ∞ → Maybe Value → Set
+WF-MV : Ty ∞ → Maybe Value → Type
 WF-MV σ v = maybe (WF-Value σ) Prelude.⊥ v
 
 -- Some "constructors" for WF-Env.

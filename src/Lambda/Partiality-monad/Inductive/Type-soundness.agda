@@ -34,7 +34,7 @@ open Closure Tm
 
 -- A propositionally truncated variant of WF-MV.
 
-∥WF-MV∥ : Ty ∞ → Maybe Value → Set
+∥WF-MV∥ : Ty ∞ → Maybe Value → Type
 ∥WF-MV∥ σ x = ∥ WF-MV σ x ∥
 
 -- If we can prove □ (∥WF-MV∥ σ) (run x), then x does not "go wrong".

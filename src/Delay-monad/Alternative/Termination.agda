@@ -4,11 +4,12 @@
 
 {-# OPTIONS --cubical --safe --sized-types #-}
 
-module Delay-monad.Alternative.Termination {a} {A : Set a} where
+open import Prelude hiding (↑; module W)
+
+module Delay-monad.Alternative.Termination {a} {A : Type a} where
 
 open import Equality.Propositional.Cubical
 open import Logical-equivalence using (_⇔_)
-open import Prelude hiding (↑; module W)
 
 open import Equality.Decision-procedures equality-with-J
 open import Function-universe equality-with-J hiding (id; _∘_)
@@ -41,13 +42,13 @@ infix 4 _⇓_ _∥⇓∥_ _⇓′_
 --   two are logically equivalent. This definition does not use
 --   truncation, but is still propositional (if A is a set).
 
-_⇓_ : Delay A → A → Set a
+_⇓_ : Delay A → A → Type a
 (f , _) ⇓ y = ∃ λ n → f n ↓ y
 
-_∥⇓∥_ : Delay A → A → Set a
+_∥⇓∥_ : Delay A → A → Type a
 x ∥⇓∥ y = ∥ x ⇓ y ∥
 
-_⇓′_ : Delay A → A → Set _
+_⇓′_ : Delay A → A → Type _
 (f , _) ⇓′ y = ∃ λ m → f m ↓ y × (∀ n → ¬ f n ↑ → m N.≤ n)
 
 -- _⇓′_ is a family of propositions (if A is a set).

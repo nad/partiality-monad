@@ -37,7 +37,7 @@ open [_⊥→_⊥]
 
 private
 
-  =<<-args : ∀ {a b} {A : Set a} {B : Set b}
+  =<<-args : ∀ {a b} {A : Type a} {B : Type b}
              (f : A → B ⊥) → Arguments-nd b b A
   =<<-args {B = B} f = record
     { P  = B ⊥
@@ -57,7 +57,7 @@ private
 
 infix 50 _∗ _∗-inc_
 
-_∗ : ∀ {a b} {A : Set a} {B : Set b} →
+_∗ : ∀ {a b} {A : Type a} {B : Type b} →
      (A → B ⊥) → [ A ⊥→ B ⊥]
 f ∗ = record
   { monotone-function = record
@@ -69,7 +69,7 @@ f ∗ = record
       ⨆ (inc-rec-nd (=<<-args f) s)  ∎
   }
 
-_∗-inc_ : ∀ {a b} {A : Set a} {B : Set b} →
+_∗-inc_ : ∀ {a b} {A : Type a} {B : Type b} →
           (A → B ⊥) → Increasing-sequence A → Increasing-sequence B
 _∗-inc_ f = inc-rec-nd (=<<-args f)
 
@@ -77,26 +77,26 @@ _∗-inc_ f = inc-rec-nd (=<<-args f)
 
 infixl 5 _>>=′_
 
-_>>=′_ : ∀ {a b} {A : Set a} {B : Set b} →
+_>>=′_ : ∀ {a b} {A : Type a} {B : Type b} →
          A ⊥ → (A → B ⊥) → B ⊥
 x >>=′ f = function (f ∗) x
 
 -- Join.
 
-join : ∀ {a} {A : Set a} → A ⊥ ⊥ → A ⊥
+join : ∀ {a} {A : Type a} → A ⊥ ⊥ → A ⊥
 join x = x >>=′ id
 
 -- "Computation" rules for bind.
 
-never->>= : ∀ {a b} {A : Set a} {B : Set b} {f : A → B ⊥} →
+never->>= : ∀ {a b} {A : Type a} {B : Type b} {f : A → B ⊥} →
             never >>=′ f ≡ never
 never->>= = ⊥-rec-nd-never (=<<-args _)
 
-now->>= : ∀ {a b} {A : Set a} {B : Set b} {f : A → B ⊥} {x} →
+now->>= : ∀ {a b} {A : Type a} {B : Type b} {f : A → B ⊥} {x} →
           now x >>=′ f ≡ f x
 now->>= = ⊥-rec-nd-now (=<<-args _) _
 
-⨆->>= : ∀ {a b} {A : Set a} {B : Set b} {f : A → B ⊥} {s} →
+⨆->>= : ∀ {a b} {A : Type a} {B : Type b} {f : A → B ⊥} {s} →
         ⨆ s >>=′ f ≡ ⨆ (f ∗-inc s)
 ⨆->>= = ⊥-rec-nd-⨆ (=<<-args _) _
 
@@ -105,7 +105,7 @@ now->>= = ⊥-rec-nd-now (=<<-args _) _
 infixl 5 _>>=-mono_
 
 _>>=-mono_ :
-  ∀ {a b} {A : Set a} {B : Set b} {x y : A ⊥} {f g : A → B ⊥} →
+  ∀ {a b} {A : Type a} {B : Type b} {x y : A ⊥} {f g : A → B ⊥} →
   x ⊑ y → (∀ z → f z ⊑ g z) → x >>=′ f ⊑ y >>=′ g
 _>>=-mono_ {x = x} {y} {f} {g} x⊑y f⊑g =
   x >>=′ f ⊑⟨ monotone (f ∗) x⊑y ⟩
@@ -133,11 +133,11 @@ _>>=-mono_ {x = x} {y} {f} {g} x⊑y f⊑g =
 
 module Monad-laws where
 
-  left-identity : ∀ {a b} {A : Set a} {B : Set b} x (f : A → B ⊥) →
+  left-identity : ∀ {a b} {A : Type a} {B : Type b} x (f : A → B ⊥) →
                   now x >>=′ f ≡ f x
   left-identity _ _ = now->>=
 
-  right-identity : ∀ {a} {A : Set a} (x : A ⊥) →
+  right-identity : ∀ {a} {A : Type a} (x : A ⊥) →
                    x >>=′ now ≡ x
   right-identity = ⊥-rec-⊥
     (record
@@ -157,7 +157,7 @@ module Monad-laws where
        ; pp = λ _ → ⊥-is-set
        })
 
-  associativity : ∀ {a b c} {A : Set a} {B : Set b} {C : Set c} →
+  associativity : ∀ {a b c} {A : Type a} {B : Type b} {C : Type c} →
                   (x : A ⊥) (f : A → B ⊥) (g : B → C ⊥) →
                   x >>=′ (λ x → f x >>=′ g) ≡ x >>=′ f >>=′ g
   associativity x f g = ⊥-rec-⊥
@@ -203,11 +203,11 @@ instance
 ------------------------------------------------------------------------
 -- _⊥ is a functor
 
-map : ∀ {a b} {A : Set a} {B : Set b} →
+map : ∀ {a b} {A : Type a} {B : Type b} →
       (A → B) → [ A ⊥→ B ⊥]
 map f = (return ∘ f) ∗
 
-map-id : ∀ {a} {A : Set a} →
+map-id : ∀ {a} {A : Type a} →
          map (id {A = A}) ≡ idω
 map-id =
   return ∗  ≡⟨ _↔_.to equality-characterisation-continuous (λ x →
@@ -217,7 +217,7 @@ map-id =
 
   idω       ∎
 
-map-∘ : ∀ {a b c} {A : Set a} {B : Set b} {C : Set c}
+map-∘ : ∀ {a b c} {A : Type a} {B : Type b} {C : Type c}
         (f : B → C) (g : A → B) →
         map (f ∘ g) ≡ map f ∘ω map g
 map-∘ f g =
@@ -235,7 +235,7 @@ map-∘ f g =
 -- A kind of inversion lemma for _⇓_.
 
 >>=-⇓ :
-  ∀ {a b} {A : Set a} {B : Set b}
+  ∀ {a b} {A : Type a} {B : Type b}
     {x : A ⊥} {f : A → B ⊥} {y} →
   (x >>=′ f ⇓ y) ≃ ∥ ∃ (λ z → x ⇓ z × f z ⇓ y) ∥
 >>=-⇓ {x = x} {f} {y} = ⊥-rec-⊥
@@ -282,7 +282,8 @@ map-∘ f g =
 -- □ is closed, in a certain sense, under bind.
 
 □->>= :
-  ∀ {a b p q} {A : Set a} {B : Set b} {P : A → Set p} {Q : B → Set q}
+  ∀ {a b p q}
+    {A : Type a} {B : Type b} {P : A → Type p} {Q : B → Type q}
     {x : A ⊥} {f : A → B ⊥} →
   (∀ x → Is-proposition (Q x)) →
   □ P x → (∀ {x} → P x → □ Q (f x)) → □ Q (x >>=′ f)
@@ -294,7 +295,8 @@ map-∘ f g =
 -- ◇ is closed, in a certain sense, under bind.
 
 ◇->>= :
-  ∀ {a b p q} {A : Set a} {B : Set b} {P : A → Set p} {Q : B → Set q}
+  ∀ {a b p q}
+    {A : Type a} {B : Type b} {P : A → Type p} {Q : B → Type q}
     {x : A ⊥} {f : A → B ⊥} →
   ◇ P x → (∀ {x} → P x → ◇ Q (f x)) → ◇ Q (x >>=′ f)
 ◇->>= {x = x} {f} ◇-x ◇-f = Trunc.rec
@@ -315,7 +317,7 @@ map-∘ f g =
 -- Certain nested occurrences of ⨆ can be replaced by a single one.
 
 ⨆>>=⨆≡⨆>>= :
-  ∀ {a b} {A : Set a} {B : Set b} →
+  ∀ {a b} {A : Type a} {B : Type b} →
   ∀ (s : Increasing-sequence A) (f : A → Increasing-sequence B)
     {inc₁ inc₂} →
   ⨆ ((λ n → s [ n ] >>=′ ⨆ ∘ f) , inc₁) ≡

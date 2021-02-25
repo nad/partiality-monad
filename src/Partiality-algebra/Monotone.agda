@@ -20,22 +20,22 @@ import Partiality-algebra.Properties as PAP
 -- Definition of monotone functions.
 
 record [_⟶_]⊑
-         {a₁ p₁ q₁} {A₁ : Set a₁} (P₁ : Partiality-algebra p₁ q₁ A₁)
-         {a₂ p₂ q₂} {A₂ : Set a₂} (P₂ : Partiality-algebra p₂ q₂ A₂) :
-         Set (p₁ ⊔ p₂ ⊔ q₁ ⊔ q₂) where
+         {a₁ p₁ q₁} {A₁ : Type a₁} (P₁ : Partiality-algebra p₁ q₁ A₁)
+         {a₂ p₂ q₂} {A₂ : Type a₂} (P₂ : Partiality-algebra p₂ q₂ A₂) :
+         Type (p₁ ⊔ p₂ ⊔ q₁ ⊔ q₂) where
   private
     module P₁ = Partiality-algebra P₁
     module P₂ = Partiality-algebra P₂
 
   field
-    function : P₁.Type → P₂.Type
+    function : P₁.T → P₂.T
     monotone : ∀ {x y} → x P₁.⊑ y → function x P₂.⊑ function y
 
 open [_⟶_]⊑
 
 -- Identity.
 
-id⊑ : ∀ {a p q} {A : Set a} {P : Partiality-algebra p q A} →
+id⊑ : ∀ {a p q} {A : Type a} {P : Partiality-algebra p q A} →
       [ P ⟶ P ]⊑
 function id⊑ = id
 monotone id⊑ = id
@@ -45,9 +45,9 @@ monotone id⊑ = id
 infixr 40 _∘⊑_
 
 _∘⊑_ :
-  ∀ {a₁ p₁ q₁} {A₁ : Set a₁} {P₁ : Partiality-algebra p₁ q₁ A₁}
-    {a₂ p₂ q₂} {A₂ : Set a₂} {P₂ : Partiality-algebra p₂ q₂ A₂}
-    {a₃ p₃ q₃} {A₃ : Set a₃} {P₃ : Partiality-algebra p₃ q₃ A₃} →
+  ∀ {a₁ p₁ q₁} {A₁ : Type a₁} {P₁ : Partiality-algebra p₁ q₁ A₁}
+    {a₂ p₂ q₂} {A₂ : Type a₂} {P₂ : Partiality-algebra p₂ q₂ A₂}
+    {a₃ p₃ q₃} {A₃ : Type a₃} {P₃ : Partiality-algebra p₃ q₃ A₃} →
   [ P₂ ⟶ P₃ ]⊑ → [ P₁ ⟶ P₂ ]⊑ → [ P₁ ⟶ P₃ ]⊑
 function (f ∘⊑ g) = function f ∘ function g
 monotone (f ∘⊑ g) = monotone f ∘ monotone g
@@ -55,8 +55,8 @@ monotone (f ∘⊑ g) = monotone f ∘ monotone g
 -- Equality characterisation lemma for monotone functions.
 
 equality-characterisation-monotone :
-  ∀ {a₁ p₁ q₁} {A₁ : Set a₁} {P₁ : Partiality-algebra p₁ q₁ A₁}
-    {a₂ p₂ q₂} {A₂ : Set a₂} {P₂ : Partiality-algebra p₂ q₂ A₂}
+  ∀ {a₁ p₁ q₁} {A₁ : Type a₁} {P₁ : Partiality-algebra p₁ q₁ A₁}
+    {a₂ p₂ q₂} {A₂ : Type a₂} {P₂ : Partiality-algebra p₂ q₂ A₂}
     {f g : [ P₁ ⟶ P₂ ]⊑} →
   (∀ x → function f x ≡ function g x) ↔ f ≡ g
 equality-characterisation-monotone {P₁ = P₁} {P₂ = P₂} {f} {g} =
@@ -77,7 +77,7 @@ equality-characterisation-monotone {P₁ = P₁} {P₂ = P₂} {f} {g} =
   rearrange :
     [ P₁ ⟶ P₂ ]⊑
       ↔
-    ∃ λ (h : P₁.Type → P₂.Type) →
+    ∃ λ (h : P₁.T → P₂.T) →
       ∀ {x y} → x P₁.⊑ y → h x P₂.⊑ h y
   rearrange = record
     { surjection = record
@@ -95,18 +95,18 @@ equality-characterisation-monotone {P₁ = P₁} {P₂ = P₂} {f} {g} =
 -- Composition is associative.
 
 ∘⊑-assoc :
-  ∀ {a₁ p₁ q₁} {A₁ : Set a₁} {P₁ : Partiality-algebra p₁ q₁ A₁}
-    {a₂ p₂ q₂} {A₂ : Set a₂} {P₂ : Partiality-algebra p₂ q₂ A₂}
-    {a₃ p₃ q₃} {A₃ : Set a₃} {P₃ : Partiality-algebra p₃ q₃ A₃}
-    {a₄ p₄ q₄} {A₄ : Set a₄} {P₄ : Partiality-algebra p₄ q₄ A₄}
+  ∀ {a₁ p₁ q₁} {A₁ : Type a₁} {P₁ : Partiality-algebra p₁ q₁ A₁}
+    {a₂ p₂ q₂} {A₂ : Type a₂} {P₂ : Partiality-algebra p₂ q₂ A₂}
+    {a₃ p₃ q₃} {A₃ : Type a₃} {P₃ : Partiality-algebra p₃ q₃ A₃}
+    {a₄ p₄ q₄} {A₄ : Type a₄} {P₄ : Partiality-algebra p₄ q₄ A₄}
   (f : [ P₃ ⟶ P₄ ]⊑) (g : [ P₂ ⟶ P₃ ]⊑) {h : [ P₁ ⟶ P₂ ]⊑} →
   f ∘⊑ (g ∘⊑ h) ≡ (f ∘⊑ g) ∘⊑ h
 ∘⊑-assoc _ _ =
   _↔_.to equality-characterisation-monotone λ _ → refl
 
 module _
-  {a₁ p₁ q₁} {A₁ : Set a₁} {P₁ : Partiality-algebra p₁ q₁ A₁}
-  {a₂ p₂ q₂} {A₂ : Set a₂} {P₂ : Partiality-algebra p₂ q₂ A₂} where
+  {a₁ p₁ q₁} {A₁ : Type a₁} {P₁ : Partiality-algebra p₁ q₁ A₁}
+  {a₂ p₂ q₂} {A₂ : Type a₂} {P₂ : Partiality-algebra p₂ q₂ A₂} where
 
   private
     module P₁   = Partiality-algebra P₁

@@ -20,14 +20,14 @@ open import Partiality-monad.Inductive
 -- Non-dependent eliminators
 
 Inc-nd : ∀ {a p q}
-         (A : Set a) (P : Set p)
-         (Q : P → P → Set q) → Set (p ⊔ q)
+         (A : Type a) (P : Type p)
+         (Q : P → P → Type q) → Type (p ⊔ q)
 Inc-nd A P Q = ∃ λ (p : ℕ → P) → ∀ n → Q (p n) (p (suc n))
 
-record Arguments-nd {a} p q (A : Set a) : Set (a ⊔ lsuc (p ⊔ q)) where
+record Arguments-nd {a} p q (A : Type a) : Type (a ⊔ lsuc (p ⊔ q)) where
   field
-    P  : Set p
-    Q  : P → P → Set q
+    P  : Type p
+    Q  : P → P → Type q
     pe : P
     po : (x : A) → P
     pl : (s : Increasing-sequence A) (pq : Inc-nd A P Q) → P
@@ -44,7 +44,7 @@ record Arguments-nd {a} p q (A : Set a) : Set (a ⊔ lsuc (p ⊔ q)) where
          Q (pl s pq) pu
     qp : (p₁ p₂ : P) → Is-proposition (Q p₁ p₂)
 
-module _ {a p q} {A : Set a} (args : Arguments-nd p q A) where
+module _ {a p q} {A : Type a} (args : Arguments-nd p q A) where
 
   open Arguments-nd args
 
@@ -91,15 +91,15 @@ module _ {a p q} {A : Set a} (args : Arguments-nd p q A) where
 ------------------------------------------------------------------------
 -- Eliminators which are trivial for _⊑_
 
-record Arguments-⊥ {a} p (A : Set a) : Set (a ⊔ lsuc p) where
+record Arguments-⊥ {a} p (A : Type a) : Type (a ⊔ lsuc p) where
   field
-    P  : A ⊥ → Set p
+    P  : A ⊥ → Type p
     pe : P never
     po : ∀ x → P (now x)
     pl : ∀ s (p : ∀ n → P (s [ n ])) → P (⨆ s)
     pp : ∀ x → Is-proposition (P x)
 
-module _ {a p} {A : Set a} (args : Arguments-⊥ p A) where
+module _ {a p} {A : Type a} (args : Arguments-⊥ p A) where
 
   open Arguments-⊥ args
 
@@ -129,9 +129,9 @@ module _ {a p} {A : Set a} (args : Arguments-⊥ p A) where
 ------------------------------------------------------------------------
 -- Eliminators which are trivial for _⊥
 
-record Arguments-⊑ {a} q (A : Set a) : Set (a ⊔ lsuc q) where
+record Arguments-⊑ {a} q (A : Type a) : Type (a ⊔ lsuc q) where
   field
-    Q  : {x y : A ⊥} → x ⊑ y → Set q
+    Q  : {x y : A ⊥} → x ⊑ y → Type q
     qr : ∀ x → Q (⊑-refl x)
     qt : ∀ {x y z} (x⊑y : x ⊑ y) (y⊑z : y ⊑ z) →
          Q x⊑y → Q y⊑z → Q (⊑-trans x⊑y y⊑z)
@@ -144,7 +144,7 @@ record Arguments-⊑ {a} q (A : Set a) : Set (a ⊔ lsuc q) where
     qp : ∀ {x y} (x⊑y : x ⊑ y) →
          Is-proposition (Q x⊑y)
 
-module _ {a q} {A : Set a} (args : Arguments-⊑ q A) where
+module _ {a q} {A : Type a} (args : Arguments-⊑ q A) where
 
   open Arguments-⊑ args
 

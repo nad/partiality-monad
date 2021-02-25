@@ -1,3 +1,4 @@
 name: partiality-monad
 depend: equality delay-monad
 include: src
+flags: --no-import-sorts

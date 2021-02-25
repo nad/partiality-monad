@@ -20,9 +20,9 @@ open import Partiality-algebra.Monotone
 -- Definition of ω-continuous functions.
 
 record [_⟶_]
-         {a₁ p₁ q₁} {A₁ : Set a₁} (P₁ : Partiality-algebra p₁ q₁ A₁)
-         {a₂ p₂ q₂} {A₂ : Set a₂} (P₂ : Partiality-algebra p₂ q₂ A₂) :
-         Set (p₁ ⊔ p₂ ⊔ q₁ ⊔ q₂) where
+         {a₁ p₁ q₁} {A₁ : Type a₁} (P₁ : Partiality-algebra p₁ q₁ A₁)
+         {a₂ p₂ q₂} {A₂ : Type a₂} (P₂ : Partiality-algebra p₂ q₂ A₂) :
+         Type (p₁ ⊔ p₂ ⊔ q₁ ⊔ q₂) where
   private
     module P₁ = Partiality-algebra P₁
     module P₂ = Partiality-algebra P₂
@@ -40,7 +40,7 @@ open [_⟶_]
 
 -- Identity.
 
-idω : ∀ {a p q} {A : Set a} {P : Partiality-algebra p q A} →
+idω : ∀ {a p q} {A : Type a} {P : Partiality-algebra p q A} →
       [ P ⟶ P ]
 monotone-function idω   = id⊑
 ω-continuous      idω _ = refl
@@ -50,9 +50,9 @@ monotone-function idω   = id⊑
 infixr 40 _∘ω_
 
 _∘ω_ :
-  ∀ {a₁ p₁ q₁} {A₁ : Set a₁} {P₁ : Partiality-algebra p₁ q₁ A₁}
-    {a₂ p₂ q₂} {A₂ : Set a₂} {P₂ : Partiality-algebra p₂ q₂ A₂}
-    {a₃ p₃ q₃} {A₃ : Set a₃} {P₃ : Partiality-algebra p₃ q₃ A₃} →
+  ∀ {a₁ p₁ q₁} {A₁ : Type a₁} {P₁ : Partiality-algebra p₁ q₁ A₁}
+    {a₂ p₂ q₂} {A₂ : Type a₂} {P₂ : Partiality-algebra p₂ q₂ A₂}
+    {a₃ p₃ q₃} {A₃ : Type a₃} {P₃ : Partiality-algebra p₃ q₃ A₃} →
   [ P₂ ⟶ P₃ ] → [ P₁ ⟶ P₂ ] → [ P₁ ⟶ P₃ ]
 monotone-function (f ∘ω g) = monotone-function f ∘⊑ monotone-function g
 
@@ -68,15 +68,15 @@ monotone-function (f ∘ω g) = monotone-function f ∘⊑ monotone-function g
 -- Equality characterisation lemma for ω-continuous functions.
 
 equality-characterisation-continuous :
-  ∀ {a₁ p₁ q₁} {A₁ : Set a₁} {P₁ : Partiality-algebra p₁ q₁ A₁}
-    {a₂ p₂ q₂} {A₂ : Set a₂} {P₂ : Partiality-algebra p₂ q₂ A₂}
+  ∀ {a₁ p₁ q₁} {A₁ : Type a₁} {P₁ : Partiality-algebra p₁ q₁ A₁}
+    {a₂ p₂ q₂} {A₂ : Type a₂} {P₂ : Partiality-algebra p₂ q₂ A₂}
     {f g : [ P₁ ⟶ P₂ ]} →
   (∀ x → function f x ≡ function g x) ↔ f ≡ g
 equality-characterisation-continuous {P₁ = P₁} {P₂ = P₂} {f} {g} =
   (∀ x → function f x ≡ function g x)        ↝⟨ equality-characterisation-monotone ⟩
   monotone-function f ≡ monotone-function g  ↝⟨ ignore-propositional-component
                                                   (Π-closure ext 1 λ _ →
-                                                   P₂.Type-is-set) ⟩
+                                                   P₂.T-is-set) ⟩
   _↔_.to rearrange f ≡ _↔_.to rearrange g    ↔⟨ Eq.≃-≡ (Eq.↔⇒≃ rearrange) ⟩□
   f ≡ g                                      □
   where
@@ -106,10 +106,10 @@ equality-characterisation-continuous {P₁ = P₁} {P₂ = P₂} {f} {g} =
 -- Composition is associative.
 
 ∘ω-assoc :
-  ∀ {a₁ p₁ q₁} {A₁ : Set a₁} {P₁ : Partiality-algebra p₁ q₁ A₁}
-    {a₂ p₂ q₂} {A₂ : Set a₂} {P₂ : Partiality-algebra p₂ q₂ A₂}
-    {a₃ p₃ q₃} {A₃ : Set a₃} {P₃ : Partiality-algebra p₃ q₃ A₃}
-    {a₄ p₄ q₄} {A₄ : Set a₄} {P₄ : Partiality-algebra p₄ q₄ A₄}
+  ∀ {a₁ p₁ q₁} {A₁ : Type a₁} {P₁ : Partiality-algebra p₁ q₁ A₁}
+    {a₂ p₂ q₂} {A₂ : Type a₂} {P₂ : Partiality-algebra p₂ q₂ A₂}
+    {a₃ p₃ q₃} {A₃ : Type a₃} {P₃ : Partiality-algebra p₃ q₃ A₃}
+    {a₄ p₄ q₄} {A₄ : Type a₄} {P₄ : Partiality-algebra p₄ q₄ A₄}
   (f : [ P₃ ⟶ P₄ ]) (g : [ P₂ ⟶ P₃ ]) (h : [ P₁ ⟶ P₂ ]) →
   f ∘ω (g ∘ω h) ≡ (f ∘ω g) ∘ω h
 ∘ω-assoc _ _ _ =

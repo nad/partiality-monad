@@ -4,10 +4,11 @@
 
 {-# OPTIONS --cubical --safe #-}
 
-module Partiality-monad.Inductive.Approximate {a} {A : Set a} where
+open import Prelude hiding (⊥)
+
+module Partiality-monad.Inductive.Approximate {a} {A : Type a} where
 
 open import Equality.Propositional.Cubical
-open import Prelude hiding (⊥)
 
 open import H-level.Truncation.Propositional equality-with-paths
 

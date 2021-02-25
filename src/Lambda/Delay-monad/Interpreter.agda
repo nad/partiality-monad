@@ -27,24 +27,24 @@ open Closure Tm
 
 -- The interpreter monad.
 
-M : ∀ {ℓ} → Size → Set ℓ → Set ℓ
+M : ∀ {ℓ} → Size → Type ℓ → Type ℓ
 M i = MaybeT (λ A → Delay A i)
 
 -- A variant of the interpreter monad.
 
-M′ : ∀ {ℓ} → Size → Set ℓ → Set ℓ
+M′ : ∀ {ℓ} → Size → Type ℓ → Type ℓ
 M′ i = MaybeT (λ A → Delay′ A i)
 
 -- A lifted variant of later.
 
-laterM : ∀ {i a} {A : Set a} → M′ i A → M i A
+laterM : ∀ {i a} {A : Type a} → M′ i A → M i A
 run (laterM x) = later (run x)
 
 -- A lifted variant of weak bisimilarity.
 
 infix 4 _≈M_
 
-_≈M_ : ∀ {a} {A : Set a} → M ∞ A → M ∞ A → Set a
+_≈M_ : ∀ {a} {A : Type a} → M ∞ A → M ∞ A → Type a
 x ≈M y = run x ≈ run y
 
 ------------------------------------------------------------------------

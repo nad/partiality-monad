@@ -26,18 +26,18 @@ import Partiality-monad.Coinductive as C
 -- The partiality monad, defined as the alternative definition of the
 -- delay monad quotiented by weak bisimilarity.
 
-_⊥ : ∀ {a} → Set a → Set a
+_⊥ : ∀ {a} → Type a → Type a
 A ⊥ = A.Delay A / A._≈_
 
 -- The partiality monad is a set.
 
-⊥-is-set : ∀ {a} {A : Set a} → Is-set (A ⊥)
+⊥-is-set : ∀ {a} {A : Type a} → Is-set (A ⊥)
 ⊥-is-set = /-is-set
 
 -- This definition of the partiality monad is isomorphic to the one in
 -- Partiality-monad.Coinductive, for sets, assuming extensionality.
 
-⊥↔⊥ : ∀ {a} {A : Set a} →
+⊥↔⊥ : ∀ {a} {A : Type a} →
       Is-set A →
       B.Extensionality a →
       A ⊥ ↔ A C.⊥

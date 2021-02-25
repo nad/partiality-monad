@@ -4,11 +4,12 @@
 
 {-# OPTIONS --cubical --safe --sized-types #-}
 
-module Delay-monad.Alternative.Weak-bisimilarity {a} {A : Set a} where
+open import Prelude hiding (module W)
+
+module Delay-monad.Alternative.Weak-bisimilarity {a} {A : Type a} where
 
 open import Equality.Propositional
 open import Logical-equivalence using (_⇔_)
-open import Prelude hiding (module W)
 
 open import Equivalence-relation equality-with-J
 open import Function-universe equality-with-J
@@ -25,7 +26,7 @@ infix 4 _≈_
 
 -- Weak bisimilarity.
 
-_≈_ : Delay A → Delay A → Set a
+_≈_ : Delay A → Delay A → Type a
 x ≈ y = x ∥⊑∥ y × y ∥⊑∥ x
 
 -- Weak bisimilarity is pointwise propositional.

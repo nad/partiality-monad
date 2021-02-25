@@ -8,12 +8,12 @@ module Partiality-algebra where
 
 open import Equality.Propositional.Cubical
 open import Logical-equivalence using (_⇔_)
-open import Prelude hiding (id) renaming (_∘_ to _⊚_)
+open import Prelude hiding (id; T) renaming (_∘_ to _⊚_)
 
 open import Bijection equality-with-J as Bijection using (_↔_)
 open import Equivalence equality-with-J as Eq using (_≃_)
 open import Function-universe equality-with-J as F hiding (id; _∘_)
-open import H-level equality-with-J as H-level hiding (Type)
+open import H-level equality-with-J as H-level
 open import H-level.Closure equality-with-J
 open import Univalence-axiom equality-with-J
 
@@ -21,31 +21,31 @@ open import Univalence-axiom equality-with-J
 -- Partiality algebras
 
 -- Partiality algebras for certain universe levels and types, with a
--- certain underlying type.
+-- certain underlying type (T).
 
 record Partiality-algebra-with
-  {a p} (Type : Set p) q (A : Set a) : Set (a ⊔ p ⊔ lsuc q) where
+  {a p} (T : Type p) q (A : Type a) : Type (a ⊔ p ⊔ lsuc q) where
 
   -- A binary relation on the type.
 
   infix 4 _⊑_ _⊒_
 
   field
-    _⊑_ : Type → Type → Set q
+    _⊑_ : T → T → Type q
 
-  _⊒_ : Type → Type → Set q
+  _⊒_ : T → T → Type q
   _⊒_ x y = y ⊑ x
 
   -- Increasing sequences.
 
-  Increasing-sequence : Set (p ⊔ q)
-  Increasing-sequence = ∃ λ (f : ℕ → Type) → ∀ n → f n ⊑ f (suc n)
+  Increasing-sequence : Type (p ⊔ q)
+  Increasing-sequence = ∃ λ (f : ℕ → T) → ∀ n → f n ⊑ f (suc n)
 
   -- Projection functions for Increasing-sequence.
 
   infix 30 _[_]
 
-  _[_] : Increasing-sequence → ℕ → Type
+  _[_] : Increasing-sequence → ℕ → T
   _[_] s n = proj₁ s n
 
   increasing : (s : Increasing-sequence) →
@@ -54,15 +54,15 @@ record Partiality-algebra-with
 
   -- Upper bounds.
 
-  Is-upper-bound : Increasing-sequence → Type → Set q
+  Is-upper-bound : Increasing-sequence → T → Type q
   Is-upper-bound s x = ∀ n → (s [ n ]) ⊑ x
 
   field
-    -- Type "constructors".
+    -- T "constructors".
 
-    never        : Type
-    now          : A → Type
-    ⨆            : Increasing-sequence → Type
+    never        : T
+    now          : A → T
+    ⨆            : Increasing-sequence → T
     antisymmetry : ∀ {x y} → x ⊑ y → y ⊑ x → x ≡ y
 
     -- We have chosen to explicitly make the type set-truncated.
@@ -70,7 +70,7 @@ record Partiality-algebra-with
     -- development (except when partiality algebras are modified, see
     -- for instance equality-characterisation-Partiality-algebra-with₁
     -- or Partiality-algebra.Pi.Π-with).
-    Type-is-set-unused : Is-set Type
+    T-is-set-unused : Is-set T
 
     -- _⊑_ "constructors".
 
@@ -88,27 +88,27 @@ record Partiality-algebra-with
 
     -- A lemma.
 
-    Type-is-set-and-equality-characterisation : Is-set Type × _
-    Type-is-set-and-equality-characterisation =
+    T-is-set-and-equality-characterisation : Is-set T × _
+    T-is-set-and-equality-characterisation =
       Eq.propositional-identity≃≡
         (λ x y → x ⊑ y × y ⊑ x)
         (λ _ _ → ×-closure 1 ⊑-propositional ⊑-propositional)
         (λ x → ⊑-refl x , ⊑-refl x)
         (λ x y → uncurry {B = λ _ → y ⊑ x} antisymmetry)
 
-  -- Type is a set. (This lemma is analogous to Theorem 11.3.9 in
+  -- T is a set. (This lemma is analogous to Theorem 11.3.9 in
   -- "Homotopy Type Theory: Univalent Foundations of Mathematics"
   -- (first edition).)
 
-  Type-is-set : Is-set Type
-  Type-is-set = proj₁ Type-is-set-and-equality-characterisation
+  T-is-set : Is-set T
+  T-is-set = proj₁ T-is-set-and-equality-characterisation
 
-  -- Equality characterisation lemma for Type.
+  -- Equality characterisation lemma for T.
 
-  equality-characterisation-Type :
+  equality-characterisation-T :
     ∀ {x y} → (x ⊑ y × y ⊑ x) ≃ (x ≡ y)
-  equality-characterisation-Type =
-    proj₂ Type-is-set-and-equality-characterisation ext
+  equality-characterisation-T =
+    proj₂ T-is-set-and-equality-characterisation ext
 
   -- Equality characterisation lemma for increasing sequences.
 
@@ -123,17 +123,17 @@ record Partiality-algebra-with
 
 -- Partiality algebras for certain universe levels and types.
 
-record Partiality-algebra {a} p q (A : Set a) :
-                          Set (a ⊔ lsuc (p ⊔ q)) where
+record Partiality-algebra {a} p q (A : Type a) :
+                          Type (a ⊔ lsuc (p ⊔ q)) where
   constructor ⟨_⟩
   field
     -- A type.
 
-    {Type} : Set p
+    {T} : Type p
 
     -- A partiality-algebra with that type as the underlying type.
 
-    partiality-algebra-with : Partiality-algebra-with Type q A
+    partiality-algebra-with : Partiality-algebra-with T q A
 
   open Partiality-algebra-with partiality-algebra-with public
 
@@ -142,17 +142,17 @@ record Partiality-algebra {a} p q (A : Set a) :
 
 -- Morphisms from one partiality algebra to another.
 
-record Morphism {a p₁ p₂ q₁ q₂} {A : Set a}
+record Morphism {a p₁ p₂ q₁ q₂} {A : Type a}
                 (P₁ : Partiality-algebra p₁ q₁ A)
                 (P₂ : Partiality-algebra p₂ q₂ A) :
-                Set (a ⊔ p₁ ⊔ p₂ ⊔ q₁ ⊔ q₂) where
+                Type (a ⊔ p₁ ⊔ p₂ ⊔ q₁ ⊔ q₂) where
 
   private
     module P₁ = Partiality-algebra P₁
     module P₂ = Partiality-algebra P₂
 
   field
-    function : P₁.Type → P₂.Type
+    function : P₁.T → P₂.T
     monotone : ∀ {x y} → x P₁.⊑ y → function x P₂.⊑ function y
 
   sequence-function : P₁.Increasing-sequence → P₂.Increasing-sequence
@@ -165,7 +165,9 @@ record Morphism {a p₁ p₂ q₁ q₂} {A : Set a}
 
 -- An identity morphism.
 
-id : ∀ {a p q} {A : Set a} {P : Partiality-algebra p q A} → Morphism P P
+id :
+  ∀ {a p q} {A : Type a} {P : Partiality-algebra p q A} →
+  Morphism P P
 id = record
   { function     = Prelude.id
   ; monotone     = Prelude.id
@@ -176,7 +178,7 @@ id = record
 
 -- Composition of morphisms.
 
-_∘_ : ∀ {a p₁ p₂ p₃ q₁ q₂ q₃} {A : Set a}
+_∘_ : ∀ {a p₁ p₂ p₃ q₁ q₂ q₃} {A : Type a}
         {P₁ : Partiality-algebra p₁ q₁ A}
         {P₂ : Partiality-algebra p₂ q₂ A}
         {P₃ : Partiality-algebra p₃ q₃ A} →
@@ -203,10 +205,10 @@ _∘_ {P₁ = P₁} {P₂} {P₃} m₁ m₂ = record
 -- Is-morphism-with P Q f holds if f is a morphism from P to Q.
 
 Is-morphism-with :
-  ∀ {a p₁ p₂ q₁ q₂} {Type₁ : Set p₁} {Type₂ : Set p₂} {A : Set a}
-  (P₁ : Partiality-algebra-with Type₁ q₁ A)
-  (P₂ : Partiality-algebra-with Type₂ q₂ A) →
-  (Type₁ → Type₂) → Set _
+  ∀ {a p₁ p₂ q₁ q₂} {T₁ : Type p₁} {T₂ : Type p₂} {A : Type a}
+  (P₁ : Partiality-algebra-with T₁ q₁ A)
+  (P₂ : Partiality-algebra-with T₂ q₂ A) →
+  (T₁ → T₂) → Type _
 Is-morphism-with P₁ P₂ f =
   ∃ λ (m : ∀ {x y} → x P₁.⊑ y → f x P₂.⊑ f y) →
   f P₁.never ≡ P₂.never
@@ -222,9 +224,9 @@ Is-morphism-with P₁ P₂ f =
 
 Is-morphism :
   let open Partiality-algebra in
-  ∀ {a p₁ p₂ q₁ q₂} {A : Set a}
+  ∀ {a p₁ p₂ q₁ q₂} {A : Type a}
   (P₁ : Partiality-algebra p₁ q₁ A) (P₂ : Partiality-algebra p₂ q₂ A) →
-  (Type P₁ → Type P₂) → Set _
+  (T P₁ → T P₂) → Type _
 Is-morphism P₁ P₂ =
   Is-morphism-with P₁.partiality-algebra-with
                    P₂.partiality-algebra-with
@@ -235,10 +237,10 @@ Is-morphism P₁ P₂ =
 -- An alternative definition of morphisms.
 
 Morphism-as-Σ :
-  ∀ {a p₁ p₂ q₁ q₂} {A : Set a} →
-  Partiality-algebra p₁ q₁ A → Partiality-algebra p₂ q₂ A → Set _
+  ∀ {a p₁ p₂ q₁ q₂} {A : Type a} →
+  Partiality-algebra p₁ q₁ A → Partiality-algebra p₂ q₂ A → Type _
 Morphism-as-Σ P₁ P₂ =
-  ∃ λ (f : P₁.Type → P₂.Type) → Is-morphism P₁ P₂ f
+  ∃ λ (f : P₁.T → P₂.T) → Is-morphism P₁ P₂ f
   where
   module P₁ = Partiality-algebra P₁
   module P₂ = Partiality-algebra P₂
@@ -246,7 +248,7 @@ Morphism-as-Σ P₁ P₂ =
 -- The two definitions are isomorphic.
 
 Morphism↔Morphism-as-Σ :
-  ∀ {a p₁ p₂ q₁ q₂} {A : Set a}
+  ∀ {a p₁ p₂ q₁ q₂} {A : Type a}
     {P₁ : Partiality-algebra p₁ q₁ A}
     {P₂ : Partiality-algebra p₂ q₂ A} →
   Morphism P₁ P₂ ↔ Morphism-as-Σ P₁ P₂
@@ -280,21 +282,21 @@ abstract
 
   Is-morphism-with-propositional :
     let open Partiality-algebra in
-    ∀ {a p₁ p₂ q₁ q₂} {Type₁ : Set p₁} {Type₂ : Set p₂} {A : Set a}
-      (P₁ : Partiality-algebra-with Type₁ q₁ A)
-      (P₂ : Partiality-algebra-with Type₂ q₂ A)
-      {f : Type₁ → Type₂} →
+    ∀ {a p₁ p₂ q₁ q₂} {T₁ : Type p₁} {T₂ : Type p₂} {A : Type a}
+      (P₁ : Partiality-algebra-with T₁ q₁ A)
+      (P₂ : Partiality-algebra-with T₂ q₂ A)
+      {f : T₁ → T₂} →
     Is-proposition (Is-morphism-with P₁ P₂ f)
   Is-morphism-with-propositional _ P₂ =
     Σ-closure 1 (implicit-Π-closure ext 1 λ _ →
                  implicit-Π-closure ext 1 λ _ →
                  Π-closure ext 1 λ _ →
                  P₂.⊑-propositional) λ _ →
-    ×-closure 1 P₂.Type-is-set $
+    ×-closure 1 P₂.T-is-set $
     ×-closure 1 (Π-closure ext 1 λ _ →
-                 P₂.Type-is-set) $
+                 P₂.T-is-set) $
     Π-closure ext 1 λ _ →
-    P₂.Type-is-set
+    P₂.T-is-set
     where
     module P₂ = Partiality-algebra-with P₂
 
@@ -302,10 +304,10 @@ abstract
 
   Is-morphism-propositional :
     let open Partiality-algebra in
-    ∀ {a p₁ p₂ q₁ q₂} {A : Set a}
+    ∀ {a p₁ p₂ q₁ q₂} {A : Type a}
       (P₁ : Partiality-algebra p₁ q₁ A)
       (P₂ : Partiality-algebra p₂ q₂ A)
-      {f : Type P₁ → Type P₂} →
+      {f : T P₁ → T P₂} →
     Is-proposition (Is-morphism P₁ P₂ f)
   Is-morphism-propositional P₁ P₂ =
     Is-morphism-with-propositional
@@ -318,7 +320,7 @@ abstract
   -- An equality characterisation lemma for morphisms.
 
   equality-characterisation-Morphism :
-    ∀ {a p₁ p₂ q₁ q₂} {A : Set a}
+    ∀ {a p₁ p₂ q₁ q₂} {A : Type a}
       {P₁ : Partiality-algebra p₁ q₁ A}
       {P₂ : Partiality-algebra p₂ q₂ A} →
       {m₁ m₂ : Morphism P₁ P₂} →
@@ -336,7 +338,7 @@ abstract
   -- The type of morphisms is a set.
 
   Morphism-set :
-    ∀  {a p₁ p₂ q₁ q₂} {A : Set a}
+    ∀  {a p₁ p₂ q₁ q₂} {A : Type a}
        {P₁ : Partiality-algebra p₁ q₁ A}
        {P₂ : Partiality-algebra p₂ q₂ A} →
     Is-set (Morphism P₁ P₂)
@@ -344,6 +346,6 @@ abstract
     H-level.respects-surjection
       (_↔_.surjection equality-characterisation-Morphism)
       1
-      (Π-closure ext 2 λ _ → Type-is-set P₂)
+      (Π-closure ext 2 λ _ → T-is-set P₂)
     where
     open Partiality-algebra

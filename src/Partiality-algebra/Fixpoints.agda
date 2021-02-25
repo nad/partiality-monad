@@ -10,12 +10,12 @@ module Partiality-algebra.Fixpoints where
 
 open import Equality.Propositional.Cubical
 open import Logical-equivalence using (_⇔_)
-open import Prelude hiding (⊥)
+open import Prelude hiding (T; ⊥)
 
 open import Bijection equality-with-J using (_↔_)
 import Equivalence equality-with-J as Eq
 open import Function-universe equality-with-J hiding (id; _∘_)
-open import H-level equality-with-J hiding (Type)
+open import H-level equality-with-J
 open import H-level.Closure equality-with-J
 open import Monad equality-with-J
 open import Univalence-axiom equality-with-J
@@ -30,7 +30,7 @@ open [_⟶_]⊑
 -- Kleene's fixed-point theorem.
 
 private
- module Fix₀ {a p q} {A : Set a} {P : Partiality-algebra p q A} where
+ module Fix₀ {a p q} {A : Type a} {P : Partiality-algebra p q A} where
 
   open Partiality-algebra P
   open PAP P
@@ -53,7 +53,7 @@ private
 
   -- Repeated application of a monotone function to never.
 
-  app : [ P ⟶ P ]⊑ → ℕ → Type
+  app : [ P ⟶ P ]⊑ → ℕ → T
   app f n = function (comp f n) never
 
   -- An increasing sequence consisting of repeated applications of the
@@ -93,7 +93,7 @@ private
 
   -- A fixpoint combinator.
 
-  fix : [ P ⟶ P ]⊑ → Type
+  fix : [ P ⟶ P ]⊑ → T
   fix f = ⨆ (fix-sequence f)
 
   -- The fixpoint combinator produces fixpoints for ω-continuous
@@ -180,9 +180,9 @@ open Fix₀
 module N-ary
   (open Partiality-algebra)
   {a p q r} n
-  (As : Fin n → Set a)
+  (As : Fin n → Type a)
   (Ps : ∀ i → Partiality-algebra p q (As i))
-  (P : (∀ i → Type (Ps i)) → Set r)
+  (P : (∀ i → T (Ps i)) → Type r)
   (P⊥ : P (λ i → never (Ps i)))
   (P⨆ : (ss : ∀ i → Increasing-sequence (Ps i)) →
         (∀ n → P (λ i → _[_] (Ps i) (ss i) n)) →
@@ -216,7 +216,7 @@ module N-ary
 
 open N-ary public
 
-module Fix {a p q} {A : Set a} {P : Partiality-algebra p q A} where
+module Fix {a p q} {A : Type a} {P : Partiality-algebra p q A} where
 
   open Partiality-algebra P
 
@@ -224,7 +224,7 @@ module Fix {a p q} {A : Set a} {P : Partiality-algebra p q A} where
 
   fix-induction₁ :
     ∀ {r}
-    (Q : Type → Set r) →
+    (Q : T → Type r) →
     Q never →
     (∀ s → (∀ n → Q (s [ n ])) → Q (⨆ s)) →
     (f : [ P ⟶ P ]⊑) →

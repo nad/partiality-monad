@@ -28,20 +28,20 @@ open Closure Tm
 
 -- The interpreter monad.
 
-M : ∀ {ℓ} → Set ℓ → Set ℓ
+M : ∀ {ℓ} → Type ℓ → Type ℓ
 M = MaybeT _⊥
 
 -- Information ordering.
 
 infix 4 _⊑M_
 
-_⊑M_ : ∀ {a} {A : Set a} → M A → M A → Set a
+_⊑M_ : ∀ {a} {A : Type a} → M A → M A → Type a
 x ⊑M y = run x ⊑ run y
 
 -- Bind is monotone.
 
 _>>=ᵐ-mono_ :
-  ∀ {ℓ} {A B : Set ℓ} {x y : M A} {f g : A → M B} →
+  ∀ {ℓ} {A B : Type ℓ} {x y : M A} {f g : A → M B} →
   x ⊑M y → (∀ z → f z ⊑M g z) → x >>= f ⊑M y >>= g
 _>>=ᵐ-mono_ {x = x} {y} {f} {g} x⊑y f⊑g =
   run x >>= maybe (MaybeT.run ∘ f) (return nothing)  ⊑⟨ x⊑y >>=-mono maybe f⊑g (run fail ■) ⟩■
@@ -51,7 +51,7 @@ _>>=ᵐ-mono_ {x = x} {y} {f} {g} x⊑y f⊑g =
 
 infix 5 _>>=ˢ_
 
-_>>=ˢ_ : {A B : Set} →
+_>>=ˢ_ : {A B : Type} →
          Increasing-sequence (Maybe A) →
          (A → Increasing-sequence (Maybe B)) →
          Increasing-sequence (Maybe B)
@@ -117,7 +117,7 @@ module Interpreter₂ where
 
   -- This interpreter is defined using a fixpoint combinator.
 
-  M′ : Set → Set₁
+  M′ : Type → Type₁
   M′ = MaybeT (Partial (∃ λ n → Tm n × Env n) (λ _ → Maybe Value))
 
   infix 10 _∙_

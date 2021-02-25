@@ -5,12 +5,13 @@
 
 {-# OPTIONS --cubical --safe #-}
 
+open import Prelude hiding (⊥)
+
 module Partiality-monad.Inductive.Alternative-order
-         {a} {A : Set a} where
+         {a} {A : Type a} where
 
 open import Equality.Propositional.Cubical
 open import Logical-equivalence using (_⇔_)
-open import Prelude hiding (⊥)
 
 open import Bijection equality-with-J using (_↔_)
 open import Double-negation equality-with-J as DN
@@ -84,7 +85,7 @@ private
 
 infix 4 now[_]≲_
 
-now[_]≲_ : A → A ⊥ → Set a
+now[_]≲_ : A → A ⊥ → Type a
 now[ x ]≲ y = proj₁ (⊥-rec-nd now[ x ]≲-args y)
 
 -- The relation is propositional.
@@ -439,7 +440,7 @@ flat-order {x} {y} x≢y never≢x never≢y x⊑y = ¬¬¬⊥ $
 -- Some "constructors" for □.
 
 □-never :
-  ∀ {ℓ} {P : A → Set ℓ} →
+  ∀ {ℓ} {P : A → Type ℓ} →
   □ P never
 □-never {P = P} y =
   never ⇓ y        ↔⟨ ⇓≃now[]≲ ⟩
@@ -448,7 +449,7 @@ flat-order {x} {y} x≢y never≢x never≢y x⊑y = ¬¬¬⊥ $
   P y              □
 
 □-now :
-  ∀ {ℓ} {P : A → Set ℓ} {x} →
+  ∀ {ℓ} {P : A → Type ℓ} {x} →
   Is-proposition (P x) →
   P x → □ P (now x)
 □-now {P = P} {x} P-prop p y =
@@ -462,7 +463,7 @@ flat-order {x} {y} x≢y never≢x never≢y x⊑y = ¬¬¬⊥ $
   P y        □
 
 □-⨆ :
-  ∀ {ℓ} {P : A → Set ℓ} →
+  ∀ {ℓ} {P : A → Type ℓ} →
   (∀ x → Is-proposition (P x)) →
   ∀ {s} → (∀ n → □ P (s [ n ])) → □ P (⨆ s)
 □-⨆ {P = P} P-prop {s} p y =
@@ -473,7 +474,7 @@ flat-order {x} {y} x≢y never≢x never≢y x⊑y = ¬¬¬⊥ $
 -- One "non-constructor" and one "constructor" for ◇.
 
 ◇-never :
-  ∀ {ℓ} {P : A → Set ℓ} →
+  ∀ {ℓ} {P : A → Type ℓ} →
   ¬ ◇ P never
 ◇-never {P = P} =
   ◇ P never                      ↝⟨ id ⟩
@@ -481,7 +482,7 @@ flat-order {x} {y} x≢y never≢x never≢y x⊑y = ¬¬¬⊥ $
   ⊥₀                             □
 
 ◇-⨆ :
-  ∀ {ℓ} {P : A → Set ℓ} →
+  ∀ {ℓ} {P : A → Type ℓ} →
   ∀ {s n} → ◇ P (s [ n ]) → ◇ P (⨆ s)
 ◇-⨆ {P = P} =
   ∥∥-map (Σ-map id (λ {x} → Σ-map {Q = λ _ → P x}
@@ -545,7 +546,7 @@ private
 
 infix 4 _≲_
 
-_≲_ : A ⊥ → A ⊥ → Set a
+_≲_ : A ⊥ → A ⊥ → Type a
 x ≲ y = proj₁ (⊥-rec-nd ≲-args x y)
 
 -- The relation is propositional.

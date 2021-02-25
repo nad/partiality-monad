@@ -8,13 +8,13 @@ module Partiality-algebra.Category where
 
 open import Equality.Propositional.Cubical
 open import Logical-equivalence using (_⇔_)
-open import Prelude
+open import Prelude hiding (T)
 
 open import Bijection equality-with-J as Bijection using (_↔_)
 open import Category equality-with-J as Category
 open import Equivalence equality-with-J as Eq using (_≃_)
 open import Function-universe equality-with-J as F hiding (id; _∘_)
-open import H-level equality-with-J hiding (Type)
+open import H-level equality-with-J
 open import H-level.Closure equality-with-J
 open import Structure-identity-principle equality-with-J
 open import Univalence-axiom equality-with-J
@@ -29,8 +29,8 @@ abstract
   -- An equality characterisation lemma for Partiality-algebra-with.
 
   equality-characterisation-Partiality-algebra-with₁ :
-    ∀ {a p q} {A : Set a} {Type : Set p}
-      {P₁ P₂ : Partiality-algebra-with Type q A} →
+    ∀ {a p q} {A : Type a} {T : Type p}
+      {P₁ P₂ : Partiality-algebra-with T q A} →
     let module P₁ = Partiality-algebra-with P₁
         module P₂ = Partiality-algebra-with P₂
     in
@@ -43,7 +43,7 @@ abstract
       ↔
     P₁ ≡ P₂
   equality-characterisation-Partiality-algebra-with₁
-    {q = q} {A} {Type} {P₁} {P₂} =
+    {q = q} {A} {T} {P₁} {P₂} =
 
     (∃ λ (⊑≡⊑ : ∀ x y → (x P₁.⊑ y) ≡ (x P₂.⊑ y)) →
        P₁.never ≡ P₂.never
@@ -51,7 +51,7 @@ abstract
        (∀ x → P₁.now x ≡ P₂.now x)
          ×
        ∀ s → P₁.⨆ s ≡ P₂.⨆ (Σ-map id (≡⇒→ (⊑≡⊑ _ _) ∘_) s))              ↝⟨ ∃-cong (λ ⊑≡⊑ → ∃-cong λ _ → ∃-cong λ _ → ∀-cong ext λ s →
-                                                                              ≡⇒↝ _ $ cong (λ (p : {f : ℕ → Type} → _) →
+                                                                              ≡⇒↝ _ $ cong (λ (p : {f : ℕ → T} → _) →
                                                                                               P₁.⨆ s ≡ P₂.⨆ (Σ-map id p s)) $
                                                                                 (implicit-Π-closure ext 1 λ _ →
                                                                                  Π-closure          ext 1 λ _ →
@@ -117,7 +117,7 @@ abstract
          ×
        ∀ s → P₁.⨆ s ≡
              P₂.⨆ ( proj₁ s
-                  , ≡⇒→ (cong (uncurry λ _⊑_ (f : ℕ → Type) →
+                  , ≡⇒→ (cong (uncurry λ _⊑_ (f : ℕ → T) →
                                          ∀ n → f n ⊑ f (suc n))
                               (cong (_, _) ⊑≡⊑))
                         (proj₂ s)
@@ -131,13 +131,13 @@ abstract
          ×
        ∀ s → P₁.⨆ s ≡
              P₂.⨆ ( proj₁ s
-                  , subst (uncurry λ _⊑_ (f : ℕ → Type) →
+                  , subst (uncurry λ _⊑_ (f : ℕ → T) →
                                      ∀ n → f n ⊑ f (suc n))
                           (cong (_, _) ⊑≡⊑)
                           (proj₂ s)
                   ))                                                     ↝⟨ ∃-cong (λ ⊑≡⊑ → ∃-cong λ _ → ∃-cong λ _ → ∀-cong ext λ _ →
                                                                               ≡⇒↝ _ $ cong (λ eq → _ ≡
-                                                                                                   P₂.⨆ (_ , subst (uncurry λ _⊑_ (f : ℕ → Type) →
+                                                                                                   P₂.⨆ (_ , subst (uncurry λ _⊑_ (f : ℕ → T) →
                                                                                                                               ∀ n → f n ⊑ f (suc n))
                                                                                                                    eq _)) $ sym $
                                                                                 Σ-≡,≡→≡-subst-const ⊑≡⊑ refl) ⟩
@@ -148,7 +148,7 @@ abstract
          ×
        ∀ s → P₁.⨆ s ≡
              P₂.⨆ ( proj₁ s
-                  , subst (uncurry λ _⊑_ (f : ℕ → Type) →
+                  , subst (uncurry λ _⊑_ (f : ℕ → T) →
                                      ∀ n → f n ⊑ f (suc n))
                           (Σ-≡,≡→≡ ⊑≡⊑ (subst-const ⊑≡⊑))
                           (proj₂ s)
@@ -183,7 +183,7 @@ abstract
        (∀ x → P₁.now x ≡ P₂.now x)
          ×
        ∀ s → P₁.⨆ s ≡
-             subst (λ _⊑_ → ∃ (λ f → ∀ n → f n ⊑ f (suc n)) → Type)
+             subst (λ _⊑_ → ∃ (λ f → ∀ n → f n ⊑ f (suc n)) → T)
                    (sym ⊑≡⊑) P₂.⨆ s)                                     ↔⟨ ∃-cong (λ _ → ∃-cong λ _ →
                                                                               Eq.extensionality-isomorphism ext
                                                                                 ×-cong
@@ -244,7 +244,7 @@ abstract
                                                                                             implicit-Π-closure ext 1 λ _ →
                                                                                             Π-closure ext 1 λ _ →
                                                                                             Π-closure ext 1 λ _ →
-                                                                                            P₂.Type-is-set) $
+                                                                                            P₂.T-is-set) $
                                                                                ×-closure 1 (H-level-propositional ext 2) $
                                                                                ×-closure 1 (Π-closure ext 1 λ _ →
                                                                                             P₂.⊑-propositional) $
@@ -274,24 +274,24 @@ abstract
     module P₂ = Partiality-algebra-with P₂
 
     rearrange :
-      Partiality-algebra-with Type q A
+      Partiality-algebra-with T q A
         ↔
       ∃ λ R →
-        let _⊑_ : Type → Type → Set q
+        let _⊑_ : T → T → Type q
             _⊑_ = proj₁ R
 
-            never : Type
+            never : T
             never = proj₁ (proj₂ R)
 
-            now : A → Type
+            now : A → T
             now = proj₁ (proj₂ (proj₂ R))
 
-            ⨆ : (∃ λ (f : ℕ → Type) → ∀ n → f n ⊑ f (suc n)) → Type
+            ⨆ : (∃ λ (f : ℕ → T) → ∀ n → f n ⊑ f (suc n)) → T
             ⨆ = proj₂ (proj₂ (proj₂ R))
         in
         (∀ {x y} → x ⊑ y → y ⊑ x → x ≡ y)
           ×
-        Is-set Type
+        Is-set T
           ×
         (∀ x → x ⊑ x)
           ×
@@ -314,7 +314,7 @@ abstract
                     , ⨆
                     )
                   , antisymmetry
-                  , Type-is-set-unused
+                  , T-is-set-unused
                   , ⊑-refl
                   , ⊑-trans
                   , never⊑
@@ -324,18 +324,18 @@ abstract
           ; from = λ where
               ((LE , ne , n , l) , a , u , r , t , le , ub , lub , p) →
                 record
-                  { _⊑_                = LE
-                  ; never              = ne
-                  ; now                = n
-                  ; ⨆                  = l
-                  ; antisymmetry       = a
-                  ; Type-is-set-unused = u
-                  ; ⊑-refl             = r
-                  ; ⊑-trans            = t
-                  ; never⊑             = le
-                  ; upper-bound        = ub
-                  ; least-upper-bound  = lub
-                  ; ⊑-propositional    = p
+                  { _⊑_               = LE
+                  ; never             = ne
+                  ; now               = n
+                  ; ⨆                 = l
+                  ; antisymmetry      = a
+                  ; T-is-set-unused   = u
+                  ; ⊑-refl            = r
+                  ; ⊑-trans           = t
+                  ; never⊑            = le
+                  ; upper-bound       = ub
+                  ; least-upper-bound = lub
+                  ; ⊑-propositional   = p
                   }
           }
         ; right-inverse-of = λ _ → refl
@@ -347,8 +347,8 @@ abstract
   -- Partiality-algebra-with.
 
   equality-characterisation-Partiality-algebra-with₂ :
-    ∀ {a p q} {A : Set a} {Type : Set p}
-      {P₁ P₂ : Partiality-algebra-with Type q A} →
+    ∀ {a p q} {A : Type a} {T : Type p}
+      {P₁ P₂ : Partiality-algebra-with T q A} →
 
     let module P₁ = Partiality-algebra-with P₁
         module P₂ = Partiality-algebra-with P₂
@@ -362,7 +362,7 @@ abstract
       ↔
     P₁ ≡ P₂
   equality-characterisation-Partiality-algebra-with₂
-    {q = q} {A} {Type} {P₁} {P₂} =
+    {q = q} {A} {T} {P₁} {P₂} =
 
     (∃ λ (⊑⇔⊑ : ∀ x y → x P₁.⊑ y ⇔ x P₂.⊑ y) →
        P₁.never ≡ P₂.never
@@ -405,7 +405,7 @@ abstract
 -- precategories.
 
 precategory :
-  ∀ {a} p q (A : Set a) → Precategory (a ⊔ lsuc (p ⊔ q)) (a ⊔ p ⊔ q)
+  ∀ {a} p q (A : Type a) → Precategory (a ⊔ lsuc (p ⊔ q)) (a ⊔ p ⊔ q)
 Precategory.precategory (precategory p q A) =
     Partiality-algebra p q A
   , (λ P Q → Morphism P Q , Morphism-set)
@@ -419,7 +419,7 @@ Precategory.precategory (precategory p q A) =
 -- Partiality-algebra-with.
 
 standard-notion-of-structure :
-  ∀ {a} p q (A : Set a) →
+  ∀ {a} p q (A : Type a) →
   Standard-notion-of-structure _ _ (precategory-Set p ext)
 standard-notion-of-structure p q A = record
   { P               = λ B → Partiality-algebra-with (proj₁ B) q A
@@ -463,7 +463,7 @@ abstract
   -- equal to the direct definition above.
 
   precategories-equal :
-    ∀ {a p q} {A : Set a} →
+    ∀ {a p q} {A : Type a} →
     Standard-notion-of-structure.Str
       (standard-notion-of-structure p q A)
       ≡
@@ -477,35 +477,35 @@ abstract
       )
     where
     ≃Partiality-algebra :
-      (∃ λ (Type : SET p) → Partiality-algebra-with (proj₁ Type) q A)
+      (∃ λ (T : Set p) → Partiality-algebra-with (proj₁ T) q A)
         ≃
       Partiality-algebra p q A
     ≃Partiality-algebra =
-      (∃ λ (Type : SET p) → Partiality-algebra-with (proj₁ Type) q A)  ↔⟨ inverse Σ-assoc ⟩
+      (∃ λ (T : Set p) → Partiality-algebra-with (proj₁ T) q A)  ↔⟨ inverse Σ-assoc ⟩
 
-      (∃ λ (Type : Set p) →
-         Is-set Type × Partiality-algebra-with Type q A)               ↔⟨ ∃-cong (λ _ → drop-⊤-left-× λ P → _⇔_.to contractible⇔↔⊤ $
-                                                                            propositional⇒inhabited⇒contractible
-                                                                              (H-level-propositional ext 2)
-                                                                              (Partiality-algebra-with.Type-is-set P)) ⟩
-      (∃ λ (Type : Set p) → Partiality-algebra-with Type q A)          ↝⟨ Eq.↔⇒≃ record
-                                                                            { surjection = record
-                                                                              { logical-equivalence = record
-                                                                                { to   = uncurry λ _ P → ⟨ P ⟩
-                                                                                ; from = λ P → Type P , partiality-algebra-with P
-                                                                                }
-                                                                              ; right-inverse-of = λ _ → refl
-                                                                              }
-                                                                            ; left-inverse-of = λ _ → refl
-                                                                            } ⟩□
-      Partiality-algebra p q A                                         □
+      (∃ λ (T : Type p) →
+         Is-set T × Partiality-algebra-with T q A)               ↔⟨ ∃-cong (λ _ → drop-⊤-left-× λ P → _⇔_.to contractible⇔↔⊤ $
+                                                                      propositional⇒inhabited⇒contractible
+                                                                        (H-level-propositional ext 2)
+                                                                        (Partiality-algebra-with.T-is-set P)) ⟩
+      (∃ λ (T : Type p) → Partiality-algebra-with T q A)         ↝⟨ Eq.↔⇒≃ record
+                                                                      { surjection = record
+                                                                        { logical-equivalence = record
+                                                                          { to   = uncurry λ _ P → ⟨ P ⟩
+                                                                          ; from = λ P → T P , partiality-algebra-with P
+                                                                          }
+                                                                        ; right-inverse-of = λ _ → refl
+                                                                        }
+                                                                      ; left-inverse-of = λ _ → refl
+                                                                      } ⟩□
+      Partiality-algebra p q A                                   □
       where
       open Partiality-algebra
 
 -- Thus the precategory is a category.
 
 category :
-  ∀ {a} p q (A : Set a) →
+  ∀ {a} p q (A : Type a) →
   Category (a ⊔ lsuc (p ⊔ q)) (a ⊔ p ⊔ q)
 Category.category (category p q A) =
     precategory _ _ A
@@ -520,6 +520,6 @@ Category.category (category p q A) =
 private
 
   precategory-category :
-    ∀ {a p q} {A : Set a} →
+    ∀ {a p q} {A : Type a} →
     Category.precategory (category p q A) ≡ precategory p q A
   precategory-category = refl

@@ -8,12 +8,12 @@ module Partiality-algebra.Eliminators where
 
 open import Equality.Propositional.Cubical
 open import Logical-equivalence using (_⇔_)
-open import Prelude
+open import Prelude hiding (T)
 
 open import Bijection equality-with-J using (_↔_)
 import Equivalence equality-with-J as Eq
 open import Function-universe equality-with-J hiding (id; _∘_)
-open import H-level equality-with-J hiding (Type)
+open import H-level equality-with-J
 open import H-level.Closure equality-with-J
 open import Surjection equality-with-J using (_↠_)
 
@@ -32,24 +32,24 @@ open import Partiality-algebra.Category
 -- A specification of a given partiality algebra's eliminator
 -- arguments (for given motive sizes).
 
-record Arguments {a p′ q′} {A : Set a} p q
+record Arguments {a p′ q′} {A : Type a} p q
                  (PA : Partiality-algebra p′ q′ A) :
-                 Set (a ⊔ lsuc (p ⊔ q) ⊔ p′ ⊔ q′) where
+                 Type (a ⊔ lsuc (p ⊔ q) ⊔ p′ ⊔ q′) where
 
   open Partiality-algebra PA
 
   -- Predicate transformer related to increasing sequences.
 
-  Inc : (P : Type → Set p)
-        (Q : ∀ {x y} → P x → P y → x ⊑ y → Set q) →
-        Increasing-sequence → Set (p ⊔ q)
+  Inc : (P : T → Type p)
+        (Q : ∀ {x y} → P x → P y → x ⊑ y → Type q) →
+        Increasing-sequence → Type (p ⊔ q)
   Inc P Q s =
     ∃ λ (p : ∀ n → P (s [ n ])) →
       ∀ n → Q (p n) (p (suc n)) (increasing s n)
 
   field
-    P  : Type → Set p
-    Q  : ∀ {x y} → P x → P y → x ⊑ y → Set q
+    P  : T → Type p
+    Q  : ∀ {x y} → P x → P y → x ⊑ y → Type q
     pe : P never
     po : ∀ x → P (now x)
     pl : ∀ s (pq : Inc P Q s) → P (⨆ s)
@@ -73,15 +73,15 @@ record Arguments {a p′ q′} {A : Set a} p q
 
 -- A specification of a given partiality algebra's eliminators.
 
-record Eliminators {a p q p′ q′} {A : Set a}
+record Eliminators {a p q p′ q′} {A : Type a}
                    {PA : Partiality-algebra p′ q′ A}
                    (args : Arguments p q PA) :
-                   Set (a ⊔ p ⊔ q ⊔ p′ ⊔ q′) where
+                   Type (a ⊔ p ⊔ q ⊔ p′ ⊔ q′) where
   open Partiality-algebra PA
   open Arguments args
 
   field
-    ⊥-rec : (x : Type) → P x
+    ⊥-rec : (x : T) → P x
     ⊑-rec : ∀ {x y} (x⊑y : x ⊑ y) → Q (⊥-rec x) (⊥-rec y) x⊑y
 
   inc-rec : (s : Increasing-sequence) → Inc P Q s
@@ -101,8 +101,8 @@ record Eliminators {a p q p′ q′} {A : Set a}
 -- algebra (for motives of certain sizes).
 
 Elimination-principle :
-  ∀ {a p′ q′} {A : Set a} →
-  ∀ p q → Partiality-algebra p′ q′ A → Set (a ⊔ lsuc (p ⊔ q) ⊔ p′ ⊔ q′)
+  ∀ {a p′ q′} {A : Type a} →
+  ∀ p q → Partiality-algebra p′ q′ A → Type (a ⊔ lsuc (p ⊔ q) ⊔ p′ ⊔ q′)
 Elimination-principle p q P =
   (args : Arguments p q P) → Eliminators args
 
@@ -111,8 +111,8 @@ Elimination-principle p q P =
 
 -- The statement that a given partiality algebra is homotopy-initial.
 
-Initial : ∀ {a p q} p′ q′ {A : Set a} → Partiality-algebra p q A →
-          Set (a ⊔ p ⊔ q ⊔ lsuc (p′ ⊔ q′))
+Initial : ∀ {a p q} p′ q′ {A : Type a} → Partiality-algebra p q A →
+          Type (a ⊔ p ⊔ q ⊔ lsuc (p′ ⊔ q′))
 Initial p′ q′ {A} P =
   (P′ : Partiality-algebra p′ q′ A) → Contractible (Morphism P P′)
 
@@ -120,7 +120,7 @@ Initial p′ q′ {A} P =
 -- also initial at smaller sizes.
 
 lower-initiality :
-  ∀ {a p q p₁ q₁} p₂ q₂ {A : Set a}
+  ∀ {a p q p₁ q₁} p₂ q₂ {A : Type a}
   (P : Partiality-algebra p q A)
   (initial : Initial (p₁ ⊔ p₂) (q₁ ⊔ q₂) P) →
   Initial p₁ q₁ P
@@ -131,27 +131,27 @@ lower-initiality {p₁ = p₁} {q₁} p₂ q₂ {A} P initial P′ =
 
   P″ : Partiality-algebra (p₁ ⊔ p₂) (q₁ ⊔ q₂) A
   P″ = record
-    { Type                    = ↑ p₂ Type
+    { T                       = ↑ p₂ T
     ; partiality-algebra-with = record
-      { _⊑_                = λ x y → ↑ q₂ (lower x ⊑ lower y)
-      ; never              = lift never
-      ; now                = lift ∘ now
-      ; ⨆                  = lift ∘ ⨆ ∘ Σ-map (lower ∘_) (lower ∘_)
-      ; antisymmetry       = λ x⊑y y⊑x →
-                               cong lift (antisymmetry (lower x⊑y)
-                                                       (lower y⊑x))
-      ; Type-is-set-unused = λ _ _ → ↑-closure 2 Type-is-set _ _
-      ; ⊑-refl             = lift ∘ ⊑-refl ∘ lower
-      ; ⊑-trans            = λ x⊑y y⊑z →
-                               lift (⊑-trans (lower x⊑y)
-                                             (lower y⊑z))
-      ; never⊑             = lift ∘ never⊑ ∘ lower
-      ; upper-bound        = λ _ → lift ∘ upper-bound _
-      ; least-upper-bound  = λ _ _ →
-                               lift ∘
-                               least-upper-bound _ _ ∘
-                               (lower ∘_)
-      ; ⊑-propositional    = ↑-closure 1 ⊑-propositional
+      { _⊑_               = λ x y → ↑ q₂ (lower x ⊑ lower y)
+      ; never             = lift never
+      ; now               = lift ∘ now
+      ; ⨆                 = lift ∘ ⨆ ∘ Σ-map (lower ∘_) (lower ∘_)
+      ; antisymmetry      = λ x⊑y y⊑x →
+                              cong lift (antisymmetry (lower x⊑y)
+                                                      (lower y⊑x))
+      ; T-is-set-unused   = λ _ _ → ↑-closure 2 T-is-set _ _
+      ; ⊑-refl            = lift ∘ ⊑-refl ∘ lower
+      ; ⊑-trans           = λ x⊑y y⊑z →
+                              lift (⊑-trans (lower x⊑y)
+                                            (lower y⊑z))
+      ; never⊑            = lift ∘ never⊑ ∘ lower
+      ; upper-bound       = λ _ → lift ∘ upper-bound _
+      ; least-upper-bound = λ _ _ →
+                              lift ∘
+                              least-upper-bound _ _ ∘
+                              (lower ∘_)
+      ; ⊑-propositional   = ↑-closure 1 ⊑-propositional
       }
     }
 
@@ -192,7 +192,7 @@ lower-initiality {p₁ = p₁} {q₁} p₂ q₂ {A} P initial P′ =
 -- initial (at the same sizes).
 
 eliminators→initiality :
-  ∀ {a p q p′ q′} {A : Set a} →
+  ∀ {a p q p′ q′} {A : Type a} →
   (P : Partiality-algebra p′ q′ A) →
   Elimination-principle p q P →
   Initial p q P
@@ -203,7 +203,7 @@ eliminators→initiality {p = p} {q} P elims P′ = morphism , unique
 
   args : Arguments p q P
   args = record
-    { P  = λ _ → P′.Type
+    { P  = λ _ → P′.T
     ; Q  = λ x y _ → x P′.⊑ y
     ; pe = P′.never
     ; po = P′.now
@@ -211,10 +211,10 @@ eliminators→initiality {p = p} {q} P elims P′ = morphism , unique
     ; pa = λ x⊑y y⊑x u v u⊑v v⊑u →
              let eq = Partiality-algebra.antisymmetry P x⊑y y⊑x in
 
-             subst (const P′.Type) eq u  ≡⟨ subst-const eq ⟩
-             u                           ≡⟨ P′.antisymmetry u⊑v v⊑u ⟩∎
-             v                           ∎
-    ; pp = P′.Type-is-set
+             subst (const P′.T) eq u  ≡⟨ subst-const eq ⟩
+             u                        ≡⟨ P′.antisymmetry u⊑v v⊑u ⟩∎
+             v                        ∎
+    ; pp = P′.T-is-set
     ; qr = λ _ → P′.⊑-refl
     ; qt = λ _ _ _ _ _ → P′.⊑-trans
     ; qe = λ _ → P′.never⊑
@@ -252,8 +252,8 @@ eliminators→initiality {p = p} {q} P elims P′ = morphism , unique
              P′.⨆ (sequence-function f s)  ≡⟨ cong P′.⨆ $ _↔_.to P′.equality-characterisation-increasing (proj₁ hyp) ⟩
              P′.⨆ (E.inc-rec s)            ≡⟨ sym $ E.⊥-rec-⨆ s ⟩
              E.⊥-rec (P.⨆ s)               ∎
-    ; pa = λ _ _ _ _ _ _ → P′.Type-is-set _ _
-    ; pp = λ _ _ → mono₁ 1 P′.Type-is-set _ _
+    ; pa = λ _ _ _ _ _ _ → P′.T-is-set _ _
+    ; pp = λ _ _ → mono₁ 1 P′.T-is-set _ _
     ; qp = λ _ _ _ _ _ → refl
     }))
 
@@ -265,7 +265,7 @@ eliminators→initiality {p = p} {q} P elims P′ = morphism , unique
 -- large sizes) has eliminators (at certain sizes).
 
 initiality→eliminators :
-  ∀ {a p q p′ q′} {A : Set a} {P : Partiality-algebra p′ q′ A}
+  ∀ {a p q p′ q′} {A : Type a} {P : Partiality-algebra p′ q′ A}
   (initial : Initial (p ⊔ p′) (q ⊔ q′) P) →
   Elimination-principle p q P
 initiality→eliminators {p = p} {q} {p′} {q′} {A} {PA} initial args =
@@ -287,30 +287,30 @@ initiality→eliminators {p = p} {q} {p′} {q′} {A} {PA} initial args =
 
     ∃PA : Partiality-algebra (p ⊔ p′) (q ⊔ q′) A
     ∃PA = record
-      { Type                    = ∃ P
+      { T                       = ∃ P
       ; partiality-algebra-with = record
-        { _⊑_                = λ { (_ , p) (_ , q) → ∃ (Q p q) }
-        ; never              = never , pe
-        ; now                = λ x → now x , po x
-        ; ⨆                  = λ s → ⨆ (Σ-map (proj₁ ∘_) (proj₁ ∘_) s)
-                                   , pl _ ( proj₂ ∘ proj₁ s
-                                          , proj₂ ∘ proj₂ s
-                                          )
-        ; antisymmetry       = λ { {x = (x , p)} {y = (y , q)}
-                                   (x⊑y , Qx⊑y) (y⊑x , Qy⊑x) →
-                                   Σ-≡,≡→≡
-                                     (antisymmetry x⊑y y⊑x)
-                                     (pa x⊑y y⊑x p q Qx⊑y Qy⊑x)
-                                 }
-        ; Type-is-set-unused = Σ-closure 2 Type-is-set (λ _ → pp)
-        ; ⊑-refl             = λ _ → _ , qr _ _
-        ; ⊑-trans            = Σ-zip ⊑-trans (qt _ _ _ _ _)
-        ; never⊑             = λ _ → _ , qe _ _
-        ; upper-bound        = λ _ _ → upper-bound _ _ , qu _ _ _
-        ; least-upper-bound  = λ _ _ ⊑qs →
-                                   least-upper-bound _ _ (proj₁ ∘ ⊑qs)
-                                 , ql _ _ _ _ _ (proj₂ ∘ ⊑qs)
-        ; ⊑-propositional    = Σ-closure 1 ⊑-propositional λ _ → qp _ _ _
+        { _⊑_               = λ { (_ , p) (_ , q) → ∃ (Q p q) }
+        ; never             = never , pe
+        ; now               = λ x → now x , po x
+        ; ⨆                 = λ s → ⨆ (Σ-map (proj₁ ∘_) (proj₁ ∘_) s)
+                                  , pl _ ( proj₂ ∘ proj₁ s
+                                         , proj₂ ∘ proj₂ s
+                                         )
+        ; antisymmetry      = λ { {x = (x , p)} {y = (y , q)}
+                                  (x⊑y , Qx⊑y) (y⊑x , Qy⊑x) →
+                                  Σ-≡,≡→≡
+                                    (antisymmetry x⊑y y⊑x)
+                                    (pa x⊑y y⊑x p q Qx⊑y Qy⊑x)
+                                }
+        ; T-is-set-unused   = Σ-closure 2 T-is-set (λ _ → pp)
+        ; ⊑-refl            = λ _ → _ , qr _ _
+        ; ⊑-trans           = Σ-zip ⊑-trans (qt _ _ _ _ _)
+        ; never⊑            = λ _ → _ , qe _ _
+        ; upper-bound       = λ _ _ → upper-bound _ _ , qu _ _ _
+        ; least-upper-bound = λ _ _ ⊑qs →
+                                  least-upper-bound _ _ (proj₁ ∘ ⊑qs)
+                                , ql _ _ _ _ _ (proj₂ ∘ ⊑qs)
+        ; ⊑-propositional   = Σ-closure 1 ⊑-propositional λ _ → qp _ _ _
         }
       }
 
@@ -356,10 +356,10 @@ initiality→eliminators {p = p} {q} {p′} {q′} {A} {PA} initial args =
       lemma x = cong (λ m → Morphism.function m x) id′≡id
 
     -- As an aside this means that there is a split surjection from
-    -- ∃ P to Type.
+    -- ∃ P to T.
 
-    ↠Type : ∃ P ↠ Type
-    ↠Type = record
+    ↠T : ∃ P ↠ T
+    ↠T = record
       { logical-equivalence = record
         { to   = Morphism.function proj₁-morphism
         ; from = function
@@ -435,7 +435,7 @@ initiality→eliminators {p = p} {q} {p′} {q′} {A} {PA} initial args =
     where
     Q′ :
       (∃ λ xy → P (proj₁ xy) × P (proj₂ xy) × proj₁ xy ⊑ proj₂ xy) →
-      Set q
+      Type q
     Q′ (_ , px , py , x⊑y) = Q px py x⊑y
 
   inc-rec : ∀ s → Inc P Q s
@@ -448,7 +448,7 @@ initiality→eliminators {p = p} {q} {p′} {q′} {A} {PA} initial args =
     -- A lemma.
 
     ⊥-rec-lemma′ :
-      ∀ {a b} {A : Set a} {B : A → Set b} {x y : Σ A B} →
+      ∀ {a b} {A : Type a} {B : A → Type b} {x y : Σ A B} →
       Is-set A →
       x ≡ y → (p : proj₁ x ≡ proj₁ y) →
       subst B p (proj₂ x) ≡ proj₂ y
@@ -466,7 +466,7 @@ initiality→eliminators {p = p} {q} {p′} {q′} {A} {PA} initial args =
     ⊥-rec-lemma : ∀ {x y} → function x ≡ (x , y) → ⊥-rec x ≡ y
     ⊥-rec-lemma {x} {y} eq =
       ⊥-rec x                                 ≡⟨⟩
-      subst P (lemma x) (proj₂ (function x))  ≡⟨ ⊥-rec-lemma′ Type-is-set eq (lemma x) ⟩∎
+      subst P (lemma x) (proj₂ (function x))  ≡⟨ ⊥-rec-lemma′ T-is-set eq (lemma x) ⟩∎
       y                                       ∎
 
   ⊥-rec-never : ⊥-rec never ≡ pe
@@ -554,7 +554,7 @@ initiality→eliminators {p = p} {q} {p′} {q′} {A} {PA} initial args =
 -- eliminators (at the same possibly larger levels).
 
 initiality⇔eliminators :
-  ∀ {a p q p′ q′} {A : Set a} →
+  ∀ {a p q p′ q′} {A : Type a} →
   (P : Partiality-algebra p′ q′ A) →
   Initial (p ⊔ p′) (q ⊔ q′) P
     ⇔
@@ -568,7 +568,7 @@ initiality⇔eliminators P = record
 -- equivalent (at the meta-level) to having eliminators at all levels.
 
 ∀initiality→∀eliminators :
-  ∀ {a p q} {A : Set a} →
+  ∀ {a p q} {A : Type a} →
   (P : Partiality-algebra p q A) →
   (∀ p q → Initial p q P) →
   (∀ p q → Elimination-principle p q P)
@@ -576,7 +576,7 @@ initiality⇔eliminators P = record
   initiality→eliminators (initial (p ⊔ p′) (q ⊔ q′))
 
 ∀eliminators→∀initiality :
-  ∀ {a p q} {A : Set a} →
+  ∀ {a p q} {A : Type a} →
   (P : Partiality-algebra p q A) →
   (∀ p q → Elimination-principle p q P) →
   (∀ p q → Initial p q P)

@@ -33,7 +33,7 @@ open import Delay-monad.Alternative.Properties
 
 private
 
-  module _ {a b} {A : Set a} {B : Set b} where
+  module _ {a b} {A : Type a} {B : Type b} where
 
     -- A map function for Maybe.
 
@@ -62,7 +62,7 @@ private
 
 -- A map function for Delay.
 
-map : ∀ {a b} {A : Set a} {B : Set b} →
+map : ∀ {a b} {A : Type a} {B : Type b} →
       (A → B) → Delay A → Delay B
 map f = Σ-map (mapᴹ f ∘_) mapᴹ-Increasing
 
@@ -72,8 +72,8 @@ map f = Σ-map (mapᴹ f ∘_) mapᴹ-Increasing
 private
   variable
     a r : Level
-    A B : Set a
-    R   : A → A → Set r
+    A B : Type a
+    R   : A → A → Type r
     f   : A → B
 
 -- Some abstract redefinitions, intended to make the code type-check
@@ -90,7 +90,7 @@ private
     ℕ→/-comm-to′-[] = refl
 
   ℕ→/-comm′ :
-    {A : Set a} {R : A → A → Set r} →
+    {A : Type a} {R : A → A → Type r} →
     Axiom-of-countable-choice (a ⊔ r) →
     Is-equivalence-relation R →
     (∀ {x y} → Is-proposition (R x y)) →
@@ -148,7 +148,7 @@ private
 -- choice and a propositional equivalence relation R.
 
 module _
-  {a r} {A : Set a} {R : A → A → Set r}
+  {a r} {A : Type a} {R : A → A → Type r}
   (cc : Axiom-of-countable-choice (a ⊔ r))
   (R-equiv : Is-equivalence-relation R)
   (R-prop : ∀ {x y} → Is-proposition (R x y))
@@ -229,7 +229,7 @@ module _
   -- A quotient-like eliminator for Delay (A / R).
 
   Delay/-elim₁ :
-    ∀ {p} (P : Delay (A / R) → Set p)
+    ∀ {p} (P : Delay (A / R) → Type p)
     (p-[] : (f : ℕ → Maybe A) → P (→Maybe/→ [ f ])) →
     (∀ {f g} (r : (ℕ →ᴾ Maybeᴾ R) f g) →
      subst P (cong →Maybe/→
@@ -243,7 +243,7 @@ module _
   -- Simplification lemma for Delay/-elim₁.
 
   Delay/-elim₁-[] :
-    ∀ {p} (P : Delay (A / R) → Set p)
+    ∀ {p} (P : Delay (A / R) → Type p)
     (p-[] : (f : ℕ → Maybe A) → P (→Maybe/→ [ f ]))
     (ok :
        ∀ {f g} (r : (ℕ →ᴾ Maybeᴾ R) f g) →
@@ -265,13 +265,13 @@ module _
 -- Pointwise lifting of binary relations to the delay monad.
 
 Delayᴾ :
-  ∀ {a r} {A : Set a} →
-  (A → A → Set r) →
-  Delay A → Delay A → Set r
+  ∀ {a r} {A : Type a} →
+  (A → A → Type r) →
+  Delay A → Delay A → Type r
 Delayᴾ R = (ℕ →ᴾ Maybeᴾ R) on proj₁
 
 module _
-  {a r} {A : Set a} {R : A → A → Set r}
+  {a r} {A : Type a} {R : A → A → Type r}
   where
 
   -- The function map ([_] {R = R}) respects Delayᴾ R.
@@ -341,11 +341,11 @@ module _
 -- choice and a propositional equivalence relation R.
 
 module _
-  {a p r} {A : Set a} {R : A → A → Set r}
+  {a p r} {A : Type a} {R : A → A → Type r}
   (cc : Axiom-of-countable-choice (a ⊔ r))
   (R-equiv : Is-equivalence-relation R)
   (R-prop : ∀ {x y} → Is-proposition (R x y))
-  (P : Delay (A / R) → Set p)
+  (P : Delay (A / R) → Type p)
   (p-[] : (x : Delay A) → P (map [_] x))
   (ok : ∀ {x y} (r : Delayᴾ R x y) →
         subst P (map-[]-cong x y r) (p-[] x) ≡ p-[] y)

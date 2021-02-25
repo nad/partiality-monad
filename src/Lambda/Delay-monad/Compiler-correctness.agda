@@ -32,7 +32,7 @@ private
 infixl 5 _>>=-congM_
 
 _>>=-congM_ :
-  ∀ {i ℓ} {A B : Set ℓ} {x y : M ∞ A} {f g : A → M ∞ B} →
+  ∀ {i ℓ} {A B : Type ℓ} {x y : M ∞ A} {f g : A → M ∞ B} →
   [ i ] run x ∼ run y →
   (∀ z → [ i ] run (f z) ∼ run (g z)) →
   [ i ] run (x >>= f) ∼ run (y >>= g)
@@ -41,7 +41,7 @@ p >>=-congM q = p >>=-cong [ (λ _ → run fail ∎) , q ]
 -- Bind is associative.
 
 associativityM :
-  ∀ {ℓ} {A B C : Set ℓ} (x : M ∞ A) (f : A → M ∞ B) (g : B → M ∞ C) →
+  ∀ {ℓ} {A B C : Type ℓ} (x : M ∞ A) (f : A → M ∞ B) (g : B → M ∞ C) →
   run (x >>= (λ x → f x >>= g)) ∼ run (x >>= f >>= g)
 associativityM x f g =
   run (x >>= λ x → f x >>= g)                                       ∼⟨⟩

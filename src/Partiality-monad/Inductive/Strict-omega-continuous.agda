@@ -22,11 +22,11 @@ open import Partiality-monad.Inductive.Omega-continuous
 
 -- Definition of strict ω-continuous functions.
 
-[_⊥→_⊥]-strict : ∀ {a b} → Set a → Set b → Set (a ⊔ b)
+[_⊥→_⊥]-strict : ∀ {a b} → Type a → Type b → Type (a ⊔ b)
 [ A ⊥→ B ⊥]-strict = S.[ partiality-algebra A ⟶ partiality-algebra B ]⊥
 
 module [_⊥→_⊥]-strict
-         {a b} {A : Set a} {B : Set b}
+         {a b} {A : Type a} {B : Type b}
          (f : [ A ⊥→ B ⊥]-strict) =
          S.[_⟶_]⊥ f
 
@@ -34,7 +34,7 @@ open [_⊥→_⊥]-strict
 
 -- Identity.
 
-id-strict : ∀ {a} {A : Set a} → [ A ⊥→ A ⊥]-strict
+id-strict : ∀ {a} {A : Type a} → [ A ⊥→ A ⊥]-strict
 id-strict = S.id⊥
 
 -- Composition.
@@ -42,14 +42,14 @@ id-strict = S.id⊥
 infixr 40 _∘-strict_
 
 _∘-strict_ :
-  ∀ {a b c} {A : Set a} {B : Set b} {C : Set c} →
+  ∀ {a b c} {A : Type a} {B : Type b} {C : Type c} →
   [ B ⊥→ C ⊥]-strict → [ A ⊥→ B ⊥]-strict → [ A ⊥→ C ⊥]-strict
 _∘-strict_ = S._∘⊥_
 
 -- Equality characterisation lemma for strict ω-continuous functions.
 
 equality-characterisation-strict :
-  ∀ {a b} {A : Set a} {B : Set b} {f g : [ A ⊥→ B ⊥]-strict} →
+  ∀ {a b} {A : Type a} {B : Type b} {f g : [ A ⊥→ B ⊥]-strict} →
   (∀ x → function f x ≡ function g x) ↔ f ≡ g
 equality-characterisation-strict =
   S.equality-characterisation-strict
@@ -57,7 +57,7 @@ equality-characterisation-strict =
 -- Composition is associative.
 
 ∘-strict-assoc :
-  ∀ {a b c d} {A : Set a} {B : Set b} {C : Set c} {D : Set d}
+  ∀ {a b c d} {A : Type a} {B : Type b} {C : Type c} {D : Type d}
   (f : [ C ⊥→ D ⊥]-strict) (g : [ B ⊥→ C ⊥]-strict)
   (h : [ A ⊥→ B ⊥]-strict) →
   f ∘-strict (g ∘-strict h) ≡ (f ∘-strict g) ∘-strict h
@@ -66,7 +66,7 @@ equality-characterisation-strict =
 -- Strict ω-continuous functions satisfy an extra monad law.
 
 >>=-∘-return :
-  ∀ {a b} {A : Set a} {B : Set b} →
+  ∀ {a b} {A : Type a} {B : Type b} →
   (f : [ A ⊥→ B ⊥]-strict) →
   ∀ x → x >>=′ (function f ∘ return) ≡ function f x
 >>=-∘-return fs = ⊥-rec-⊥
@@ -97,7 +97,7 @@ equality-characterisation-strict =
 -- functions from A to B ⊥.
 
 partial↔strict :
-  ∀ {a b} {A : Set a} {B : Set b} →
+  ∀ {a b} {A : Type a} {B : Type b} →
   (A → B ⊥) ↔ [ A ⊥→ B ⊥]-strict
 partial↔strict {a} = record
   { surjection = record
