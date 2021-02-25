@@ -258,7 +258,8 @@ module _ {p q}
       ⊑-rec (upper-bound′ s n) = qu s (inc-rec s) n
 
       ⊑-rec (least-upper-bound′ s ub is-ub) =
-        ql s ub is-ub (inc-rec s) (⊥-rec ub) (λ n → ⊑-rec (is-ub n))
+        ql s ub is-ub (inc-rec s) (⊥-rec ub)
+          (λ n → ⊑-rec {x = proj₁ s n} (is-ub n))
 
       ⊑-rec (now-mono′ x) = qm x
 
