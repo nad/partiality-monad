@@ -2,7 +2,7 @@
 -- The syntax of the untyped λ-calculus
 ------------------------------------------------------------------------
 
-{-# OPTIONS --without-K --safe #-}
+{-# OPTIONS --safe #-}
 
 module Lambda.Simplified.Syntax where
 

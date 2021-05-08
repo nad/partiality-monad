@@ -3,7 +3,7 @@
 -- values
 ------------------------------------------------------------------------
 
-{-# OPTIONS --without-K --safe #-}
+{-# OPTIONS --safe #-}
 
 module Delay-monad.Alternative where
 
