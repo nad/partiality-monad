@@ -20,7 +20,7 @@
 -- * The set quotient operator that is used can be applied to
 --   arbitrary binary relations, not only propositional ones.
 
-{-# OPTIONS --cubical --safe --sized-types #-}
+{-# OPTIONS --cubical --sized-types #-}
 
 module README where
 

@@ -2,7 +2,7 @@
 -- Most of a virtual machine
 ------------------------------------------------------------------------
 
-{-# OPTIONS --safe --sized-types #-}
+{-# OPTIONS --sized-types #-}
 
 module Lambda.Virtual-machine where
 

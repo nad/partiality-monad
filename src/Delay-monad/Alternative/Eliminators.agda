@@ -6,7 +6,7 @@
 -- to) the development underlying Theorem 1 in "Quotienting the Delay
 -- Monad by Weak Bisimilarity" by Chapman, Uustalu and Veltri.
 
-{-# OPTIONS --cubical --safe --sized-types #-}
+{-# OPTIONS --cubical --sized-types #-}
 
 module Delay-monad.Alternative.Eliminators where
 

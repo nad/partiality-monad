@@ -2,7 +2,7 @@
 -- A type soundness result
 ------------------------------------------------------------------------
 
-{-# OPTIONS --cubical --safe --sized-types #-}
+{-# OPTIONS --cubical --sized-types #-}
 
 module Lambda.Partiality-monad.Inductive.Type-soundness where
 

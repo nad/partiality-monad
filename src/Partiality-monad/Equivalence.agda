@@ -4,7 +4,7 @@
 -- assuming extensionality and countable choice
 ------------------------------------------------------------------------
 
-{-# OPTIONS --cubical --safe --sized-types #-}
+{-# OPTIONS --cubical --sized-types #-}
 
 open import Prelude hiding (⊥; ↑)
 

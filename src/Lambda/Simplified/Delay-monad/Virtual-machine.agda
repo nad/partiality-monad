@@ -2,7 +2,7 @@
 -- A virtual machine
 ------------------------------------------------------------------------
 
-{-# OPTIONS --safe --sized-types #-}
+{-# OPTIONS --sized-types #-}
 
 module Lambda.Simplified.Delay-monad.Virtual-machine where
 

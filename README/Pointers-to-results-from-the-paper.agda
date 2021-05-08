@@ -6,7 +6,7 @@
 -- the description in the paper. See README for some discussion of the
 -- changes.
 
-{-# OPTIONS --cubical --safe --sized-types #-}
+{-# OPTIONS --cubical --sized-types #-}
 
 module README.Pointers-to-results-from-the-paper where
 

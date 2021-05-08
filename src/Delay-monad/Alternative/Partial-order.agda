@@ -2,7 +2,7 @@
 -- Information orderings
 ------------------------------------------------------------------------
 
-{-# OPTIONS --cubical --safe --sized-types #-}
+{-# OPTIONS --cubical --sized-types #-}
 
 open import Prelude hiding (module W)
 

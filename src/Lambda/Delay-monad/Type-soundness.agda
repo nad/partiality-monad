@@ -2,7 +2,7 @@
 -- A type soundness result
 ------------------------------------------------------------------------
 
-{-# OPTIONS --safe --sized-types #-}
+{-# OPTIONS --sized-types #-}
 
 module Lambda.Delay-monad.Type-soundness where
 
