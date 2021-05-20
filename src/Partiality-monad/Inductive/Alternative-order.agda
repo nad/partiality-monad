@@ -15,6 +15,7 @@ open import Logical-equivalence using (_⇔_)
 
 open import Bijection equality-with-J using (_↔_)
 open import Double-negation equality-with-J as DN
+open import Equality.Path.Isomorphisms.Univalence equality-with-paths
 open import Equivalence equality-with-J as Eq using (_≃_)
 open import Function-universe equality-with-J as F hiding (id; _∘_)
 open import H-level equality-with-J

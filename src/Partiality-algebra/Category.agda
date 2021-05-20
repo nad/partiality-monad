@@ -12,6 +12,7 @@ open import Prelude hiding (T)
 
 open import Bijection equality-with-J as Bijection using (_↔_)
 open import Category equality-with-J as Category
+open import Equality.Path.Isomorphisms.Univalence equality-with-paths
 open import Equivalence equality-with-J as Eq using (_≃_)
 open import Function-universe equality-with-J as F hiding (id; _∘_)
 open import H-level equality-with-J

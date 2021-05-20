@@ -13,6 +13,7 @@ open import Logical-equivalence using (_⇔_)
 open import Prelude.Size
 
 open import Bijection equality-with-J using (_↔_)
+open import Equality.Path.Isomorphisms.Univalence equality-with-paths
 open import H-level equality-with-J
 open import H-level.Closure equality-with-J
 open import H-level.Truncation.Propositional equality-with-paths
