@@ -234,7 +234,10 @@ module _ {p q}
       ⊥-rec (⨆′ s) = pl s (inc-rec s)
 
       ⊥-rec (antisymmetry′ {x = x} {y = y} p q i) =
-        subst≡→[]≡ (pa p q (⊥-rec x) (⊥-rec y) (⊑-rec p) (⊑-rec q)) i
+        subst≡→[]≡
+          {B = P}
+          {eq = antisymmetry′ p q}
+          (pa p q (⊥-rec x) (⊥-rec y) (⊑-rec p) (⊑-rec q)) i
 
       ⊥-rec (≡-propositional′ {x = x} {y = y} p q i j) = lemma i j
         where

@@ -177,6 +177,8 @@ abstract
       ⊥-rec (now x)                                   = A.po x
       ⊥-rec (⨆ s)                                     = A.pl s (inc-rec s)
       ⊥-rec (antisymmetry {x = x} {y = y} p q i)      = subst≡→[]≡
+                                                          {B = A.P}
+                                                          {eq = antisymmetry p q}
                                                           (A.pa p q
                                                              (⊥-rec x) (⊥-rec y)
                                                              (⊑-rec p) (⊑-rec q))
