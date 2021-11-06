@@ -15,6 +15,7 @@ open import Logical-equivalence using (_⇔_)
 open import Prelude hiding (↑)
 
 open import Bijection equality-with-J using (_↔_)
+open import Equality.Path.Isomorphisms.Univalence equality-with-paths
 import Equivalence equality-with-J as Eq
 open import Equivalence-relation equality-with-J
 open import Function-universe equality-with-J hiding (id; _∘_)
@@ -106,7 +107,7 @@ private
     ; left-inverse-of = from∘to
     }
     where
-    iso = ℕ→/-comm cc R-equiv R-prop
+    iso = ℕ→/-comm cc prop-ext R-equiv R-prop
 
     abstract
 
