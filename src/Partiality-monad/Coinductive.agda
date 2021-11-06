@@ -2,7 +2,7 @@
 -- The delay monad quotiented by weak bisimilarity
 ------------------------------------------------------------------------
 
-{-# OPTIONS --cubical --sized-types #-}
+{-# OPTIONS --erased-cubical --sized-types #-}
 
 module Partiality-monad.Coinductive where
 

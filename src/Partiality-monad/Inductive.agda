@@ -2,7 +2,7 @@
 -- A quotient inductive-inductive definition of the partiality monad
 ------------------------------------------------------------------------
 
-{-# OPTIONS --cubical --safe #-}
+{-# OPTIONS --erased-cubical --safe #-}
 
 module Partiality-monad.Inductive where
 

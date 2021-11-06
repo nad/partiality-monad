@@ -2,7 +2,7 @@
 -- Compiler correctness
 ------------------------------------------------------------------------
 
-{-# OPTIONS --cubical --sized-types #-}
+{-# OPTIONS --erased-cubical --sized-types #-}
 
 module Lambda.Simplified.Delay-monad.Compiler-correctness where
 

@@ -2,7 +2,7 @@
 -- Fixpoint combinators
 ------------------------------------------------------------------------
 
-{-# OPTIONS --cubical --safe #-}
+{-# OPTIONS --erased-cubical --safe #-}
 
 open import Partiality-algebra as PA hiding (id; _∘_)
 

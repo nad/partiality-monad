@@ -2,7 +2,7 @@
 -- ω-continuous functions
 ------------------------------------------------------------------------
 
-{-# OPTIONS --cubical --safe #-}
+{-# OPTIONS --erased-cubical --safe #-}
 
 module Partiality-monad.Inductive.Omega-continuous where
 

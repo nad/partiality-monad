@@ -3,7 +3,7 @@
 -- monad to the alternative one and to another type
 ------------------------------------------------------------------------
 
-{-# OPTIONS --cubical --sized-types #-}
+{-# OPTIONS --erased-cubical --sized-types #-}
 
 open import Prelude hiding (↑)
 

@@ -2,7 +2,7 @@
 -- A function that runs computations
 ------------------------------------------------------------------------
 
-{-# OPTIONS --cubical --safe #-}
+{-# OPTIONS --erased-cubical --safe #-}
 
 open import Prelude hiding (⊥)
 

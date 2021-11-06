@@ -2,7 +2,7 @@
 -- Various properties
 ------------------------------------------------------------------------
 
-{-# OPTIONS --cubical --safe #-}
+{-# OPTIONS --erased-cubical --safe #-}
 
 module Delay-monad.Alternative.Properties where
 

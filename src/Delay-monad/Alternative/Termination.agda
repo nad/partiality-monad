@@ -2,7 +2,7 @@
 -- Termination predicates
 ------------------------------------------------------------------------
 
-{-# OPTIONS --cubical --sized-types #-}
+{-# OPTIONS --erased-cubical --sized-types #-}
 
 open import Prelude hiding (↑; module W)
 

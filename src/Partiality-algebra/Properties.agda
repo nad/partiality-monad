@@ -2,7 +2,7 @@
 -- Some partiality algebra properties
 ------------------------------------------------------------------------
 
-{-# OPTIONS --cubical --safe #-}
+{-# OPTIONS --erased-cubical --safe #-}
 
 open import Prelude hiding (T)
 

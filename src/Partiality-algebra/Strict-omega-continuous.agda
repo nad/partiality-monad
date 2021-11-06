@@ -2,7 +2,7 @@
 -- Strict ω-continuous functions
 ------------------------------------------------------------------------
 
-{-# OPTIONS --cubical --safe #-}
+{-# OPTIONS --erased-cubical --safe #-}
 
 module Partiality-algebra.Strict-omega-continuous where
 

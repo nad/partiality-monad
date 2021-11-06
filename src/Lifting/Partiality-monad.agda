@@ -6,7 +6,7 @@
 -- The code in this module is based on a suggestion from Paolo
 -- Capriotti.
 
-{-# OPTIONS --cubical --safe #-}
+{-# OPTIONS --erased-cubical --safe #-}
 
 open import Prelude hiding (T; ⊥)
 

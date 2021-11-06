@@ -2,7 +2,7 @@
 -- Pointed and non-pointed ω-cpos
 ------------------------------------------------------------------------
 
-{-# OPTIONS --cubical --safe #-}
+{-# OPTIONS --erased-cubical --safe #-}
 
 module Omega-cpo where
 
