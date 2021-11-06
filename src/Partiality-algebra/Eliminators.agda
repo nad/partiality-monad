@@ -18,7 +18,6 @@ open import H-level.Closure equality-with-J
 open import Surjection equality-with-J using (_↠_)
 
 open import Partiality-algebra as PA hiding (id; _∘_)
-open import Partiality-algebra.Category
 
 ------------------------------------------------------------------------
 -- Eliminators
