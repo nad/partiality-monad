@@ -19,6 +19,7 @@ import Delay-monad.Monad
 import Delay-monad.Partial-order
 import Delay-monad.Termination
 import Equality.Propositional as Equality
+import Extensionality
 import Interval
 import H-level.Truncation.Propositional as Truncation
 import Quotient
@@ -56,7 +57,7 @@ import Search
 
 -- Extensionality for functions.
 
-Extensionality = Equality.Extensionality
+Extensionality = Extensionality.Extensionality
 ext            = Interval.ext
 
 -- Strong bisimilarity implies equality for the delay monad.

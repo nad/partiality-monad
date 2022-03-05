@@ -72,7 +72,7 @@ abstract
                             ≡⇒→ (cong (λ _⊑_ → ∀ n → f n ⊑ f (suc n))
                                       (⟨ext⟩ (⟨ext⟩ ∘ ⊑≡⊑))))
                          s))                                             ↝⟨ Σ-cong (∀-cong ext λ _ →
-                                                                                    Eq.extensionality-isomorphism bad-ext) (λ _ → F.id) ⟩
+                                                                                    Eq.extensionality-isomorphism ext) (λ _ → F.id) ⟩
     (∃ λ (⊑≡⊑ : ∀ x → P₁._⊑_ x ≡ P₂._⊑_ x) →
        P₁.never ≡ P₂.never
          ×
@@ -83,7 +83,7 @@ abstract
                          (λ {f} →
                             ≡⇒→ (cong (λ _⊑_ → ∀ n → f n ⊑ f (suc n))
                                       (⟨ext⟩ ⊑≡⊑)))
-                         s))                                             ↝⟨ Σ-cong (Eq.extensionality-isomorphism bad-ext) (λ _ → F.id) ⟩
+                         s))                                             ↝⟨ Σ-cong (Eq.extensionality-isomorphism ext) (λ _ → F.id) ⟩
 
     (∃ λ (⊑≡⊑ : P₁._⊑_ ≡ P₂._⊑_) →
        P₁.never ≡ P₂.never

@@ -431,7 +431,7 @@ equality-characterisation-Partial :
   (∀ rec → Partial.function f rec ≡ Partial.function g rec) ↔
   f ≡ g
 equality-characterisation-Partial {f = f} {g} =
-  (∀ rec → function f rec ≡ function g rec)  ↔⟨ Eq.extensionality-isomorphism bad-ext ⟩
+  (∀ rec → function f rec ≡ function g rec)  ↔⟨ Eq.extensionality-isomorphism ext ⟩
   function f ≡ function g                    ↝⟨ ignore-propositional-component
                                                   (Σ-closure 1
                                                      (implicit-Π-closure ext 1 λ _ →

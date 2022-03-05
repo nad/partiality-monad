@@ -12,6 +12,7 @@ open import Prelude hiding (T)
 
 open import Bijection equality-with-J using (_↔_)
 import Equivalence equality-with-J as Eq
+open import Extensionality equality-with-J
 open import Function-universe equality-with-J hiding (id; _∘_)
 open import H-level equality-with-J
 open import H-level.Closure equality-with-J
@@ -524,7 +525,7 @@ initiality→eliminators {p = p} {q} {p′} {q′} {A} {PA} initial args =
            let lemma₃ =
                  cong _[ n ] lemma₁                               ≡⟨ sym $ cong-∘ (_$ n) proj₁ lemma₁ ⟩
                  cong (_$ n) (cong proj₁ lemma₁)                  ≡⟨ cong (cong (_$ n)) $ proj₁-Σ-≡,≡→≡ (⟨ext⟩ (lemma ∘ proj₁ s)) _ ⟩
-                 cong (_$ n) (⟨ext⟩ (lemma ∘ proj₁ s))            ≡⟨ cong-ext (lemma ∘ proj₁ s) ⟩∎
+                 cong (_$ n) (⟨ext⟩ (lemma ∘ proj₁ s))            ≡⟨ cong-ext ext ⟩∎
                  lemma (s [ n ])                                  ∎
            in
            subst (λ s → ∀ n → P (s [ n ])) lemma₁

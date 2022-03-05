@@ -115,7 +115,7 @@ record Partiality-algebra-with
   equality-characterisation-increasing :
     ∀ {s₁ s₂} → (∀ n → s₁ [ n ] ≡ s₂ [ n ]) ↔ s₁ ≡ s₂
   equality-characterisation-increasing {s₁} {s₂} =
-    (∀ n → s₁ [ n ] ≡ s₂ [ n ])  ↔⟨ Eq.extensionality-isomorphism bad-ext ⟩
+    (∀ n → s₁ [ n ] ≡ s₂ [ n ])  ↔⟨ Eq.extensionality-isomorphism ext ⟩
     proj₁ s₁ ≡ proj₁ s₂          ↝⟨ ignore-propositional-component
                                       (Π-closure ext 1 λ _ →
                                        ⊑-propositional) ⟩□
