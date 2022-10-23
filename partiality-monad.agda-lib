@@ -2,6 +2,6 @@ name: partiality-monad
 depend: equality delay-monad
 include: src
 flags:
-  --without-K
+  --cubical-compatible
   --no-import-sorts
   --warning=noNoGuardednessFlag
