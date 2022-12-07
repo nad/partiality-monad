@@ -3,6 +3,7 @@ depend: equality delay-monad
 include: src
 flags:
   --cubical-compatible
+  --erasure
   --no-import-sorts
   --warning=noNoGuardednessFlag
   --warning=noUnsupportedIndexedMatch
